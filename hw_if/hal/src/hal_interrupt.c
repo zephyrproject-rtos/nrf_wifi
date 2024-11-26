@@ -521,6 +521,7 @@ static enum nrf_wifi_status hal_rpu_process_wdog(struct nrf_wifi_hal_dev_ctx *ha
 	 * PS_ACTIVE state for more than the timeout period
 	 */
 	if (!is_rpu_recovery_needed(hal_dev_ctx)) {
+		hal_dev_ctx->wdt_irq_ignored++;
 #ifdef NRF_WIFI_RPU_RECOVERY_DEBUG
 		nrf_wifi_osal_log_info("Ignore watchdog interrupt, RPU recovery not needed");
 #else
@@ -577,6 +578,9 @@ enum nrf_wifi_status hal_rpu_irq_process(struct nrf_wifi_hal_dev_ctx *hal_dev_ct
 	num_events = hal_rpu_event_get_all(hal_dev_ctx);
 
 	if (hal_rpu_irq_wdog_chk(hal_dev_ctx)) {
+#ifdef NRF_WIFI_RPU_RECOVERY
+		hal_dev_ctx->wdt_irq_received++;
+#endif /* NRF_WIFI_RPU_RECOVERY */
 		nrf_wifi_osal_log_dbg("Received watchdog interrupt");
 
 		status = hal_rpu_process_wdog(hal_dev_ctx, do_rpu_recovery);
