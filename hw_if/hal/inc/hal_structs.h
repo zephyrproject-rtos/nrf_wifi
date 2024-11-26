@@ -252,6 +252,10 @@ struct nrf_wifi_hal_dev_ctx {
 	unsigned long last_wakeup_now_deasserted_time_ms;
 	/** RPU sleep opp time */
 	unsigned long last_rpu_sleep_opp_time_ms;
+	/** Number of watchdog timer interrupts received */
+	int wdt_irq_received;
+	/** Number of watchdog timer interrupts ignored */
+	int wdt_irq_ignored;
 #endif /* NRF_WIFI_RPU_RECOVERY */
 #if defined(NRF_WIFI_LOW_POWER)  || defined(__DOXYGEN__)
 	/** RPU power state */
