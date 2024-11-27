@@ -109,7 +109,7 @@ struct nrf_wifi_hal_dev_ctx *nrf_wifi_rt_hal_dev_add(struct nrf_wifi_hal_priv *h
 
 	hal_dev_ctx->num_cmds = RPU_CMD_START_MAGIC;
 
-	hal_dev_ctx->cmd_q = nrf_wifi_utils_q_alloc();
+	hal_dev_ctx->cmd_q = nrf_wifi_utils_ctrl_q_alloc();
 
 	if (!hal_dev_ctx->cmd_q) {
 		nrf_wifi_osal_log_err("%s: Unable to allocate command queue",
@@ -117,7 +117,7 @@ struct nrf_wifi_hal_dev_ctx *nrf_wifi_rt_hal_dev_add(struct nrf_wifi_hal_priv *h
 		goto hal_dev_free;
 	}
 
-	hal_dev_ctx->event_q = nrf_wifi_utils_q_alloc();
+	hal_dev_ctx->event_q = nrf_wifi_utils_ctrl_q_alloc();
 
 	if (!hal_dev_ctx->event_q) {
 		nrf_wifi_osal_log_err("%s: Unable to allocate event queue",
@@ -216,9 +216,9 @@ lock_rx_free:
 lock_hal_free:
 	nrf_wifi_osal_spinlock_free(hal_dev_ctx->lock_hal);
 event_q_free:
-	nrf_wifi_utils_q_free(hal_dev_ctx->event_q);
+	nrf_wifi_utils_ctrl_q_free(hal_dev_ctx->event_q);
 cmd_q_free:
-	nrf_wifi_utils_q_free(hal_dev_ctx->cmd_q);
+	nrf_wifi_utils_ctrl_q_free(hal_dev_ctx->cmd_q);
 hal_dev_free:
 	nrf_wifi_osal_mem_free(hal_dev_ctx);
 	hal_dev_ctx = NULL;

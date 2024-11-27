@@ -17,12 +17,20 @@ void *nrf_wifi_utils_q_alloc(void)
 	return nrf_wifi_utils_list_alloc();
 }
 
+void *nrf_wifi_utils_ctrl_q_alloc(void)
+{
+	return nrf_wifi_utils_ctrl_list_alloc();
+}
 
 void nrf_wifi_utils_q_free(void *q)
 {
 	nrf_wifi_utils_list_free(q);
 }
 
+void nrf_wifi_utils_ctrl_q_free(void *q)
+{
+	nrf_wifi_utils_ctrl_list_free(q);
+}
 
 enum nrf_wifi_status nrf_wifi_utils_q_enqueue(void *q,
 					      void *data)

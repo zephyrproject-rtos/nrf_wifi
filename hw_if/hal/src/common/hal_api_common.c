@@ -695,9 +695,9 @@ void nrf_wifi_hal_dev_rem(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 	nrf_wifi_osal_spinlock_free(hal_dev_ctx->lock_hal);
 	nrf_wifi_osal_spinlock_free(hal_dev_ctx->lock_rx);
 
-	nrf_wifi_utils_q_free(hal_dev_ctx->event_q);
+	nrf_wifi_utils_ctrl_q_free(hal_dev_ctx->event_q);
 
-	nrf_wifi_utils_q_free(hal_dev_ctx->cmd_q);
+	nrf_wifi_utils_ctrl_q_free(hal_dev_ctx->cmd_q);
 
 #ifdef NRF_WIFI_LOW_POWER
 	hal_rpu_ps_deinit(hal_dev_ctx);

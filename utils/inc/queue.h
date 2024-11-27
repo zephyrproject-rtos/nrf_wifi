@@ -18,6 +18,10 @@ void *nrf_wifi_utils_q_alloc(void);
 
 void nrf_wifi_utils_q_free(void *q);
 
+void *nrf_wifi_utils_ctrl_q_alloc(void);
+
+void nrf_wifi_utils_ctrl_q_free(void *q);
+
 enum nrf_wifi_status nrf_wifi_utils_q_enqueue(void *q,
 					      void *q_node);
 

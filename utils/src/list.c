@@ -31,12 +31,34 @@ out:
 
 }
 
+void *nrf_wifi_utils_ctrl_list_alloc(void)
+{
+	void *list = NULL;
+
+	list = nrf_wifi_osal_ctrl_llist_alloc();
+
+	if (!list) {
+		nrf_wifi_osal_log_err("%s: Unable to allocate list",
+				      __func__);
+		goto out;
+	}
+
+	nrf_wifi_osal_llist_init(list);
+
+out:
+	return list;
+
+}
 
 void nrf_wifi_utils_list_free(void *list)
 {
 	nrf_wifi_osal_llist_free(list);
 }
 
+void nrf_wifi_utils_ctrl_list_free(void *list)
+{
+	nrf_wifi_osal_ctrl_llist_free(list);
+}
 
 enum nrf_wifi_status nrf_wifi_utils_list_add_tail(void *list,
 						  void *data)
