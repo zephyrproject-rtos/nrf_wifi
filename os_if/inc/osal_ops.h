@@ -28,13 +28,13 @@ struct nrf_wifi_osal_ops {
 	/**
 	 * @brief Allocate memory.
 	 *
-	 * @param size The size of the memory to allocate.
+	 * @param size The size of the memory to allocate for control messages.
 	 * @return A pointer to the start of the allocated memory.
 	 */
 	void *(*mem_alloc)(size_t size);
 
 	/**
-	 * @brief Allocate zero-initialized memory.
+	 * @brief Allocate zero-initialized memory for control messages.
 	 *
 	 * @param size The size of the memory to allocate.
 	 * @return A pointer to the start of the allocated memory.
@@ -42,11 +42,26 @@ struct nrf_wifi_osal_ops {
 	void *(*mem_zalloc)(size_t size);
 
 	/**
-	 * @brief Free allocated memory.
+	 * @brief Free memory allocated for control messages.
 	 *
 	 * @param buf A pointer to the memory to free.
 	 */
 	void (*mem_free)(void *buf);
+
+	/**
+	 * @brief Allocate zero-initialized memory for data.
+	 *
+	 * @param size The size of the memory to allocate.
+	 * @return A pointer to the start of the allocated memory.
+	 */
+	void *(*data_mem_zalloc)(size_t size);
+
+	/**
+	 * @brief Free memory allocated for data.
+	 *
+	 * @param buf A pointer to the memory to free.
+	 */
+	void (*data_mem_free)(void *buf);
 
 	/**
 	 * @brief Copy memory.
@@ -321,11 +336,25 @@ struct nrf_wifi_osal_ops {
 	void *(*llist_alloc)(void);
 
 	/**
+	 * @brief Allocate a linked list for control path.
+	 *
+	 * @return A pointer to the allocated linked list.
+	 */
+	void *(*ctrl_llist_alloc)(void);
+
+	/**
 	 * @brief Free a linked list.
 	 *
 	 * @param llist A pointer to the linked list to free.
 	 */
 	void (*llist_free)(void *llist);
+
+	/**
+	 * @brief Free a linked list for control path.
+	 *
+	 * @param llist A pointer to the linked list to free.
+	 */
+	void (*ctrl_llist_free)(void *llist);
 
 	/**
 	 * @brief Initialize a linked list.

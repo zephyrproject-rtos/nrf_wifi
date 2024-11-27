@@ -18,6 +18,10 @@ void *nrf_wifi_utils_list_alloc(void);
 
 void nrf_wifi_utils_list_free(void *list);
 
+void *nrf_wifi_utils_ctrl_list_alloc(void);
+
+void nrf_wifi_utils_ctrl_list_free(void *list);
+
 enum nrf_wifi_status nrf_wifi_utils_list_add_tail(void *list,
 						  void *data);
 

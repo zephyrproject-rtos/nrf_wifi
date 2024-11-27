@@ -60,7 +60,7 @@ static enum nrf_wifi_status nrf_wifi_sys_fmac_init_tx(struct nrf_wifi_fmac_dev_c
 		sys_fpriv->data_config.max_tx_aggregation *
 		sizeof(struct nrf_wifi_fmac_buf_map_info));
 
-	sys_dev_ctx->tx_buf_info = nrf_wifi_osal_mem_zalloc(size);
+	sys_dev_ctx->tx_buf_info = nrf_wifi_osal_data_mem_zalloc(size);
 
 	if (!sys_dev_ctx->tx_buf_info) {
 		nrf_wifi_osal_log_err("%s: No space for TX buf info",
@@ -86,7 +86,7 @@ static void nrf_wifi_sys_fmac_deinit_tx(struct nrf_wifi_fmac_dev_ctx *fmac_dev_c
 
 	tx_deinit(fmac_dev_ctx);
 
-	nrf_wifi_osal_mem_free(sys_dev_ctx->tx_buf_info);
+	nrf_wifi_osal_data_mem_free(sys_dev_ctx->tx_buf_info);
 }
 
 #endif /* NRF70_DATA_TX */
@@ -106,7 +106,7 @@ static enum nrf_wifi_status nrf_wifi_sys_fmac_init_rx(struct nrf_wifi_fmac_dev_c
 
 	size = (sys_fpriv->num_rx_bufs * sizeof(struct nrf_wifi_fmac_buf_map_info));
 
-	sys_dev_ctx->rx_buf_info = nrf_wifi_osal_mem_zalloc(size);
+	sys_dev_ctx->rx_buf_info = nrf_wifi_osal_data_mem_zalloc(size);
 
 	if (!sys_dev_ctx->rx_buf_info) {
 		nrf_wifi_osal_log_err("%s: No space for RX buf info",
@@ -182,7 +182,7 @@ static enum nrf_wifi_status nrf_wifi_sys_fmac_deinit_rx(struct nrf_wifi_fmac_dev
 		}
 	}
 
-	nrf_wifi_osal_mem_free(sys_dev_ctx->rx_buf_info);
+	nrf_wifi_osal_data_mem_free(sys_dev_ctx->rx_buf_info);
 
 	sys_dev_ctx->rx_buf_info = NULL;
 out:
