@@ -443,14 +443,28 @@ enum nrf_wifi_security_type {
 	NRF_WIFI_WPA,
 	/** WPA2 */
 	NRF_WIFI_WPA2,
-	/** WPA3 */
-	NRF_WIFI_WPA3,
 	/** WAPI */
 	NRF_WIFI_WAPI,
 	/** Enterprise mode */
 	NRF_WIFI_EAP,
-	/** WPA2 sha 256 */
-	NRF_WIFI_WPA2_256
+	/** FT 8021X */
+	NRF_WIFI_FT_EAP,
+	/** Enterprise tls SHA256 */
+	NRF_WIFI_EAP_TLS_SHA256,
+	/** WPA2 SHA256 */
+        NRF_WIFI_WPA2_256,
+	/** WPA3 */
+        NRF_WIFI_WPA3,
+	/** 8021X SUITE-B SHA256 */
+        NRF_WIFI_EAP_SUITEB_SHA256,
+	/** 8021X SUITE-B SHA384 */
+        NRF_WIFI_EAP_SUITEB_SHA384,
+	/** FT 8021X SHA384 */
+        NRF_WIFI_FT_EAP_SHA384,
+	/** FT PSK SHA384 */
+        NRF_WIFI_FT_PSK_SHA384,
+	/** PSK SHA384 */
+        NRF_WIFI_PSK_SHA384,
 };
 
 /**

@@ -948,6 +948,11 @@ struct nrf_wifi_cmd_sys_init {
 	 *  alive frame.
 	 */
 	unsigned int keep_alive_period;
+	/** The RPU uses this value to define the limit on display scan BSS entries.
+	 *  By default, the limit is set to 250 in scan-only mode and 150 in regular mode.
+	 *  If this value is greater than 0, it overrides the default limits.
+	 */
+	unsigned int display_scan_bss_limit;
 } __NRF_WIFI_PKD;
 
 /**
