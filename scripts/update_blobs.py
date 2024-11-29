@@ -92,7 +92,7 @@ def main() -> None:
     parser.add_argument(
         "-t",
         "--template",
-        default="utils/module.yml.j2",
+        default="scripts/module.yml.j2",
         help="Path to the Jinja2 template file.",
     )
     parser.add_argument(
