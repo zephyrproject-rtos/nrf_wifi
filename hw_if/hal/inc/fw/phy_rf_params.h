@@ -83,6 +83,9 @@
 #define NRF_WIFI_VBAT_VERYLOW (8) /* Corresponds to (2.5+8*0.07)=3.06V */
 #define NRF_WIFI_VBAT_LOW (12)  /* Correspond to (2.5+12*0.07)=3.34V */
 #define NRF_WIFI_VBAT_HIGH (14) /* Correspond to (2.5+14*0.07)=3.48V */
+#define BAT_CONST_1 (2500)
+#define BAT_CONST_2 (70)
+
 
 /** Package type information written to the OTP memory */
 #define QFN_PACKAGE_INFO 0x5146
@@ -444,6 +447,7 @@ enum nrf_wifi_rf_test {
 	NRF_WIFI_RF_TEST_GET_TEMPERATURE,
 	NRF_WIFI_RF_TEST_XO_CALIB,
 	NRF_WIFI_RF_TEST_XO_TUNE,
+	NRF_WIFI_RF_TEST_GET_BAT_VOLT,
 	NRF_WIFI_RF_TEST_MAX,
 };
 
@@ -457,6 +461,8 @@ enum nrf_wifi_rf_test_event {
 	NRF_WIFI_RF_TEST_EVENT_SLEEP,
 	NRF_WIFI_RF_TEST_EVENT_TEMP_MEAS,
 	NRF_WIFI_RF_TEST_EVENT_XO_CALIB,
+	NRF_WIFI_RF_TEST_EVENT_XO_TUNE,
+	NRF_WIFI_RF_TEST_EVENT_GET_BAT_VOLT,
 	NRF_WIFI_RF_TEST_EVENT_MAX,
 };
 
@@ -542,6 +548,18 @@ struct nrf_wifi_temperature_params {
 	 * 1: Reading failed
 	 */
 	unsigned int readTemperatureStatus;
+} __NRF_WIFI_PKD;
+
+/** @brief Structure to hold battery voltage parameters */
+struct nrf_wifi_bat_volt_params {
+	unsigned char test;
+	/** Measured battery voltage in volts. */
+	unsigned char voltage;
+	/** Status of the voltage measurement command.
+	 * 0: Reading successful
+	 * 1: Reading failed
+	 */
+	unsigned int cmd_status;
 } __NRF_WIFI_PKD;
 
 struct nrf_wifi_rf_get_rf_rssi {
