@@ -953,6 +953,10 @@ struct nrf_wifi_cmd_sys_init {
 	 *  If this value is greater than 0, it overrides the default limits.
 	 */
 	unsigned int display_scan_bss_limit;
+	/** The RPU uses this value to enable/disable priority window for Wi-Fi scan
+	 *  in the case of coexistence with Short Range radio.
+	 */
+	unsigned int coex_disable_ptiwin_for_wifi_scan;
 } __NRF_WIFI_PKD;
 
 /**
