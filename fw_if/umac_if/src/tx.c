@@ -577,6 +577,7 @@ enum nrf_wifi_status rawtx_cmd_prep_callbk_fn(void *callbk_data,
 	nwb_data = (unsigned long)nrf_wifi_osal_nbuf_data_get((void *)nwb);
 	buf_len = nrf_wifi_osal_nbuf_data_size((void *)nwb);
 
+#ifndef CONFIG_NRF71_ON_IPC
 	phy_addr = nrf_wifi_hal_buf_map_tx(fmac_dev_ctx->hal_dev_ctx,
 					   nwb_data,
 					   buf_len,
@@ -593,7 +594,9 @@ enum nrf_wifi_status rawtx_cmd_prep_callbk_fn(void *callbk_data,
 	tx_buf_info->nwb = nwb;
 	tx_buf_info->mapped = true;
 	config->raw_tx_info.frame_ddr_pointer = (unsigned long long)phy_addr;
-	config->raw_tx_info.pkt_length = buf_len;
+#else
+        config->raw_tx_info.frame_ddr_pointer =  (unsigned long long)nwb_data;
+#endif /* !CONFIG_NRF71_ON_IPC */
 	info->num_tx_pkts++;
 
 	status = NRF_WIFI_STATUS_SUCCESS;
@@ -648,6 +651,7 @@ enum nrf_wifi_status tx_cmd_prep_callbk_fn(void *callbk_data,
 
 	buf_len = nrf_wifi_osal_nbuf_data_size((void *)nwb);
 
+#ifndef CONFIG_NRF71_ON_IPC
 	phy_addr = nrf_wifi_hal_buf_map_tx(fmac_dev_ctx->hal_dev_ctx,
 					   nwb_data,
 					   buf_len,
@@ -667,7 +671,10 @@ enum nrf_wifi_status tx_cmd_prep_callbk_fn(void *callbk_data,
 
 	config->tx_buff_info[frame_indx].ddr_ptr =
 		(unsigned long long)phy_addr;
-
+#else
+	config->tx_buff_info[frame_indx].ddr_ptr =
+		(unsigned long long)nwb_data;
+#endif /* !CONFIG_NRF71_ON_IPC */
 	config->tx_buff_info[frame_indx].pkt_length = buf_len;
 	config->num_tx_pkts++;
 
@@ -1233,7 +1240,7 @@ enum nrf_wifi_status tx_done_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 		desc_id = (desc * def_priv->data_config.max_tx_aggregation) + frame;
 
 		tx_buf_info = &def_dev_ctx->tx_buf_info[desc_id];
-
+#ifndef CONFIG_NRF71_ON_IPC
 		if (!tx_buf_info->mapped) {
 			nrf_wifi_osal_log_err("%s: Deinit_TX cmd called for unmapped TX buf(%d)",
 					      __func__,
@@ -1257,6 +1264,7 @@ enum nrf_wifi_status tx_done_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 		 */
 		tx_buf_info->nwb = 0;
 		tx_buf_info->mapped = false;
+#endif /* !CONFIG_NRF71_ON_IPC */
 	}
 
 	pkt = 0;

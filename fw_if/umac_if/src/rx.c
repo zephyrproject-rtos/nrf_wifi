@@ -95,7 +95,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 		nwb_data = (unsigned long)nrf_wifi_osal_nbuf_data_get((void *)nwb);
 
 		*(unsigned int *)(nwb_data) = desc_id;
-
+#ifndef CONFIG_NRF71_ON_IPC
 		phy_addr = nrf_wifi_hal_buf_map_rx(fmac_dev_ctx->hal_dev_ctx,
 						   nwb_data,
 						   buf_len,
@@ -111,13 +111,15 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 
 		rx_buf_info->nwb = nwb;
 		rx_buf_info->mapped = true;
-
+#endif /* CONFIG_NRF71_ON_IPC */
 		nrf_wifi_osal_mem_set(&rx_cmd,
 				      0x0,
 				      sizeof(rx_cmd));
-
+#ifndef CONFIG_NRF71_ON_IPC
 		rx_cmd.addr = (unsigned int)phy_addr;
-
+#else
+		rx_cmd.addr = (unsigned int)nwb_data;
+#endif /* CONFIG_NRF71_ON_IPC */
 		status = nrf_wifi_hal_data_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 						    NRF_WIFI_HAL_MSG_TYPE_CMD_DATA_RX,
 						    &rx_cmd,
@@ -125,6 +127,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 						    desc_id,
 						    pool_info.pool_id);
 	} else if (cmd_type == NRF_WIFI_FMAC_RX_CMD_TYPE_DEINIT) {
+#ifndef CONFIG_NRF71_ON_IPC
 		/* TODO: Need to initialize a command and send it to LMAC
 		 * when LMAC is capable of handling deinit command
 		 */
@@ -146,10 +149,13 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 					      __func__);
 			goto out;
 		}
+#endif /* CONFIG_NRF71_ON_IPC */
 
 		nrf_wifi_osal_nbuf_free((void *)rx_buf_info->nwb);
+#ifndef CONFIG_NRF71_ON_IPC
 		rx_buf_info->nwb = 0;
 		rx_buf_info->mapped = false;
+#endif /* CONFIG_NRF71_ON_IPC */
 		status = NRF_WIFI_STATUS_SUCCESS;
 	} else {
 		nrf_wifi_osal_log_err("%s: Unknown cmd_type (%d)",
@@ -265,6 +271,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 			continue;
 		}
 
+#ifndef CONFIG_NRF71_ON_IPC
 		nwb_data = (void *)nrf_wifi_hal_buf_unmap_rx(fmac_dev_ctx->hal_dev_ctx,
 							     pkt_len,
 							     pool_info.pool_id,
@@ -277,6 +284,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 			continue;
 		}
 
+#endif /* CONFIG_NRF71_ON_IPC */
 		rx_buf_info = &def_dev_ctx->rx_buf_info[desc_id];
 		nwb = (void *)rx_buf_info->nwb;
 

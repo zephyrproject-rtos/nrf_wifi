@@ -475,7 +475,7 @@ enum nrf_wifi_status nrf_wifi_fmac_ver_get(struct nrf_wifi_fmac_dev_ctx *fmac_de
 					  unsigned int *fw_ver)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-
+#ifndef CONFIG_NRF71_ON_IPC
 	status = hal_rpu_mem_read(fmac_dev_ctx->hal_dev_ctx,
 				  fw_ver,
 				  RPU_MEM_UMAC_VER,
@@ -486,7 +486,10 @@ enum nrf_wifi_status nrf_wifi_fmac_ver_get(struct nrf_wifi_fmac_dev_ctx *fmac_de
 				      __func__);
 		goto out;
 	}
-
+#else
+	*fw_ver = 0x01020304;
+	status = NRF_WIFI_STATUS_SUCCESS;
+#endif /* !CONFIG_NRF71_ON_IPC */
 out:
 	return status;
 }
