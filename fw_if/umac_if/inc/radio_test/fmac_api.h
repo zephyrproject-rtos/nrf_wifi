@@ -163,6 +163,18 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_test_dpd(struct nrf_wifi_fmac_dev_ctx *fma
  */
 enum nrf_wifi_status nrf_wifi_fmac_rf_get_temp(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
 
+/**
+ * @brief Retrieves the battery voltage in volts.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ *
+ * This function is used to send a command to:
+ *	- The RPU firmware to to acquire the battery voltage using
+ *	  the radio test mode.
+ *
+ * @retval NRF_WIFI_STATUS_SUCCESS On Success
+ * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
+ */
+enum nrf_wifi_status nrf_wifi_fmac_rf_get_bat_volt(struct nrf_wifi_fmac_dev_ctx* fmac_dev_ctx);
 
 
 /**
