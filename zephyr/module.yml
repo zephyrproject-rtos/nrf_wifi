@@ -10,33 +10,33 @@ blobs:
       type: img
       version: '1.0.0'
       license-path: ./LICENSE.txt
-      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/7f2302474f792e9fcb62f3049d9c7bb720cb5a3a/nrf_wifi/bin/zephyr/default/nrf70.bin
+      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/9cb48023a18f362b42ce30837ce5a00a946be2fc/nrf_wifi/bin/zephyr/default/nrf70.bin
       description: nRF70 Wi-Fi firmware for default mode
-      doc-url: https://github.com/nrfconnect/sdk-nrfxlib/raw/7f2302474f792e9fcb62f3049d9c7bb720cb5a3a/nrf_wifi/doc
+      doc-url: https://github.com/nrfconnect/sdk-nrfxlib/raw/9cb48023a18f362b42ce30837ce5a00a946be2fc/nrf_wifi/doc
 
     - path: wifi_fw_bins/scan_only/nrf70.bin
       sha256: 68d88d1008c7b6e2dc5edd25d25564e49d267c1e85f54ada0dd5a08aa905c48b
       type: img
       version: '1.0.0'
       license-path: ./LICENSE.txt
-      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/7f2302474f792e9fcb62f3049d9c7bb720cb5a3a/nrf_wifi/bin/zephyr/scan_only/nrf70.bin
+      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/9cb48023a18f362b42ce30837ce5a00a946be2fc/nrf_wifi/bin/zephyr/scan_only/nrf70.bin
       description: nRF70 Wi-Fi firmware for scan_only mode
-      doc-url: https://github.com/nrfconnect/sdk-nrfxlib/raw/7f2302474f792e9fcb62f3049d9c7bb720cb5a3a/nrf_wifi/doc
+      doc-url: https://github.com/nrfconnect/sdk-nrfxlib/raw/9cb48023a18f362b42ce30837ce5a00a946be2fc/nrf_wifi/doc
 
     - path: wifi_fw_bins/radio_test/nrf70.bin
       sha256: 4a86dafef27588ea9af0ea09fab11e736147175e9215ed29ea254ac18676b394
       type: img
       version: '1.0.0'
       license-path: ./LICENSE.txt
-      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/7f2302474f792e9fcb62f3049d9c7bb720cb5a3a/nrf_wifi/bin/zephyr/radio_test/nrf70.bin
+      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/9cb48023a18f362b42ce30837ce5a00a946be2fc/nrf_wifi/bin/zephyr/radio_test/nrf70.bin
       description: nRF70 Wi-Fi firmware for radio_test mode
-      doc-url: https://github.com/nrfconnect/sdk-nrfxlib/raw/7f2302474f792e9fcb62f3049d9c7bb720cb5a3a/nrf_wifi/doc
+      doc-url: https://github.com/nrfconnect/sdk-nrfxlib/raw/9cb48023a18f362b42ce30837ce5a00a946be2fc/nrf_wifi/doc
 
     - path: wifi_fw_bins/system_with_raw/nrf70.bin
       sha256: 0a3311ac56eccb466134e0a5f5a0c5c5faeb29cc2e7144ce98754e7c3295338f
       type: img
       version: '1.0.0'
       license-path: ./LICENSE.txt
-      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/7f2302474f792e9fcb62f3049d9c7bb720cb5a3a/nrf_wifi/bin/zephyr/system_with_raw/nrf70.bin
+      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/9cb48023a18f362b42ce30837ce5a00a946be2fc/nrf_wifi/bin/zephyr/system_with_raw/nrf70.bin
       description: nRF70 Wi-Fi firmware for system_with_raw mode
-      doc-url: https://github.com/nrfconnect/sdk-nrfxlib/raw/7f2302474f792e9fcb62f3049d9c7bb720cb5a3a/nrf_wifi/doc
+      doc-url: https://github.com/nrfconnect/sdk-nrfxlib/raw/9cb48023a18f362b42ce30837ce5a00a946be2fc/nrf_wifi/doc
