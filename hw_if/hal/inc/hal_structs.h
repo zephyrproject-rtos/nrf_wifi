@@ -128,7 +128,7 @@ struct nrf_wifi_hal_cfg_params {
 #if defined(NRF70_DATA_TX)  || defined(__DOXYGEN__)
 	/** Maximum TX frames */
 	unsigned int max_tx_frms;
-#endif /* CONFIG_NRF700X_DATA_TX */
+#endif /* CONFIG_NRF70_DATA_TX */
 	/** RX buffer pool parameters */
 	struct rx_buf_pool_params rx_buf_pool[MAX_NUM_OF_RX_QUEUES];
 	/** Maximum TX frame size */
