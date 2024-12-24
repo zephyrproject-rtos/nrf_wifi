@@ -909,5 +909,12 @@ struct nrf_wifi_osal_ops {
 	 * @return The length of the string.
 	 */
 	unsigned int (*strlen)(const void *str);
+
+	/**
+	 * @brief Get a random 8-bit value.
+	 *
+	 * @return A random 8-bit value.
+	 */
+	unsigned char (*rand8_get)(void);
 };
 #endif /* __OSAL_OPS_H__ */

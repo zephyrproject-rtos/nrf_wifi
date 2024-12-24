@@ -139,6 +139,10 @@ struct nrf_wifi_fmac_callbk_fns {
 					  signed short signal);
 #endif /* WIFI_MGMT_RAW_SCAN_RESULTS */
 
+	/** Callback function to be called when a get regulatory response is received. */
+	void (*event_get_reg)(void *if_priv,
+		struct nrf_wifi_reg *get_reg,
+		unsigned int event_len);
 #if defined(NRF70_STA_MODE) || defined(__DOXYGEN__)
 	/** Callback function to be called when an interface association state changes. */
 	enum nrf_wifi_status (*if_carr_state_chg_callbk_fn)(void *os_vif_ctx,
@@ -246,11 +250,6 @@ struct nrf_wifi_fmac_callbk_fns {
 	/** Callback function to be called when a TWT sleep response is received. */
 	void (*twt_sleep_callbk_fn)(void *if_priv,
 		struct nrf_wifi_umac_event_twt_sleep *twt_sleep_event_info,
-		unsigned int event_len);
-
-	/** Callback function to be called when a get regulatory response is received. */
-	void (*event_get_reg)(void *if_priv,
-		struct nrf_wifi_reg *get_reg,
 		unsigned int event_len);
 
 	/** Callback function to be called when a get power save information

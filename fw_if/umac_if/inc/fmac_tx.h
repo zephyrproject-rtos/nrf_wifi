@@ -124,7 +124,7 @@ enum nrf_wifi_status nrf_wifi_fmac_tx_done_event_process(struct nrf_wifi_fmac_de
 enum nrf_wifi_status
 nrf_wifi_fmac_rawtx_done_event_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 		struct nrf_wifi_event_raw_tx_done *config);
-#endif /* CONFIG_NRF700X_RAW_DATA_TX */
+#endif /* CONFIG_NRF70_RAW_DATA_TX */
 
 /**
  * @brief Get a TX descriptor from the specified queue.
