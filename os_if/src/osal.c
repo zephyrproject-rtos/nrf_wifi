@@ -166,7 +166,7 @@ void nrf_wifi_osal_spinlock_irq_rel(void *lock,
 }
 
 
-#if CONFIG_WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_DBG
+#if WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_DBG
 int nrf_wifi_osal_log_dbg(const char *fmt,
 			  ...)
 {
@@ -181,10 +181,10 @@ int nrf_wifi_osal_log_dbg(const char *fmt,
 
 	return ret;
 }
-#endif /* CONFIG_WIFI_NRF70_LOG_LEVEL_DBG */
+#endif /* WIFI_NRF70_LOG_LEVEL_DBG */
 
 
-#if CONFIG_WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_INF
+#if WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_INF
 int nrf_wifi_osal_log_info(const char *fmt,
 			   ...)
 {
@@ -199,10 +199,10 @@ int nrf_wifi_osal_log_info(const char *fmt,
 
 	return ret;
 }
-#endif /* CONFIG_WIFI_NRF70_LOG_LEVEL_INF */
+#endif /* WIFI_NRF70_LOG_LEVEL_INF */
 
 
-#if CONFIG_WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_ERR
+#if WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_ERR
 int nrf_wifi_osal_log_err(const char *fmt,
 			  ...)
 {
@@ -217,7 +217,7 @@ int nrf_wifi_osal_log_err(const char *fmt,
 
 	return ret;
 }
-#endif /* CONFIG_WIFI_NRF70_LOG_LEVEL_ERR */
+#endif /* WIFI_NRF70_LOG_LEVEL_ERR */
 
 
 void *nrf_wifi_osal_llist_node_alloc(void)
