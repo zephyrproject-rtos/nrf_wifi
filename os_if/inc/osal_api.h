@@ -1236,4 +1236,14 @@ unsigned int nrf_wifi_osal_strlen(const void *str);
 int nrf_wifi_osal_mem_cmp(const void *addr1,
 			  const void *addr2,
 			  size_t count);
+
+/**
+ * nrf_wifi_osal_rand8_get() - Get a random 8 bit number.
+ *
+ * Generates an 8 bit random number.
+ *
+ * Return:
+ * 			returns an 8 bit random number.
+ */
+unsigned char nrf_wifi_osal_rand8_get();
 #endif /* __OSAL_API_H__ */
