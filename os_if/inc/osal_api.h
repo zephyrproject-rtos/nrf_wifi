@@ -238,7 +238,7 @@ void nrf_wifi_osal_spinlock_irq_rel(void *lock,
 				    unsigned long *flags);
 
 
-#if CONFIG_WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_DBG
+#if WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_DBG
 /**
  * @brief Log a debug message.
  * @param fmt: Format string.
@@ -253,7 +253,7 @@ int nrf_wifi_osal_log_dbg(const char *fmt, ...);
 #define nrf_wifi_osal_log_dbg(fmt, ...)
 #endif
 
-#if CONFIG_WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_INF
+#if WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_INF
 /**
  * @brief Logs an informational message.
  * @param fmt Format string.
@@ -268,7 +268,7 @@ int nrf_wifi_osal_log_info(const char *fmt, ...);
 #define nrf_wifi_osal_log_info(fmt, ...)
 #endif
 
-#if CONFIG_WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_ERR
+#if WIFI_NRF70_LOG_LEVEL >= NRF_WIFI_LOG_LEVEL_ERR
 /**
  * @brief Logs an error message.
  * @param fmt Format string.

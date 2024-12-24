@@ -297,7 +297,7 @@ static void did_rpu_had_sleep_opp(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 	unsigned int deassert_time_diff_ms = nrf_wifi_osal_time_elapsed_ms(
 		hal_dev_ctx->last_wakeup_now_deasserted_time_ms);
 
-	if (deassert_time_diff_ms > CONFIG_NRF_WIFI_RPU_MIN_TIME_TO_ENTER_SLEEP_MS) {
+	if (deassert_time_diff_ms > NRF_WIFI_RPU_MIN_TIME_TO_ENTER_SLEEP_MS) {
 		hal_dev_ctx->last_rpu_sleep_opp_time_ms =
 			hal_dev_ctx->last_wakeup_now_deasserted_time_ms;
 	}
