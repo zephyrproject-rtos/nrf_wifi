@@ -205,8 +205,8 @@ static enum nrf_wifi_status umac_event_ctrl_process(struct nrf_wifi_fmac_dev_ctx
 #endif /* NRF_WIFI_CMD_EVENT_LOG */
 
 	switch (umac_hdr->cmd_evnt) {
-#ifndef NRF70_RADIO_TEST
 	case NRF_WIFI_UMAC_EVENT_GET_REG:
+#if !defined(NRF70_RADIO_TEST) && !defined(NRF70_OFFLOADED_RAW_TX)
 		if (callbk_fns->event_get_reg)
 			callbk_fns->event_get_reg(vif_ctx->os_vif_ctx,
 						      event_data,
@@ -233,7 +233,7 @@ static enum nrf_wifi_status umac_event_ctrl_process(struct nrf_wifi_fmac_dev_ctx
 		fmac_dev_ctx->alpha2_valid = true;
 #endif /* NRF70_OFFLOADED_RAW_TX */
 		break;
-#ifndef NRF70_RADIO_TEST
+#if !defined(NRF70_RADIO_TEST) && !defined(NRF70_OFFLOADED_RAW_TX)
 	case NRF_WIFI_UMAC_EVENT_REG_CHANGE:
 		if (callbk_fns->reg_change_callbk_fn)
 			callbk_fns->reg_change_callbk_fn(vif_ctx->os_vif_ctx,
