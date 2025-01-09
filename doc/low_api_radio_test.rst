@@ -11,5 +11,5 @@ The Radio Test mode is used for testing the RF performance of the nRF70 Series d
 | Source file: :file:`nrf_wifi/fw_if/umac_if/src/radio_test/fmac_api.c`
 
 .. doxygengroup:: nrf_wifi_api_radio_test
-   :project: hal_nordic
+   :project: nrf_wifi
    :members:
