@@ -7,5 +7,5 @@ The Wi-Fi mode is used for normal operation of the nRF70 Series device in, for e
 | Source file: :file:`nrf_wifi/fw_if/umac_if/src/default/fmac_api.c`
 
 .. doxygengroup:: nrf_wifi_api
-   :project: hal_nordic
+   :project: nrf_wifi
    :members:
