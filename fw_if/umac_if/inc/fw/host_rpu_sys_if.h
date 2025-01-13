@@ -941,6 +941,10 @@ struct nrf_wifi_cmd_sys_init {
 	 *  in the case of coexistence with Short Range radio.
 	 */
 	unsigned int coex_disable_ptiwin_for_wifi_scan;
+	/** The RPU uses this value to enable : 1 or disable : 0 the transmission of
+	 *  beacon and probe responses to the host when mgmt buffer offloading is enabled.
+	 */
+	unsigned char raw_scan_enable;
 } __NRF_WIFI_PKD;
 
 /**
