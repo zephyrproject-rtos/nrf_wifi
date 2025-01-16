@@ -664,7 +664,7 @@ unsigned int nrf_wifi_osal_time_elapsed_us(unsigned long start_time_us);
  *
  * Return: System uptime in milliseconds.
  */
-unsigned long nrf_wifi_osal_time_get_curr_ms();
+unsigned long nrf_wifi_osal_time_get_curr_ms(void);
 
 /**
  * nrf_wifi_osal_time_elapsed_ms() - Get elapsed time in milliseconds
@@ -1245,5 +1245,5 @@ int nrf_wifi_osal_mem_cmp(const void *addr1,
  * Return:
  * 			returns an 8 bit random number.
  */
-unsigned char nrf_wifi_osal_rand8_get();
+unsigned char nrf_wifi_osal_rand8_get(void);
 #endif /* __OSAL_API_H__ */
