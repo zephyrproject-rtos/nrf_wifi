@@ -191,7 +191,17 @@ static enum nrf_wifi_status umac_event_ctrl_process(struct nrf_wifi_fmac_dev_ctx
 
 #if !defined(NRF70_RADIO_TEST) && !defined(NRF70_OFFLOADED_RAW_TX)
 	vif_ctx = def_dev_ctx->vif_ctx[if_id];
+	if (!vif_ctx) {
+		nrf_wifi_osal_log_err("%s: Invalid vif_ctx",
+				      __func__);
+		goto out;
+	}
 	callbk_fns = &def_priv->callbk_fns;
+	if (!callbk_fns) {
+		nrf_wifi_osal_log_err("%s: Invalid callbk_fns",
+				      __func__);
+		goto out;
+	}
 #endif /* !NRF70_RADIO_TEST && !NRF70_OFFLOADED_RAW_TX */
 
 #ifdef NRF_WIFI_CMD_EVENT_LOG
