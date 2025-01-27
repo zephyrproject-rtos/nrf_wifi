@@ -42,6 +42,7 @@ nordic_blobs: List[BlobInfo] = [
     get_wifi_blob_info("scan_only"),
     get_wifi_blob_info("radio_test"),
     get_wifi_blob_info("system_with_raw"),
+    get_wifi_blob_info("offloaded_raw_tx"),
 ]
 
 logger: logging.Logger = logging.getLogger(__name__)
