@@ -17,7 +17,9 @@
 
 /* To reduce HEAP maximum usage */
 #define MAX_PATCH_CHUNK_SIZE 8192
+#ifndef ARRAY_SIZE
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
+#endif /* ARRAY_SIZE */
 
 const struct nrf70_fw_addr_info nrf70_fw_addr_info[] = {
 	{ RPU_PROC_TYPE_MCU_LMAC, "LMAC bimg", RPU_MEM_LMAC_PATCH_BIMG },
