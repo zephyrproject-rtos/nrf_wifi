@@ -1001,8 +1001,8 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_set_ps_exit_strategy(
  *       transmitted/aborted.
  *     - The driver cleans up the frame buffer(s) after receiving this event.
  *
- *@retval      WIFI_NRF_STATUS_SUCCESS On success
- *@retval      WIFI_NRF_STATUS_FAIL On failure
+ *@retval      NRF_WIFI_STATUS_SUCCESS On success
+ *@retval      NRF_WIFI_STATUS_FAIL On failure
  */
 enum nrf_wifi_status nrf_wifi_fmac_start_rawpkt_xmit(void *dev_ctx,
 						     unsigned char if_idx,
@@ -1018,8 +1018,8 @@ enum nrf_wifi_status nrf_wifi_fmac_start_rawpkt_xmit(void *dev_ctx,
  * the mode will be configured to the lower layers, else an error value
  * will be flagged.
  *
- *@retval      WIFI_NRF_STATUS_SUCCESS On success
- *@retval      WIFI_NRF_STATUS_FAIL On failure
+ *@retval      NRF_WIFI_STATUS_SUCCESS On success
+ *@retval      NRF_WIFI_STATUS_FAIL On failure
  */
 enum nrf_wifi_status nrf_wifi_check_mode_validity(unsigned char mode);
 
@@ -1055,8 +1055,8 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
  * This function is used to send a command
  *         to RPU to set mode of operation
  *
- * @retval      WIFI_NRF_STATUS_SUCCESS On success
- * @retval      WIFI_NRF_STATUS_FAIL On failure
+ * @retval      NRF_WIFI_STATUS_SUCCESS On success
+ * @retval      NRF_WIFI_STATUS_FAIL On failure
  */
 enum nrf_wifi_status nrf_wifi_sys_fmac_set_mode(void *dev_ctx,
 						unsigned char if_idx,
@@ -1073,8 +1073,8 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_set_mode(void *dev_ctx,
  * This function is used to send a command
  *         to RPU to set current channel of operation
  *
- * @retval      WIFI_NRF_STATUS_SUCCESS On success
- * @retval      WIFI_NRF_STATUS_FAIL On failure
+ * @retval      NRF_WIFI_STATUS_SUCCESS On success
+ * @retval      NRF_WIFI_STATUS_FAIL On failure
  */
 enum nrf_wifi_status nrf_wifi_sys_fmac_set_channel(void *dev_ctx,
 						   unsigned char if_idx,
