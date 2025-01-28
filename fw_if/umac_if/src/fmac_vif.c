@@ -17,14 +17,14 @@
 int nrf_wifi_fmac_vif_check_if_limit(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 				     int if_type)
 {
-	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx;
 
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
 	switch (if_type) {
 	case NRF_WIFI_IFTYPE_STATION:
 	case NRF_WIFI_IFTYPE_P2P_CLIENT:
-		if (def_dev_ctx->num_sta >= MAX_NUM_STAS) {
+		if (sys_dev_ctx->num_sta >= MAX_NUM_STAS) {
 			nrf_wifi_osal_log_err("%s: Maximum STA Interface type exceeded",
 					      __func__);
 			return -1;
@@ -32,7 +32,7 @@ int nrf_wifi_fmac_vif_check_if_limit(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 		break;
 	case NRF_WIFI_IFTYPE_AP:
 	case NRF_WIFI_IFTYPE_P2P_GO:
-		if (def_dev_ctx->num_ap >= MAX_NUM_APS) {
+		if (sys_dev_ctx->num_ap >= MAX_NUM_APS) {
 			nrf_wifi_osal_log_err("%s: Maximum AP Interface type exceeded",
 					      __func__);
 			return -1;
@@ -51,18 +51,18 @@ int nrf_wifi_fmac_vif_check_if_limit(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 void nrf_wifi_fmac_vif_incr_if_type(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 				    int if_type)
 {
-	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx;
 
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
 	switch (if_type) {
 	case NRF_WIFI_IFTYPE_STATION:
 	case NRF_WIFI_IFTYPE_P2P_CLIENT:
-		def_dev_ctx->num_sta++;
+		sys_dev_ctx->num_sta++;
 		break;
 	case NRF_WIFI_IFTYPE_AP:
 	case NRF_WIFI_IFTYPE_P2P_GO:
-		def_dev_ctx->num_ap++;
+		sys_dev_ctx->num_ap++;
 		break;
 	default:
 		nrf_wifi_osal_log_err("%s:Unsupported VIF type",
@@ -74,18 +74,18 @@ void nrf_wifi_fmac_vif_incr_if_type(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 void nrf_wifi_fmac_vif_decr_if_type(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 				    int if_type)
 {
-	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx;
 
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
 	switch (if_type) {
 	case NRF_WIFI_IFTYPE_STATION:
 	case NRF_WIFI_IFTYPE_P2P_CLIENT:
-		def_dev_ctx->num_sta--;
+		sys_dev_ctx->num_sta--;
 		break;
 	case NRF_WIFI_IFTYPE_AP:
 	case NRF_WIFI_IFTYPE_P2P_GO:
-		def_dev_ctx->num_ap--;
+		sys_dev_ctx->num_ap--;
 		break;
 	default:
 		nrf_wifi_osal_log_err("%s:Unsupported VIF type",
@@ -99,15 +99,15 @@ void nrf_wifi_fmac_vif_clear_ctx(void *dev_ctx,
 {
 	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
 	struct nrf_wifi_fmac_vif_ctx *vif_ctx = NULL;
-	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx;
 
 	fmac_dev_ctx = dev_ctx;
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
-	vif_ctx = def_dev_ctx->vif_ctx[if_idx];
+	vif_ctx = sys_dev_ctx->vif_ctx[if_idx];
 
 	nrf_wifi_osal_mem_free(vif_ctx);
-	def_dev_ctx->vif_ctx[if_idx] = NULL;
+	sys_dev_ctx->vif_ctx[if_idx] = NULL;
 }
 
 
@@ -117,12 +117,12 @@ void nrf_wifi_fmac_vif_update_if_type(void *dev_ctx,
 {
 	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
 	struct nrf_wifi_fmac_vif_ctx *vif_ctx = NULL;
-	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx = NULL;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
 
 	fmac_dev_ctx = dev_ctx;
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
-	vif_ctx = def_dev_ctx->vif_ctx[if_idx];
+	vif_ctx = sys_dev_ctx->vif_ctx[if_idx];
 
 	nrf_wifi_fmac_vif_decr_if_type(fmac_dev_ctx,
 				       vif_ctx->if_type);
@@ -136,9 +136,9 @@ void nrf_wifi_fmac_vif_update_if_type(void *dev_ctx,
 unsigned int nrf_wifi_fmac_get_num_vifs(void *dev_ctx)
 {
 	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = dev_ctx;
-	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx = NULL;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
 
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
 	if (!fmac_dev_ctx) {
 		/* Don't return error here, as FMAC might be initialized based
@@ -147,5 +147,5 @@ unsigned int nrf_wifi_fmac_get_num_vifs(void *dev_ctx)
 		return 0;
 	}
 
-	return def_dev_ctx->num_sta + def_dev_ctx->num_ap;
+	return sys_dev_ctx->num_sta + sys_dev_ctx->num_ap;
 }

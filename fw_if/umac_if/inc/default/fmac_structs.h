@@ -361,7 +361,7 @@ struct tx_config {
  * This structure maintains the context information necessary for the
  * operation of the UMAC IF layer.
  */
-struct nrf_wifi_fmac_priv_def {
+struct nrf_wifi_sys_fmac_priv {
 	/** Callback functions to be called on various events. */
 	struct nrf_wifi_fmac_callbk_fns callbk_fns;
 	/** Data path configuration parameters. */
@@ -452,7 +452,7 @@ struct raw_tx_stats {
  * This structure maintains the context information necessary for
  * a single instance of a FullMAC-based RPU.
  */
-struct nrf_wifi_fmac_dev_ctx_def {
+struct nrf_wifi_sys_fmac_dev_ctx {
 	/** Array of pointers to virtual interfaces created on this device. */
 	struct nrf_wifi_fmac_vif_ctx *vif_ctx[MAX_NUM_VIFS];
 #if defined(NRF70_RX_WQ_ENABLED)

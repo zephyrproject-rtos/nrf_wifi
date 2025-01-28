@@ -20,19 +20,19 @@ nrf_wifi_fmac_map_desc_to_pool(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 			       struct nrf_wifi_fmac_rx_pool_map_info *pool_info)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx = NULL;
-	struct nrf_wifi_fmac_priv_def *def_priv = NULL;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
+	struct nrf_wifi_sys_fmac_priv *sys_fpriv = NULL;
 	unsigned int pool_id = 0;
 
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
-	def_priv = wifi_fmac_priv(fmac_dev_ctx->fpriv);
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_fpriv = wifi_fmac_priv(fmac_dev_ctx->fpriv);
 
 	for (pool_id = 0; pool_id < MAX_NUM_OF_RX_QUEUES; pool_id++) {
-		if ((desc_id >= def_priv->rx_desc[pool_id]) &&
-		    (desc_id < (def_priv->rx_desc[pool_id] +
-				def_priv->rx_buf_pools[pool_id].num_bufs))) {
+		if ((desc_id >= sys_fpriv->rx_desc[pool_id]) &&
+		    (desc_id < (sys_fpriv->rx_desc[pool_id] +
+				sys_fpriv->rx_buf_pools[pool_id].num_bufs))) {
 			pool_info->pool_id = pool_id;
-			pool_info->buf_id = (desc_id - def_priv->rx_desc[pool_id]);
+			pool_info->buf_id = (desc_id - sys_fpriv->rx_desc[pool_id]);
 			status = NRF_WIFI_STATUS_SUCCESS;
 			goto out;
 		}
@@ -50,15 +50,15 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 	struct nrf_wifi_fmac_buf_map_info *rx_buf_info = NULL;
 	struct host_rpu_rx_buf_info rx_cmd;
 	struct nrf_wifi_fmac_rx_pool_map_info pool_info;
-	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx = NULL;
-	struct nrf_wifi_fmac_priv_def *def_priv = NULL;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
+	struct nrf_wifi_sys_fmac_priv *sys_fpriv = NULL;
 	unsigned long nwb = 0;
 	unsigned long nwb_data = 0;
 	unsigned long phy_addr = 0;
 	unsigned int buf_len = 0;
 
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
-	def_priv = wifi_fmac_priv(fmac_dev_ctx->fpriv);
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_fpriv = wifi_fmac_priv(fmac_dev_ctx->fpriv);
 
 	status = nrf_wifi_fmac_map_desc_to_pool(fmac_dev_ctx,
 						desc_id,
@@ -70,9 +70,9 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 		goto out;
 	}
 
-	rx_buf_info = &def_dev_ctx->rx_buf_info[desc_id];
+	rx_buf_info = &sys_dev_ctx->rx_buf_info[desc_id];
 
-	buf_len = def_priv->rx_buf_pools[pool_info.pool_id].buf_sz + RX_BUF_HEADROOM;
+	buf_len = sys_fpriv->rx_buf_pools[pool_info.pool_id].buf_sz + RX_BUF_HEADROOM;
 
 	if (cmd_type == NRF_WIFI_FMAC_RX_CMD_TYPE_INIT) {
 		if (rx_buf_info->mapped) {
@@ -168,7 +168,7 @@ void nrf_wifi_fmac_rx_tasklet(void *data)
 	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = (struct nrf_wifi_fmac_dev_ctx *)data;
 	struct nrf_wifi_rx_buff *config = NULL;
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx = NULL;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
 	enum NRF_WIFI_HAL_STATUS hal_status;
 
 	nrf_wifi_hal_lock_rx(fmac_dev_ctx->hal_dev_ctx);
@@ -177,10 +177,10 @@ void nrf_wifi_fmac_rx_tasklet(void *data)
 		goto out;
 	}
 
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
 	config = (struct nrf_wifi_rx_buff *)nrf_wifi_utils_q_dequeue(
-		def_dev_ctx->rx_tasklet_event_q);
+		sys_dev_ctx->rx_tasklet_event_q);
 
 	if (!config) {
 		nrf_wifi_osal_log_err("%s: No RX config available",
@@ -226,17 +226,17 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 	unsigned short eth_type = 0;
 	unsigned int size = 0;
 #endif /* NRF70_STA_MODE */
-	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx = NULL;
-	struct nrf_wifi_fmac_priv_def *def_priv = NULL;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
+	struct nrf_wifi_sys_fmac_priv *sys_fpriv = NULL;
 
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
-	def_priv = wifi_fmac_priv(fmac_dev_ctx->fpriv);
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_fpriv = wifi_fmac_priv(fmac_dev_ctx->fpriv);
 
-	vif_ctx = def_dev_ctx->vif_ctx[config->wdev_id];
+	vif_ctx = sys_dev_ctx->vif_ctx[config->wdev_id];
 
 #ifdef NRF70_STA_MODE
 	if (config->rx_pkt_type != NRF_WIFI_RAW_RX_PKT) {
-		def_priv->callbk_fns.process_rssi_from_rx(vif_ctx->os_vif_ctx,
+		sys_fpriv->callbk_fns.process_rssi_from_rx(vif_ctx->os_vif_ctx,
 							  config->signal);
 	}
 #endif /* NRF70_STA_MODE */
@@ -246,7 +246,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 		desc_id = config->rx_buff_info[i].descriptor_id;
 		pkt_len = config->rx_buff_info[i].rx_pkt_len;
 
-		if (desc_id >= def_priv->num_rx_bufs) {
+		if (desc_id >= sys_fpriv->num_rx_bufs) {
 			nrf_wifi_osal_log_err("%s: Invalid desc_id %d",
 					      __func__,
 					      desc_id);
@@ -277,7 +277,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 			continue;
 		}
 
-		rx_buf_info = &def_dev_ctx->rx_buf_info[desc_id];
+		rx_buf_info = &sys_dev_ctx->rx_buf_info[desc_id];
 		nwb = (void *)rx_buf_info->nwb;
 
 		nrf_wifi_osal_nbuf_data_put(nwb,
@@ -303,7 +303,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 				raw_rx_hdr.rate_flags = config->rate_flags;
 				raw_rx_hdr.rate = config->rate;
 				if (nrf_wifi_util_check_filt_setting(vif_ctx, &frame_control)) {
-					def_priv->callbk_fns.sniffer_callbk_fn(vif_ctx->os_vif_ctx,
+					sys_fpriv->callbk_fns.sniffer_callbk_fn(vif_ctx->os_vif_ctx,
 									       nwb,
 									       &raw_rx_hdr,
 									       false);
@@ -351,12 +351,12 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 				status = NRF_WIFI_STATUS_FAIL;
 				continue;
 			}
-			def_priv->callbk_fns.rx_frm_callbk_fn(vif_ctx->os_vif_ctx,
+			sys_fpriv->callbk_fns.rx_frm_callbk_fn(vif_ctx->os_vif_ctx,
 									 nwb);
 #endif /* NRF70_STA_MODE */
 		} else if (config->rx_pkt_type == NRF_WIFI_RX_PKT_BCN_PRB_RSP) {
 #ifdef WIFI_MGMT_RAW_SCAN_RESULTS
-			def_priv->callbk_fns.rx_bcn_prb_resp_callbk_fn(
+			sys_fpriv->callbk_fns.rx_bcn_prb_resp_callbk_fn(
 							vif_ctx->os_vif_ctx,
 							nwb,
 							config->frequency,
@@ -377,7 +377,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 			if (nrf_wifi_util_check_filt_setting(vif_ctx, &frame_control))
 #endif
 			{
-				def_priv->callbk_fns.sniffer_callbk_fn(vif_ctx->os_vif_ctx,
+				sys_fpriv->callbk_fns.sniffer_callbk_fn(vif_ctx->os_vif_ctx,
 								       nwb,
 								       &raw_rx_hdr,
 								       true);

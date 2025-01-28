@@ -237,7 +237,7 @@ enum nrf_wifi_status wait_for_radio_cmd_status(struct nrf_wifi_fmac_dev_ctx *fma
 {
 	unsigned int count = 0;
 	enum nrf_wifi_cmd_status radio_cmd_status;
-	struct nrf_wifi_fmac_dev_ctx_rt *rt_dev_ctx = NULL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 	do {
@@ -272,7 +272,7 @@ enum nrf_wifi_status nrf_wifi_fmac_radio_test_init(struct nrf_wifi_fmac_dev_ctx 
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_radio_test_init_info init_params;
-	struct nrf_wifi_fmac_dev_ctx_rt *rt_dev_ctx = NULL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
@@ -316,7 +316,7 @@ enum nrf_wifi_status nrf_wifi_fmac_radio_test_prog_tx(struct nrf_wifi_fmac_dev_c
 						      struct rpu_conf_params *params)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-	struct nrf_wifi_fmac_dev_ctx_rt *rt_dev_ctx = NULL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
@@ -345,7 +345,7 @@ enum nrf_wifi_status nrf_wifi_fmac_radio_test_prog_rx(struct nrf_wifi_fmac_dev_c
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct rpu_conf_rx_radio_test_params rx_params;
-	struct nrf_wifi_fmac_dev_ctx_rt *rt_dev_ctx = NULL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
@@ -398,7 +398,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_test_rx_cap(struct nrf_wifi_fmac_dev_ctx *
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_rf_test_capture_params rf_test_cap_params;
-	struct nrf_wifi_fmac_dev_ctx_rt *rt_dev_ctx = NULL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
 	unsigned int count = 0;
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
@@ -457,7 +457,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_test_tx_tone(struct nrf_wifi_fmac_dev_ctx 
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_rf_test_tx_params rf_test_tx_params;
-	struct nrf_wifi_fmac_dev_ctx_rt *rt_dev_ctx = NULL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
 	unsigned int count = 0;
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
@@ -511,7 +511,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_test_dpd(struct nrf_wifi_fmac_dev_ctx *fma
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_rf_test_dpd_params rf_test_dpd_params;
-	struct nrf_wifi_fmac_dev_ctx_rt *rt_dev_ctx = NULL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
 	unsigned int count = 0;
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
@@ -562,7 +562,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_get_temp(struct nrf_wifi_fmac_dev_ctx *fma
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_temperature_params rf_test_get_temperature;
-	struct nrf_wifi_fmac_dev_ctx_rt *rt_dev_ctx = NULL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
 	unsigned int count = 0;
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
@@ -611,7 +611,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_get_rf_rssi(struct nrf_wifi_fmac_dev_ctx *
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_rf_get_rf_rssi rf_get_rf_rssi_params;
-	struct nrf_wifi_fmac_dev_ctx_rt *rt_dev_ctx = NULL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
 	unsigned int count = 0;
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
@@ -664,7 +664,7 @@ enum nrf_wifi_status nrf_wifi_fmac_set_xo_val(struct nrf_wifi_fmac_dev_ctx *fmac
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_rf_test_xo_calib nrf_wifi_rf_test_xo_calib_params;
-	struct nrf_wifi_fmac_dev_ctx_rt *rt_dev_ctx = NULL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
 	unsigned int count = 0;
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
@@ -716,7 +716,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_test_compute_xo(struct nrf_wifi_fmac_dev_c
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_rf_get_xo_value rf_get_xo_value_params;
-	struct nrf_wifi_fmac_dev_ctx_rt *rt_dev_ctx = NULL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
 	unsigned int count = 0;
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);

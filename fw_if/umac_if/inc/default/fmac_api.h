@@ -49,9 +49,9 @@
  *
  * @return Pointer to the context of the UMAC IF layer.
  */
-struct nrf_wifi_fmac_priv *nrf_wifi_fmac_init(struct nrf_wifi_data_config_params *data_config,
-					      struct rx_buf_pool_params *rx_buf_pools,
-					      struct nrf_wifi_fmac_callbk_fns *callbk_fns);
+struct nrf_wifi_fmac_priv *nrf_wifi_sys_fmac_init(struct nrf_wifi_data_config_params *data_config,
+						  struct rx_buf_pool_params *rx_buf_pools,
+						  struct nrf_wifi_fmac_callbk_fns *callbk_fns);
 
 /**
  * @brief Issue a scan request to the RPU firmware.

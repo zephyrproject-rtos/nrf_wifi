@@ -192,7 +192,8 @@ out:
 	return status;
 }
 
-void nrf_wifi_fmac_off_raw_tx_dev_rem(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
+
+void nrf_wifi_off_raw_tx_fmac_dev_rem(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
 {
 	nrf_wifi_hal_dev_rem(fmac_dev_ctx->hal_dev_ctx);
 	nrf_wifi_osal_mem_free(fmac_dev_ctx);
@@ -204,12 +205,12 @@ void nrf_wifi_fmac_off_raw_tx_deinit(struct nrf_wifi_fmac_priv *fpriv)
 	nrf_wifi_osal_mem_free(fpriv);
 }
 
-enum nrf_wifi_status nrf_wifi_fmac_off_raw_tx_conf(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_conf(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 					           struct nrf_wifi_offload_ctrl_params *off_ctrl_params,
 						   struct nrf_wifi_offload_tx_ctrl *off_tx_params)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-	struct nrf_wifi_off_raw_tx_fmac_dev_ctx *def_dev_ctx_off_raw_tx;
+	struct nrf_wifi_off_raw_tx_fmac_dev_ctx *dev_ctx_off_raw_tx;
 	struct nrf_wifi_fmac_reg_info reg_domain_info = {0};
 	unsigned char count = 0;
 
@@ -219,8 +220,8 @@ enum nrf_wifi_status nrf_wifi_fmac_off_raw_tx_conf(struct nrf_wifi_fmac_dev_ctx 
 		goto out;
 	}
 
-	def_dev_ctx_off_raw_tx = wifi_dev_priv(fmac_dev_ctx);
-	def_dev_ctx_off_raw_tx->off_raw_tx_cmd_done = true;
+	dev_ctx_off_raw_tx = wifi_dev_priv(fmac_dev_ctx);
+	dev_ctx_off_raw_tx->off_raw_tx_cmd_done = true;
 
 	if (!off_ctrl_params || !off_tx_params) {
 		nrf_wifi_osal_log_err("%s: Invalid offloaded raw tx params",
@@ -240,7 +241,7 @@ enum nrf_wifi_status nrf_wifi_fmac_off_raw_tx_conf(struct nrf_wifi_fmac_dev_ctx 
 	do {
 		nrf_wifi_osal_sleep_ms(1);
 		count++;
-	} while ((def_dev_ctx_off_raw_tx->off_raw_tx_cmd_done == true) &&
+	} while ((dev_ctx_off_raw_tx->off_raw_tx_cmd_done == true) &&
 		 (count < NRF_WIFI_FMAC_PARAMS_RECV_TIMEOUT));
 
 	if (count == NRF_WIFI_FMAC_PARAMS_RECV_TIMEOUT) {
@@ -249,7 +250,7 @@ enum nrf_wifi_status nrf_wifi_fmac_off_raw_tx_conf(struct nrf_wifi_fmac_dev_ctx 
 		goto out;
 	}
 
-	if (def_dev_ctx_off_raw_tx->off_raw_tx_cmd_status != NRF_WIFI_UMAC_CMD_SUCCESS) {
+	if (dev_ctx_off_raw_tx->off_raw_tx_cmd_status != NRF_WIFI_UMAC_CMD_SUCCESS) {
 		status = nrf_wifi_fmac_get_reg(fmac_dev_ctx, &reg_domain_info);
 		if (status != NRF_WIFI_STATUS_SUCCESS) {
 			nrf_wifi_osal_log_err("%s: Failed to get regulatory domain",
@@ -259,7 +260,7 @@ enum nrf_wifi_status nrf_wifi_fmac_off_raw_tx_conf(struct nrf_wifi_fmac_dev_ctx 
 
 		nrf_wifi_osal_log_err("%s: Failed to set configuration, check config against %.2s regulatory domain rules",
 				      __func__,
-				      def_dev_ctx_off_raw_tx->country_code);
+				      dev_ctx_off_raw_tx->country_code);
 		status = NRF_WIFI_STATUS_FAIL;
 		goto out;
 	}
@@ -269,7 +270,7 @@ out:
 	return status;
 }
 
-enum nrf_wifi_status nrf_wifi_fmac_off_raw_tx_start(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
+enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_start(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 
@@ -289,7 +290,7 @@ out:
 	return status;
 }
 
-enum nrf_wifi_status nrf_wifi_fmac_off_raw_tx_stop(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
+enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_stop(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 
