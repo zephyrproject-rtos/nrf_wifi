@@ -17,9 +17,8 @@
 #ifndef __NRF_WIFI_HOST_RPU_COMMON_IFACE_H__
 #define __NRF_WIFI_HOST_RPU_COMMON_IFACE_H__
 
-#include "rpu_if.h"
-
-#include "pack_def.h"
+#include "common/rpu_if.h"
+#include "common/pack_def.h"
 
 #define NRF_WIFI_UMAC_VER(version) (((version)&0xFF000000) >> 24)
 #define NRF_WIFI_UMAC_VER_MAJ(version) (((version)&0x00FF0000) >> 16)

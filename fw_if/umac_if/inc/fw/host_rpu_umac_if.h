@@ -18,7 +18,7 @@
 #include "host_rpu_data_if.h"
 #include "host_rpu_sys_if.h"
 
-#include "pack_def.h"
+#include "common/pack_def.h"
 
 #define MAX_NRF_WIFI_UMAC_CMD_SIZE 400
 
