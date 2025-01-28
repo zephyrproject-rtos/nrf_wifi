@@ -14,9 +14,9 @@
 #ifndef __LMAC_IF_COMMON__
 #define __LMAC_IF_COMMON__
 
-#include "rpu_if.h"
-#include "phy_rf_params.h"
-#include "pack_def.h"
+#include "common/rpu_if.h"
+#include "common/phy_rf_params_common.h"
+#include "common/pack_def.h"
 
 #define RPU_MEM_LMAC_BOOT_SIG 0xB7000D50
 #define RPU_MEM_LMAC_VER 0xB7000D54

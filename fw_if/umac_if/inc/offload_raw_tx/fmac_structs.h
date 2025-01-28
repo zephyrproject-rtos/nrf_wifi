@@ -19,6 +19,7 @@
 #define __FMAC_STRUCTS_H__
 
 #include "host_rpu_sys_if.h"
+#include "common/fmac_structs_common.h"
 
 #define NRF_WIFI_FMAC_PARAMS_RECV_TIMEOUT 100 /* ms */
 
@@ -34,7 +35,18 @@ struct nrf_wifi_off_raw_tx_fmac_dev_ctx {
     unsigned char country_code[NRF_WIFI_COUNTRY_CODE_LEN];
 };
 
-// extern struct nrf_wifi_off_raw_tx_fmac_dev_ctx *def_dev_ctx_off_raw_tx;
+
+/**
+ * @brief - Structure to hold per device host and firmware statistics.
+ *
+ */
+struct rpu_off_raw_tx_op_stats {
+	/** Host statistics. */
+	struct rpu_host_stats host;
+	/** Firmware statistics. */
+	struct rpu_off_raw_tx_fw_stats fw;
+};
+
 
 /**
  * @}

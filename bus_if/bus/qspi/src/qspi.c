@@ -11,7 +11,7 @@
 
 #include "bal_structs.h"
 #include "qspi.h"
-#include "pal.h"
+#include "common/pal.h"
 
 
 static int nrf_wifi_bus_qspi_irq_handler(void *data)

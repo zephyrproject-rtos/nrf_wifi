@@ -20,9 +20,8 @@
 
 #include "osal_api.h"
 #include "host_rpu_umac_if.h"
-#if !defined(__DOXYGEN__)
-#include "fmac_structs_common.h"
-#endif
+#include "radio_test/phy_rf_params.h"
+#include "common/fmac_structs_common.h"
 
 /**
  * @brief  Structure to hold per device context information for the UMAC IF layer.
@@ -43,6 +42,18 @@ struct nrf_wifi_rt_fmac_dev_ctx {
 	enum nrf_wifi_cmd_status radio_cmd_status;
 	/** Firmware RF test RX capture event status */
 	unsigned char capture_status;
+};
+
+
+/**
+ * @brief - Structure to hold per device host and firmware statistics.
+ *
+ */
+struct rpu_rt_op_stats {
+	/** Host statistics. */
+	struct rpu_host_stats host;
+	/** Firmware statistics. */
+	struct rpu_rt_fw_stats fw;
 };
 
 /**

@@ -16,10 +16,8 @@
 #define __FMAC_API_H__
 
 #include "host_rpu_sys_if.h"
-
-#include "fmac_cmd.h"
-#include "fmac_api_common.h"
-#include "fmac_structs_common.h"
+#include "common/fmac_api_common.h"
+#include "offload_raw_tx/fmac_structs.h"
 #include "util.h"
 
 
@@ -36,25 +34,21 @@
  * @return Pointer to the context of the UMAC IF layer.
  */
 struct nrf_wifi_fmac_priv *nrf_wifi_off_raw_tx_fmac_init(void);
-/**
- * @brief De-initialize the UMAC IF layer.
- * @param fpriv Pointer to the context of the UMAC IF layer.
- *
- * This function de-initializes the UMAC IF layer of the RPU WLAN FullMAC
- * driver. It does the following:
- *
- *	- De-initializes the HAL layer.
- *	- Frees the context for the UMAC IF layer.
- */
-void nrf_wifi_off_raw_tx_fmac_deinit(struct nrf_wifi_fmac_priv *fpriv);
 
 /**
- * @brief Removes a RPU instance.
- * @param fmac_dev_ctx Pointer to the context of the RPU instance to be removed.
+ * @brief Adds a RPU instance.
+ * @param fpriv Pointer to the context of the UMAC IF layer.
+ * @param os_dev_ctx Pointer to the OS specific context of the RPU instance.
  *
- * This function handles the removal of an RPU instance at the UMAC IF layer.
+ * This function adds an RPU instance. This function will return the
+ *	    pointer to the context of the RPU instance. This pointer will need to be
+ *	    supplied while invoking further device specific APIs,
+ *	    for example, nrf_wifi_sys_fmac_scan() etc.
+ *
+ * @return Pointer to the context of the RPU instance.
  */
-void nrf_wifi_off_raw_tx_fmac_dev_rem(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
+struct nrf_wifi_fmac_dev_ctx *nrf_wifi_off_raw_tx_fmac_dev_add(struct nrf_wifi_fmac_priv *fpriv,
+							       void *os_dev_ctx);
 
 
 /**
@@ -123,6 +117,38 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_start(struct nrf_wifi_fmac_dev_ctx
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
 enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_stop(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
+
+/**
+ * @brief Get the RF parameters to be programmed to the RPU.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param rf_params Pointer to the address where the RF params information needs to be copied.
+ *
+ * This function is used to fetch RF parameters information from the RPU and
+ *	    update the default RF parameter with the OTP values. The updated RF
+ *	    parameters are then returned in the \p f_params.
+ *
+ * @return Command execution status
+ */
+enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_rf_params_get(
+	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+	struct nrf_wifi_phy_rf_params *rf_params);
+
+/**
+ * @brief Issue a request to get stats from the RPU.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param op_mode RPU operation mode.
+ * @param stats Pointer to memory where the stats are to be copied.
+ *
+ * This function is used to send a command to
+ *	    instruct the firmware to return the current RPU statistics. The RPU will
+ *	    send the event with the current statistics.
+ *
+ * @return Command execution status
+ */
+enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+							enum rpu_op_mode op_mode,
+							struct rpu_off_raw_tx_op_stats *stats);
+
 /**
  * @}
  */

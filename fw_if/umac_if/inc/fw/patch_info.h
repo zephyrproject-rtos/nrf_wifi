@@ -13,7 +13,7 @@
 #ifndef _PATCH_INFO_H
 #define _PATCH_INFO_H
 
-#include "pack_def.h"
+#include "common/pack_def.h"
 
 #ifndef BIT
 #define BIT(x) (1 << (x))

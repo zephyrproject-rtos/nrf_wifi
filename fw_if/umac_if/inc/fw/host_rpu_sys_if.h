@@ -18,7 +18,7 @@
 #include "host_rpu_common_if.h"
 #include "lmac_if_common.h"
 
-#include "pack_def.h"
+#include "common/pack_def.h"
 
 #define USE_PROTECTION_NONE 0
 #define USE_PROTECTION_RTS 1
@@ -518,8 +518,6 @@ struct umac_cmd_evnt_dbg_params {
 	unsigned int CURR_STATE;
 } __NRF_WIFI_PKD;
 
-#ifndef NRF70_RADIO_TEST
-
 /**
  * @brief This structure specifies the UMAC interface debug parameters used for debugging purpose.
  *
@@ -648,7 +646,6 @@ struct rpu_lmac_stats {
 	unsigned int rpu_hw_lockup_recovery_done;
 } __NRF_WIFI_PKD;
 
-#endif /* !NRF70_RADIO_TEST */
 
 /**
  * @brief This structure defines the PHY (Physical Layer) debug statistics.
@@ -669,16 +666,6 @@ struct rpu_phy_stats {
 	unsigned int dsss_crc32_fail_cnt;
 } __NRF_WIFI_PKD;
 
-/**
- * @brief This structure defines the Offloaded raw tx debug statistics.
- *
- */
-struct rpu_offloaded_raw_tx_stats {
-      unsigned int offload_raw_tx_state;
-      unsigned int offload_raw_tx_cnt;
-      unsigned int offload_raw_tx_complete_cnt;
-      unsigned int warm_boot_cnt;
-} __NRF_WIFI_PKD;
 
 /**
  * @brief The UMAC header structure for system commands and events defines the format
@@ -743,11 +730,10 @@ struct nrf_wifi_data_config_params {
 
 /**
  * @brief This structure specifies the parameters that need to be provided for the command
- *  NRF_WIFI_CMD_INIT. The NRF_WIFI_CMD_INIT command is typically used to initialize the
- *  Wi-Fi module and prepare it for further communication.
+ * NRF_WIFI_CMD_INIT for all modes. The NRF_WIFI_CMD_INIT command is typically used to
+ * initialize the Wi-Fi module and prepare it for further communication.
  *
  */
-
 struct nrf_wifi_sys_params {
 	/** enable rpu sleep */
 	unsigned int sleep_enable;
@@ -761,10 +747,8 @@ struct nrf_wifi_sys_params {
 	unsigned int calib_sleep_clk;
 	/** calib bit map value. More info can be found in phy_rf_params.h NRF_WIFI_DEF_PHY_CALIB */
 	unsigned int phy_calib;
-#ifndef NRF70_RADIO_TEST
-	/** MAC address of the interface */
+	/** MAC address of the interface. Not applicable to Radio Test mode */
 	unsigned char mac_addr[NRF_WIFI_ETH_ADDR_LEN];
-#endif /* !NRF70_RADIO_TEST */
 	/** An array containing RF & baseband control params */
 	unsigned char rf_params[NRF_WIFI_RF_PARAMS_SIZE];
 	/** Indicates whether the rf_params has a valid value */
@@ -1623,36 +1607,90 @@ struct nrf_wifi_event_rftest {
 
 /**
  * @brief This structure is a comprehensive combination of all the firmware statistics
- *  that the RPU (Radio Processing Unit) can provide.
+ *  that the RPU (Radio Processing Unit) can provide in System mode.
  *
  */
-struct rpu_fw_stats {
+struct rpu_sys_fw_stats {
 	/** PHY statistics  @ref rpu_phy_stats */
 	struct rpu_phy_stats phy;
-#ifndef NRF70_RADIO_TEST
 	/** LMAC statistics @ref rpu_lmac_stats */
 	struct rpu_lmac_stats lmac;
 	/** UMAC statistics @ref rpu_umac_stats */
 	struct rpu_umac_stats umac;
-#endif /* !NRF70_RADIO_TEST */
-	/** Offload raw tx statistics @ref rpu_offloaded_raw_tx_stats */
-	struct rpu_offloaded_raw_tx_stats offloaded_raw_tx;
 } __NRF_WIFI_PKD;
 
 /**
+ * @brief This structure is a comprehensive combination of all the firmware statistics
+ *  that the RPU (Radio Processing Unit) can provide in Radio test mode.
+ *
+ */
+struct rpu_rt_fw_stats {
+	/** PHY statistics  @ref rpu_phy_stats */
+	struct rpu_phy_stats phy;
+} __NRF_WIFI_PKD;
+
+/**
+ * @brief This structure defines the Offloaded raw tx debug statistics.
+ *
+ */
+struct rpu_off_raw_tx_fw_stats {
+      unsigned int offload_raw_tx_state;
+      unsigned int offload_raw_tx_cnt;
+      unsigned int offload_raw_tx_complete_cnt;
+      unsigned int warm_boot_cnt;
+} __NRF_WIFI_PKD;
+
+
+/**
  * @brief This structure represents the event that provides RPU statistics in response
- *  to the command NRF_WIFI_CMD_GET_STATS in a wireless communication system.
+ * to the command NRF_WIFI_CMD_GET_STATS in a wireless communication system in System
+ * mode.
  *
  *  The NRF_WIFI_CMD_GET_STATS command is used to request various statistics from the RPU.
  *
  */
 
-struct nrf_wifi_umac_event_stats {
+struct nrf_wifi_sys_umac_event_stats {
 	/** UMAC header, @ref nrf_wifi_sys_head */
 	struct nrf_wifi_sys_head sys_head;
 	/** All the statistics that the firmware can provide @ref rpu_fw_stats*/
-	struct rpu_fw_stats fw;
+	struct rpu_sys_fw_stats fw;
 } __NRF_WIFI_PKD;
+
+
+/**
+ * @brief This structure represents the event that provides RPU statistics in response
+ * to the command NRF_WIFI_CMD_GET_STATS in a wireless communication system in Radio
+ * test mode.
+ *
+ *  The NRF_WIFI_CMD_GET_STATS command is used to request various statistics from the RPU.
+ *
+ */
+
+struct nrf_wifi_rt_umac_event_stats {
+	/** UMAC header, @ref nrf_wifi_sys_head */
+	struct nrf_wifi_sys_head sys_head;
+	/** All the statistics that the firmware can provide @ref rpu_fw_stats*/
+	struct rpu_rt_fw_stats fw;
+} __NRF_WIFI_PKD;
+
+
+/**
+ * @brief This structure represents the event that provides RPU statistics in response
+ * to the command NRF_WIFI_CMD_GET_STATS in a wireless communication system in Offloaded
+ * raw TX mode.
+ *
+ *  The NRF_WIFI_CMD_GET_STATS command is used to request various statistics from the RPU.
+ *
+ */
+
+struct nrf_wifi_off_raw_tx_umac_event_stats {
+	/** UMAC header, @ref nrf_wifi_sys_head */
+	struct nrf_wifi_sys_head sys_head;
+	/** All the statistics that the firmware can provide @ref rpu_fw_stats*/
+	struct rpu_off_raw_tx_fw_stats fw;
+} __NRF_WIFI_PKD;
+
 
 /**
  * @brief This enum defines various command status values that can occur

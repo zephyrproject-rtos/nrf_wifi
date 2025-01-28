@@ -13,8 +13,8 @@
  * FMAC IF Layer of the Wi-Fi driver.
  */
 
-#ifndef __FMAC_API_H__
-#define __FMAC_API_H__
+#ifndef __FMAC_API_RT_H__
+#define __FMAC_API_RT_H__
 
 #include "osal_api.h"
 #include "host_rpu_umac_if.h"
@@ -24,9 +24,7 @@
 #include "fmac_structs.h"
 #include "fmac_cmd.h"
 #include "fmac_event.h"
-#include "fmac_vif.h"
-#include "fmac_bb.h"
-#include "fmac_api_common.h"
+#include "common/fmac_api_common.h"
 
 
 /**
@@ -42,7 +40,7 @@
  *
  * @return	Pointer to the context of the UMAC IF layer.
  */
-struct nrf_wifi_fmac_priv *nrf_wifi_fmac_init_rt(void);
+struct nrf_wifi_fmac_priv *nrf_wifi_rt_fmac_init(void);
 
 
 /**
@@ -56,8 +54,8 @@ struct nrf_wifi_fmac_priv *nrf_wifi_fmac_init_rt(void);
  * @retval NRF_WIFI_STATUS_SUCCESS On Success
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
-enum nrf_wifi_status nrf_wifi_fmac_radio_test_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-						   struct rpu_conf_params *params);
+enum nrf_wifi_status nrf_wifi_rt_fmac_radio_test_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						      struct rpu_conf_params *params);
 
 /**
  * @brief Start TX tests in radio test mode.
@@ -70,7 +68,7 @@ enum nrf_wifi_status nrf_wifi_fmac_radio_test_init(struct nrf_wifi_fmac_dev_ctx 
  * @retval NRF_WIFI_STATUS_SUCCESS On Success
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
-enum nrf_wifi_status nrf_wifi_fmac_radio_test_prog_tx(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+enum nrf_wifi_status nrf_wifi_rt_fmac_prog_tx(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 						      struct rpu_conf_params *params);
 
 /**
@@ -84,8 +82,8 @@ enum nrf_wifi_status nrf_wifi_fmac_radio_test_prog_tx(struct nrf_wifi_fmac_dev_c
  * @retval NRF_WIFI_STATUS_SUCCESS On Success
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
-enum nrf_wifi_status nrf_wifi_fmac_radio_test_prog_rx(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-						      struct rpu_conf_params *params);
+enum nrf_wifi_status nrf_wifi_rt_fmac_prog_rx(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+					      struct rpu_conf_params *params);
 
 
 /**
@@ -105,14 +103,14 @@ enum nrf_wifi_status nrf_wifi_fmac_radio_test_prog_rx(struct nrf_wifi_fmac_dev_c
  * @retval NRF_WIFI_STATUS_SUCCESS On Success
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
-enum nrf_wifi_status nrf_wifi_fmac_rf_test_rx_cap(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-						  enum nrf_wifi_rf_test rf_test_type,
-						  void *cap_data,
-						  unsigned short int num_samples,
-						  unsigned short int capture_timeout,
-						  unsigned char lna_gain,
-						  unsigned char bb_gain,
-						  unsigned char *timeout_status);
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_rx_cap(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						     enum nrf_wifi_rf_test rf_test_type,
+						     void *cap_data,
+						     unsigned short int num_samples,
+						     unsigned short int capture_timeout,
+						     unsigned char lna_gain,
+						     unsigned char bb_gain,
+						     unsigned char *timeout_status);
 
 
 /**
@@ -128,10 +126,10 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_test_rx_cap(struct nrf_wifi_fmac_dev_ctx *
  * @retval NRF_WIFI_STATUS_SUCCESS On Success
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
-enum nrf_wifi_status nrf_wifi_fmac_rf_test_tx_tone(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-						  unsigned char enable,
-						  signed char tone_freq,
-						  signed char tx_power);
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_tx_tone(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						      unsigned char enable,
+						      signed char tone_freq,
+						      signed char tx_power);
 
 
 
@@ -146,8 +144,8 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_test_tx_tone(struct nrf_wifi_fmac_dev_ctx 
  * @retval NRF_WIFI_STATUS_SUCCESS On Success
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
-enum nrf_wifi_status nrf_wifi_fmac_rf_test_dpd(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-					       unsigned char enable);
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_dpd(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						  unsigned char enable);
 
 
 
@@ -161,7 +159,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_test_dpd(struct nrf_wifi_fmac_dev_ctx *fma
  * @retval NRF_WIFI_STATUS_SUCCESS On Success
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
-enum nrf_wifi_status nrf_wifi_fmac_rf_get_temp(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_get_temp(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
 
 
 
@@ -175,7 +173,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_get_temp(struct nrf_wifi_fmac_dev_ctx *fma
  * @retval NRF_WIFI_STATUS_SUCCESS On Success
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
-enum nrf_wifi_status nrf_wifi_fmac_rf_get_rf_rssi(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_get_rf_rssi(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
 
 
 /**
@@ -189,8 +187,8 @@ enum nrf_wifi_status nrf_wifi_fmac_rf_get_rf_rssi(struct nrf_wifi_fmac_dev_ctx *
  * @retval NRF_WIFI_STATUS_SUCCESS On Success
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
-enum nrf_wifi_status nrf_wifi_fmac_set_xo_val(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-					      unsigned char value);
+enum nrf_wifi_status nrf_wifi_rt_fmac_set_xo_val(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						 unsigned char value);
 
 /**
  * @brief Get XO calibrated value.
@@ -203,29 +201,23 @@ enum nrf_wifi_status nrf_wifi_fmac_set_xo_val(struct nrf_wifi_fmac_dev_ctx *fmac
  * @retval NRF_WIFI_STATUS_SUCCESS On Success
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
-enum nrf_wifi_status nrf_wifi_fmac_rf_test_compute_xo(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_compute_xo(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
 
 
 /**
- * @brief De-initialize the UMAC IF layer.
+ * @brief Adds a RPU instance.
  * @param fpriv Pointer to the context of the UMAC IF layer.
+ * @param os_dev_ctx Pointer to the OS specific context of the RPU instance.
  *
- * This function de-initializes the UMAC IF layer of the RPU WLAN FullMAC
- *	    driver. It does the following:
+ * This function adds an RPU instance. This function will return the
+ *	    pointer to the context of the RPU instance. This pointer will need to be
+ *	    supplied while invoking further device specific APIs,
+ *	    for example, nrf_wifi_sys_fmac_scan() etc.
  *
- *	- De-initializes the HAL layer.
- *	- Frees the context for the UMAC IF layer.
+ * @return Pointer to the context of the RPU instance.
  */
-void nrf_wifi_fmac_deinit_rt(struct nrf_wifi_fmac_priv *fpriv);
-
-
-/**
- * @brief Removes a RPU instance.
- * @param fmac_dev_ctx Pointer to the context of the RPU instance to be removed.
- *
- * This function handles the removal of an RPU instance at the UMAC IF layer.
- */
-void nrf_wifi_fmac_dev_rem_rt(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
+struct nrf_wifi_fmac_dev_ctx *nrf_wifi_rt_fmac_dev_add(struct nrf_wifi_fmac_priv *fpriv,
+						       void *os_dev_ctx);
 
 
 /**
@@ -245,7 +237,7 @@ void nrf_wifi_fmac_dev_rem_rt(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
  * @retval NRF_WIFI_STATUS_SUCCESS On Success
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
-enum nrf_wifi_status nrf_wifi_fmac_dev_init_rt(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+enum nrf_wifi_status nrf_wifi_rt_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 #if defined(NRF_WIFI_LOW_POWER) || defined(__DOXYGEN__)
 					       int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
@@ -264,9 +256,39 @@ enum nrf_wifi_status nrf_wifi_fmac_dev_init_rt(struct nrf_wifi_fmac_dev_ctx *fma
  *
  * This function de-initializes the firmware of an RPU instance.
  */
-void nrf_wifi_fmac_dev_deinit_rt(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
+void nrf_wifi_rt_fmac_dev_deinit(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
+
+/**
+ * @brief Get the RF parameters to be programmed to the RPU.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param rf_params Pointer to the address where the RF params information needs to be copied.
+ *
+ * This function is used to fetch RF parameters information from the RPU and
+ *	    update the default RF parameter with the OTP values. The updated RF
+ *	    parameters are then returned in the \p f_params.
+ *
+ * @return Command execution status
+ */
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						    struct nrf_wifi_phy_rf_params *rf_params);
+
+/**
+ * @brief Issue a request to get stats from the RPU.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param op_mode RPU operation mode.
+ * @param stats Pointer to memory where the stats are to be copied.
+ *
+ * This function is used to send a command to
+ *	    instruct the firmware to return the current RPU statistics. The RPU will
+ *	    send the event with the current statistics.
+ *
+ * @return Command execution status
+ */
+enum nrf_wifi_status nrf_wifi_rt_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						enum rpu_op_mode op_mode,
+						struct rpu_rt_op_stats *stats);
 
 /**
  * @}
  */
-#endif /* __FMAC_API_H__ */
+#endif /* __FMAC_API_RT_H__ */

@@ -27,12 +27,12 @@ target_compile_definitions(
   $<$<BOOL:${CONFIG_NRF70_TX_DONE_WQ_ENABLED}>:NRF70_TX_DONE_WQ_ENABLED>
   $<$<BOOL:${CONFIG_NRF70_RX_WQ_ENABLED}>:NRF70_RX_WQ_ENABLED>
   $<$<BOOL:${CONFIG_NRF70_UTIL}>:NRF70_UTIL>
-  $<$<BOOL:${CONFIG_NRF70_RADIO_TEST}>:NRF70_RADIO_TEST>
+  $<$<OR:$<BOOL:${CONFIG_NRF70_RADIO_TEST}>,$<BOOL:${CONFIG_NRF70_BM_RADIO_TEST}>>:NRF70_RADIO_TEST>
   $<$<BOOL:${CONFIG_NRF70_OFFLOADED_RAW_TX}>:NRF70_OFFLOADED_RAW_TX>
   $<$<BOOL:${CONFIG_NRF70_TCP_IP_CHECKSUM_OFFLOAD}>:NRF70_TCP_IP_CHECKSUM_OFFLOAD>
   $<$<BOOL:${CONFIG_NRF70_RPU_EXTEND_TWT_SP}>:NRF70_RPU_EXTEND_TWT_SP>
   $<$<BOOL:${CONFIG_NRF70_SYSTEM_WITH_RAW_MODES}>:NRF70_SYSTEM_WITH_RAW_MODES>
-  $<$<BOOL:${CONFIG_NRF70_SCAN_ONLY}>:NRF70_SCAN_ONLY>
+  $<$<OR:$<BOOL:${CONFIG_NRF70_SCAN_ONLY}>,$<BOOL:${CONFIG_NRF70_BM_SCAN_ONLY}>>:NRF70_SCAN_ONLY>
   $<$<BOOL:${CONFIG_NRF70_SYSTEM_MODE}>:NRF70_SYSTEM_MODE>
   $<$<BOOL:${CONFIG_NRF70_2_4G_ONLY}>:NRF70_2_4G_ONLY>
   $<$<BOOL:${CONFIG_NRF70_LOG_VERBOSE}>:NRF70_LOG_VERBOSE>
@@ -100,83 +100,58 @@ target_include_directories(
   ${NRF_WIFI_DIR}/fw_if/umac_if/inc
   ${NRF_WIFI_DIR}/fw_load/mips/fw/inc
   ${NRF_WIFI_DIR}/hw_if/hal/inc
-  ${NRF_WIFI_DIR}/hw_if/hal/inc/fw
   ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw
 )
-
-if(CONFIG_NRF70_RADIO_TEST)
-  target_include_directories(nrf-wifi-osal PUBLIC
-    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/radio_test
-  )
-elseif(CONFIG_NRF70_OFFLOADED_RAW_TX)
-  target_include_directories(nrf-wifi-osal PUBLIC
-    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/offload_raw_tx
-    off_raw_tx/inc
-  )
-else()
-  target_include_directories(nrf-wifi-osal PUBLIC
-    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/default
-  )
-endif()
 
 target_sources(nrf-wifi-osal PRIVATE
   ${NRF_WIFI_DIR}/os_if/src/osal.c
   ${NRF_WIFI_DIR}/utils/src/list.c
   ${NRF_WIFI_DIR}/utils/src/queue.c
   ${NRF_WIFI_DIR}/utils/src/util.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/hal_api.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/hal_fw_patch_loader.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/hal_interrupt.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/hal_mem.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/hal_reg.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/hpqm.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/pal.c
+  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_api_common.c
+  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_fw_patch_loader.c
+  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_interrupt.c
+  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_mem.c
+  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_reg.c
+  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hpqm.c
+  ${NRF_WIFI_DIR}/hw_if/hal/src/common/pal.c
   ${NRF_WIFI_DIR}/bus_if/bal/src/bal.c
   ${NRF_WIFI_DIR}/bus_if/bus/qspi/src/qspi.c
-  ${NRF_WIFI_DIR}/fw_if/umac_if/src/cmd.c
-  ${NRF_WIFI_DIR}/fw_if/umac_if/src/event.c
-  ${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_api_common.c
+  ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_cmd_common.c
+  ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_api_common.c
+  ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_util.c
 )
 
-if(CONFIG_NRF70_RADIO_TEST)
+if(CONFIG_NRF70_RADIO_TEST OR CONFIG_NRF70_BM_RADIO_TEST)
   target_sources(nrf-wifi-osal PRIVATE
     ${NRF_WIFI_DIR}/fw_if/umac_if/src/radio_test/fmac_api.c
-    ${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_util.c
+    ${NRF_WIFI_DIR}/fw_if/umac_if/src/radio_test/fmac_cmd.c
+    ${NRF_WIFI_DIR}/fw_if/umac_if/src/radio_test/fmac_event.c
+    ${NRF_WIFI_DIR}/hw_if/hal/src/radio_test/hal_api.c
   )
-elseif(CONFIG_NRF70_OFFLOADED_RAW_TX)
+endif ()
+
+if(CONFIG_NRF70_OFFLOADED_RAW_TX)
   target_sources(nrf-wifi-osal PRIVATE
     ${NRF_WIFI_DIR}/fw_if/umac_if/src/offload_raw_tx/fmac_api.c
-    ${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_util.c
-  )
-else()
-  target_sources(nrf-wifi-osal PRIVATE
-    ${NRF_WIFI_DIR}/fw_if/umac_if/src/rx.c
-    ${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_vif.c
-    ${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_util.c
-    ${NRF_WIFI_DIR}/fw_if/umac_if/src/default/fmac_api.c
+    ${NRF_WIFI_DIR}/fw_if/umac_if/src/offload_raw_tx/fmac_cmd.c
+    ${NRF_WIFI_DIR}/fw_if/umac_if/src/offload_raw_tx/fmac_event.c
+    ${NRF_WIFI_DIR}/hw_if/hal/src/offload_raw_tx/hal_api.c
   )
 endif()
 
-target_sources(nrf-wifi-osal PRIVATE
-  $<$<BOOL:${CONFIG_NRF70_DATA_TX}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/tx.c>
-  $<$<BOOL:${CONFIG_NRF70_DATA_TX}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_peer.c>
-)
-
-target_sources(nrf-wifi-osal PRIVATE
-  $<$<BOOL:${CONFIG_NRF70_STA_MODE}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_peer.c>
-  $<$<BOOL:${CONFIG_NRF70_STA_MODE}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_util.c>
-)
-
-target_sources(nrf-wifi-osal PRIVATE
-  $<$<BOOL:${CONFIG_NRF70_PROMISC_DATA_RX}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_promisc.c>
-)
-
-target_sources(nrf-wifi-osal PRIVATE
-  $<$<BOOL:${CONFIG_NRF70_AP_MODE}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_ap.c>
-)
-
-# Without WPA supplicant we only support scan
-target_sources(nrf-wifi-osal PRIVATE
-  $<$<BOOL:${CONFIG_NRF70_STA_MODE}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_peer.c>
-  $<$<BOOL:${CONFIG_NRF70_STA_MODE}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/fmac_util.c>
-)
+if(CONFIG_NRF70_SYSTEM_MODE OR CONFIG_NRF70_SCAN_ONLY OR CONFIG_NRF70_BM_SCAN_ONLY)
+  target_sources(nrf-wifi-osal PRIVATE
+    ${NRF_WIFI_DIR}/fw_if/umac_if/src/system/rx.c
+    ${NRF_WIFI_DIR}/fw_if/umac_if/src/system/fmac_vif.c
+    ${NRF_WIFI_DIR}/fw_if/umac_if/src/system/fmac_api.c
+    ${NRF_WIFI_DIR}/fw_if/umac_if/src/system/fmac_cmd.c
+    ${NRF_WIFI_DIR}/fw_if/umac_if/src/system/fmac_event.c
+    ${NRF_WIFI_DIR}/hw_if/hal/src/system/hal_api.c
+    $<$<BOOL:${CONFIG_NRF70_DATA_TX}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/system/tx.c>
+    $<$<BOOL:${CONFIG_NRF70_DATA_TX}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/system/fmac_peer.c>
+    $<$<BOOL:${CONFIG_NRF70_STA_MODE}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/system/fmac_peer.c>
+    $<$<BOOL:${CONFIG_NRF70_PROMISC_DATA_RX}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/system/fmac_promisc.c>
+    $<$<BOOL:${CONFIG_NRF70_AP_MODE}>:${NRF_WIFI_DIR}/fw_if/umac_if/src/system/fmac_ap.c>
+  )
+endif()
