@@ -17,6 +17,7 @@
 #include "system/fmac_tx.h"
 #include "system/fmac_peer.h"
 #include "system/fmac_ap.h"
+#include "system/fmac_event.h"
 #include "common/fmac_util.h"
 
 #ifdef NRF70_SYSTEM_WITH_RAW_MODES

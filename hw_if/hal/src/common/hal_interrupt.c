@@ -13,7 +13,7 @@
 #include "common/hal_reg.h"
 #include "common/hal_mem.h"
 #include "common/hal_common.h"
-
+#include "common/hal_interrupt.h"
 
 
 enum nrf_wifi_status hal_rpu_irq_enable(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
