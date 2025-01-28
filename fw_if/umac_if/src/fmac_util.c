@@ -269,14 +269,14 @@ int nrf_wifi_util_get_vif_indx(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 {
 	int i = 0;
 	int vif_index = -1;
-	struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx = NULL;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
 
-	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
 	for (i = 0; i < MAX_PEERS; i++) {
-		if (!nrf_wifi_util_ether_addr_equal(def_dev_ctx->tx_config.peers[i].ra_addr,
+		if (!nrf_wifi_util_ether_addr_equal(sys_dev_ctx->tx_config.peers[i].ra_addr,
 						    mac_addr)) {
-			vif_index = def_dev_ctx->tx_config.peers[i].if_idx;
+			vif_index = sys_dev_ctx->tx_config.peers[i].if_idx;
 			break;
 		}
 	}
