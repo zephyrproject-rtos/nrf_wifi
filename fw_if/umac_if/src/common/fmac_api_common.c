@@ -68,17 +68,13 @@ static int nrf_wifi_patch_version_compat(struct nrf_wifi_fmac_dev_ctx *fmac_dev_
 static int nrf_wifi_patch_feature_flags_compat(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 				const unsigned int feature_flags)
 {
-#ifdef NRF70_SYS_RT
-	if (!(feature_flags & NRF70_FEAT_RADIO_TEST) && !(feature_flags & NRF70_FEAT_SCAN_ONLY)) {
-		nrf_wifi_osal_log_err("Radio test or Scan only feature flags not set");
-		return -1;
-	}
-#elif defined(NRF70_RADIO_TEST)
-	if (!(feature_flags & NRF70_FEAT_RADIO_TEST)) {
-		nrf_wifi_osal_log_err("Radio test feature flag not set");
-		return -1;
-	}
-#elif defined(NRF70_SCAN_ONLY)
+	if (fmac_dev_ctx->op_mode == NRF_WIFI_OP_MODE_RT) {
+		if (!(feature_flags & NRF70_FEAT_RADIO_TEST)) {
+			nrf_wifi_osal_log_err("Radio test feature flag not set");
+			return -1;
+		}
+	} else if (fmac_dev_ctx->op_mode == NRF_WIFI_OP_MODE_SYS) {
+#ifdef NRF70_SCAN_ONLY
 	if (!(feature_flags & NRF70_FEAT_SCAN_ONLY)) {
 		nrf_wifi_osal_log_err("Scan only feature flag not set");
 		return -1;
@@ -93,15 +89,19 @@ static int nrf_wifi_patch_feature_flags_compat(struct nrf_wifi_fmac_dev_ctx *fma
 		nrf_wifi_osal_log_err("System with raw modes feature flag not set");
 		return -1;
 	}
-#elif defined(NRF70_OFFLOADED_RAW_TX)
-	if (!(feature_flags & NRF70_FEAT_OFFLOADED_RAW_TX)) {
-		nrf_wifi_osal_log_err("System with offloaded raw tx modes feature flag not set");
-		return -1;
-	}
 #else
 	nrf_wifi_osal_log_err("Invalid feature flags: 0x%x or build configuration",
 			      feature_flags);
 #endif
+	} else if (fmac_dev_ctx->op_mode == NRF_WIFI_OP_MODE_OFF_RAW_TX) {
+		if (!(feature_flags & NRF70_FEAT_OFFLOADED_RAW_TX)) {
+			nrf_wifi_osal_log_err("Offloaded raw tx feature flag not set");
+			return -1;
+		}
+	} else {
+		nrf_wifi_osal_log_err("Invalid op_mode: %d", fmac_dev_ctx->op_mode);
+		return -1;
+	}
 
 	return 0;
 }
