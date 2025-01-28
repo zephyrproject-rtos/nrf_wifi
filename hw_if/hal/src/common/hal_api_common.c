@@ -644,7 +644,7 @@ out:
 	return status;
 }
 
-void hal_rpu_eventq_drain(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
+static void hal_rpu_eventq_drain(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 {
 	struct nrf_wifi_hal_msg *event = NULL;
 	unsigned long flags = 0;
