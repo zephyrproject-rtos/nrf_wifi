@@ -20,6 +20,7 @@
 /* For Linux, use kernel internal headers instead of C headers*/
 #include <linux/stddef.h>
 #include <linux/string.h>
+#undef strlen
 #include <linux/stdarg.h>
 #else
 #include <stddef.h>
