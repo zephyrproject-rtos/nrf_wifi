@@ -146,6 +146,12 @@ nrf_wifi_bal_init(struct nrf_wifi_bal_cfg_params *cfg_params,
 	bpriv->intr_callbk_fn = intr_callbk_fn;
 
 	bpriv->ops = get_bus_ops();
+	if (!bpriv->ops) {
+		nrf_wifi_osal_log_err("%s: Bus ops not available", __func__);
+		nrf_wifi_osal_mem_free(bpriv);
+		bpriv = NULL;
+		goto out;
+	}
 
 	bpriv->bus_priv = bpriv->ops->init(cfg_params,
 					   &nrf_wifi_bal_isr);
