@@ -21,6 +21,22 @@
 
 #define NRF_WIFI_FW_CHUNK_ID_STR_LEN 16
 
+/** @brief Device operation modes. */
+enum nrf_wifi_op_mode {
+	/** System mode. */
+	NRF_WIFI_OP_MODE_SYS = 0,
+	/** Radio test mode */
+	NRF_WIFI_OP_MODE_RT,
+	/** Offloaded raw TX mode */
+	NRF_WIFI_OP_MODE_OFF_RAW_TX,
+
+/** @cond INTERNAL_HIDDEN */
+	__NRF_WIFI_OP_MODE_AFTER_LAST,
+	NRF_WIFI_OP_MODE_MAX = __NRF_WIFI_OP_MODE_AFTER_LAST - 1,
+	NRF_WIFI_OP_MODE_UNKNOWN
+/** @endcond */
+};
+
 /**
  * @brief Structure to hold host specific statistics.
  *
@@ -125,6 +141,8 @@ struct nrf_wifi_fmac_reg_info {
 struct nrf_wifi_fmac_priv {
 	/** Handle to the HAL layer. */
 	struct nrf_wifi_hal_priv *hpriv;
+	/** Operation mode. \ref nrf_wifi_op_mode */
+	int op_mode;
 	/** Data pointer to mode specific parameters */
 	char priv[];
 };
@@ -140,6 +158,8 @@ struct nrf_wifi_fmac_dev_ctx {
 	void *os_dev_ctx;
 	/** Handle to the HAL layer. */
 	void *hal_dev_ctx;
+	/** Operation mode. \ref nrf_wifi_op_mode */
+	int op_mode;
 	/** Firmware statistics. */
 	void *fw_stats;
 	/** Firmware statistics requested. */

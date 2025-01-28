@@ -112,6 +112,8 @@ struct nrf_wifi_fmac_priv *nrf_wifi_off_raw_tx_fmac_init(void)
 		fpriv = NULL;
 		goto out;
 	}
+
+	fpriv->op_mode = NRF_WIFI_OP_MODE_OFF_RAW_TX;
 out:
 	return fpriv;
 }
@@ -125,6 +127,12 @@ struct nrf_wifi_fmac_dev_ctx *nrf_wifi_off_raw_tx_fmac_dev_add(struct nrf_wifi_f
 
 	if (!fpriv || !os_dev_ctx) {
 		return NULL;
+	}
+
+	if (fpriv->op_mode != NRF_WIFI_OP_MODE_OFF_RAW_TX) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode",
+				      __func__);
+		goto out;
 	}
 
 	fmac_dev_ctx = nrf_wifi_osal_mem_zalloc(sizeof(*fmac_dev_ctx) + sizeof(*off_raw_tx_fmac_dev_ctx));
@@ -149,6 +157,8 @@ struct nrf_wifi_fmac_dev_ctx *nrf_wifi_off_raw_tx_fmac_dev_add(struct nrf_wifi_f
 		fmac_dev_ctx = NULL;
 		goto out;
 	}
+
+	fmac_dev_ctx->op_mode = NRF_WIFI_OP_MODE_OFF_RAW_TX;
 out:
 	return fmac_dev_ctx;
 }
@@ -173,6 +183,12 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_dev_init(
 
 	if (!fmac_dev_ctx) {
 		nrf_wifi_osal_log_err("%s: Invalid device context",
+				      __func__);
+		goto out;
+	}
+
+	if (!fmac_dev_ctx->op_mode == NRF_WIFI_OP_MODE_OFF_RAW_TX) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode",
 				      __func__);
 		goto out;
 	}
@@ -249,6 +265,12 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_conf(struct nrf_wifi_fmac_dev_ctx 
 		goto out;
 	}
 
+	if (!fmac_dev_ctx->op_mode == NRF_WIFI_OP_MODE_OFF_RAW_TX) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode",
+				      __func__);
+		goto out;
+	}
+
 	dev_ctx_off_raw_tx = wifi_dev_priv(fmac_dev_ctx);
 	dev_ctx_off_raw_tx->off_raw_tx_cmd_done = true;
 
@@ -309,6 +331,12 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_start(struct nrf_wifi_fmac_dev_ctx
 		goto out;
 	}
 
+	if (!fmac_dev_ctx->op_mode == NRF_WIFI_OP_MODE_OFF_RAW_TX) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode",
+				      __func__);
+		goto out;
+	}
+
 	status = umac_cmd_off_raw_tx_ctrl(fmac_dev_ctx, 1);
 
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
@@ -325,6 +353,12 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_stop(struct nrf_wifi_fmac_dev_ctx 
 
 	if (!fmac_dev_ctx) {
 		nrf_wifi_osal_log_err("%s: Invalid device context",
+				      __func__);
+		goto out;
+	}
+
+	if (!fmac_dev_ctx->op_mode == NRF_WIFI_OP_MODE_OFF_RAW_TX) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode",
 				      __func__);
 		goto out;
 	}
@@ -346,6 +380,12 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_stats_get(struct nrf_wifi_fmac_dev
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	unsigned char count = 0;
+
+	if (!fmac_dev_ctx->op_mode == NRF_WIFI_OP_MODE_OFF_RAW_TX) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode",
+				      __func__);
+		goto out;
+	}
 
 	if (fmac_dev_ctx->stats_req == true) {
 		nrf_wifi_osal_log_err("%s: Stats request already pending",
@@ -505,6 +545,12 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_rf_params_get(struct nrf_wifi_fmac
 
 	if (!fmac_dev_ctx || !phy_rf_params) {
 		nrf_wifi_osal_log_err("%s: Invalid parameters",
+				      __func__);
+		goto out;
+	}
+
+	if (!fmac_dev_ctx->op_mode == NRF_WIFI_OP_MODE_OFF_RAW_TX) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode",
 				      __func__);
 		goto out;
 	}
