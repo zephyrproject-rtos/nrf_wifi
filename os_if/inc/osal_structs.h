@@ -20,8 +20,13 @@
 /* For Linux, use kernel internal headers instead of C headers*/
 #include <linux/stddef.h>
 #include <linux/string.h>
+#include <linux/version.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
 #undef strlen
 #include <linux/stdarg.h>
+#else
+#include <stdarg.h>
+#endif
 #else
 #include <stddef.h>
 #include <stdbool.h>
