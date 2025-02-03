@@ -154,7 +154,6 @@ OBJS = $(SRCS:.c=.o)
 obj-m := nrf_wifi_osal.o
 nrf_wifi_osal-objs := $(OBJS)
 
-
 all:
 	@echo "Building nrf_wifi_osal module: $(NRF_WIFI_DIR)"
 	$(MAKE) -C $(KDIR) M=$(NRF_WIFI_DIR) modules
@@ -165,4 +164,7 @@ menuconfig:
 clean:
 	make -C $(KDIR) M=$(NRF_WIFI_DIR) clean
 
-.PHONY: all clean
+install:
+	$(MAKE) -C $(KDIR) M=$(NRF_WIFI_DIR) modules_install
+
+.PHONY: all clean install menuconfig
