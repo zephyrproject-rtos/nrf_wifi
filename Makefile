@@ -4,7 +4,7 @@ RADIO_TEST := 0
 FW_LOAD_SUPPORT := 1
 FW_LOAD?=PATCH
 # Default is empty to force explicit selection
-BUS_IF :=
+BUS_IF := PCIE
 
 # Due to multiple Makefiles, we need to get the current directory
 NRF_WIFI_DIR := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
@@ -22,6 +22,8 @@ ifeq ($(BUS_IF), QSPI)
 	INCLUDES += -I$(NRF_WIFI_DIR)/bus_if/bus/qspi/inc
 else ifeq ($(BUS_IF), SPI)
 	INCLUDES += -I$(NRF_WIFI_DIR)/bus_if/bus/spi/inc
+else ifeq ($(BUS_IF), PCIE)
+	INCLUDES += -I$(NRF_WIFI_DIR)/bus_if/bus/pcie/inc
 endif
 
 # TODO: Use Kconfig + menuconfig for this
@@ -122,6 +124,8 @@ ifeq ($(BUS_IF), QSPI)
 	SRCS += bus_if/bus/qspi/src/qspi.c
 else ifeq ($(BUS_IF), SPI)
 	SRCS += bus_if/bus/pcie/src/spi.c
+else ifeq ($(BUS_IF), PCIE)
+	SRCS += bus_if/bus/pcie/src/pcie.c
 endif
 
 ifeq ($(RADIO_TEST), 1)
