@@ -204,6 +204,8 @@ struct rpu_mcu_boot_vectors {
 #define RPU_REG_MIPS_MCU2_BOOT_EXCP_INSTR_2 0xA4000158
 #define RPU_REG_MIPS_MCU2_BOOT_EXCP_INSTR_3 0xA400015C
 
+/* Bit which controls the power state of the nRF70 */
+#define RPU_REG_BIT_PS_CTRL 0
 /* Bit which indicates hardware bus ready state of the nRF70 */
 #define RPU_REG_BIT_PS_STATE 1
 /* Bit which indicates the firmware readiness of the nRF70 */
