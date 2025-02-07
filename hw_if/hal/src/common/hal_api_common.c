@@ -699,6 +699,10 @@ void nrf_wifi_hal_dev_rem(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 
 	nrf_wifi_utils_q_free(hal_dev_ctx->cmd_q);
 
+#ifdef NRF_WIFI_LOW_POWER
+	hal_rpu_ps_deinit(hal_dev_ctx);
+#endif /* NRF_WIFI_LOW_POWER */
+
 	nrf_wifi_bal_dev_rem(hal_dev_ctx->bal_dev_ctx);
 
 	nrf_wifi_osal_mem_free(hal_dev_ctx->tx_buf_info);
@@ -708,9 +712,6 @@ void nrf_wifi_hal_dev_rem(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 		nrf_wifi_osal_mem_free(hal_dev_ctx->rx_buf_info[i]);
 		hal_dev_ctx->rx_buf_info[i] = NULL;
 	}
-#ifdef NRF_WIFI_LOW_POWER
-	hal_rpu_ps_deinit(hal_dev_ctx);
-#endif /* NRF_WIFI_LOW_POWER */
 
 	hal_dev_ctx->hpriv->num_devs--;
 
