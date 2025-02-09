@@ -9,7 +9,7 @@
  */
 #include "bal_structs.h"
 #include "pcie.h"
-#include "pal.h"
+#include "common/pal.h"
 
 #define NRF_WIFI_PCIE_DEV_NAME "nrfwifi0"
 
