@@ -11,10 +11,10 @@ NRF_WIFI_DIR := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
 INCLUDES = -I$(NRF_WIFI_DIR)/utils/inc \
 		   -I$(NRF_WIFI_DIR)/os_if/inc \
-		   -I$(NRF_WIFI_DIR)/bus_if/bal/inc \
+		   -I$(NRF_WIFI_DIR)/bus_if/bal/inc/ \
 		   -I$(NRF_WIFI_DIR)/fw_if/umac_if/inc \
 		   -I$(NRF_WIFI_DIR)/fw_load/mips/fw/inc \
-		   -I$(NRF_WIFI_DIR)/hw_if/hal/inc \
+		   -I$(NRF_WIFI_DIR)/hw_if/hal/inc/ \
 		   -I$(NRF_WIFI_DIR)/hw_if/hal/inc/fw \
 		   -I$(NRF_WIFI_DIR)/fw_if/umac_if/inc/fw
 
@@ -103,21 +103,16 @@ SRCS = os_if/src/osal.c \
 	   utils/src/list.c \
 	   utils/src/queue.c \
 	   utils/src/util.c \
-	   hw_if/hal/src/hal_api.c \
-	   hw_if/hal/src/hal_interrupt.c \
-	   hw_if/hal/src/hal_mem.c \
-	   hw_if/hal/src/hal_reg.c \
-	   hw_if/hal/src/hpqm.c \
-	   hw_if/hal/src/pal.c \
+	   hw_if/hal/src/common/hal_interrupt.c \
+	   hw_if/hal/src/common/hal_mem.c \
+	   hw_if/hal/src/common/hal_reg.c \
+	   hw_if/hal/src/common/hpqm.c \
+	   hw_if/hal/src/common/pal.c \
 	   bus_if/bal/src/bal.c \
-	   fw_if/umac_if/src/cmd.c \
-	   fw_if/umac_if/src/event.c \
-	   fw_if/umac_if/src/fmac_api_common.c \
-	   fw_if/umac_if/src/fmac_peer.c \
-	   fw_if/umac_if/src/fmac_vif.c \
-	   fw_if/umac_if/src/fmac_util.c \
-	   fw_if/umac_if/src/rx.c \
-	   fw_if/umac_if/src/tx.c \
+	   fw_if/umac_if/src/common/fmac_cmd_common.c \
+	   fw_if/umac_if/src/common/fmac_api_common.c \
+	   fw_if/umac_if/src/common/fmac_util.c \
+	   hw_if/hal/src/common/hal_api_common.c \
 	   nrf_wifi_osal_module.c
 
 ifeq ($(BUS_IF), QSPI)
@@ -130,12 +125,21 @@ endif
 
 ifeq ($(RADIO_TEST), 1)
 	SRCS += fw_if/umac_if/src/radio_test/fmac_api.c
+	SRCS += fw_if/umac_if/src/radio_test/fmac_cmd.c
+	SRCS += fw_if/umac_if/src/radio_test/fmac_event.c
 	ccflags-y += -DNRF70_RADIO_TEST
 	INCLUDES += -I$(NRF_WIFI_DIR)/fw_if/umac_if/inc/radio_test
 else
-	SRCS += fw_if/umac_if/src/default/fmac_api.c
+	SRCS += fw_if/umac_if/src/system/fmac_peer.c
+	SRCS += fw_if/umac_if/src/system/fmac_vif.c
+	SRCS += fw_if/umac_if/src/system/fmac_api.c
+	SRCS += fw_if/umac_if/src/system/fmac_cmd.c
+	SRCS += fw_if/umac_if/src/system/fmac_event.c
+	SRCS += fw_if/umac_if/src/system/rx.c
+	SRCS += fw_if/umac_if/src/system/tx.c
+	SRCS += hw_if/hal/src/system/hal_api.c
 	ccflags-y += -DNRF70_SYSTEM_MODE
-	INCLUDES += -I$(NRF_WIFI_DIR)/fw_if/umac_if/inc/default
+	INCLUDES += -I$(NRF_WIFI_DIR)/fw_if/umac_if/inc/system
 endif
 
 ifeq ($(FW_LOAD_SUPPORT), 1)
@@ -143,7 +147,7 @@ ifeq ($(FW_LOAD), $(filter $(FW_LOAD), ROM ROM_PATCH))
 SRCS += hw_if/hal/src/hal_fw_rom_loader.c
 endif
 ifeq ($(FW_LOAD), $(filter $(FW_LOAD), PATCH ROM_PATCH))
-SRCS += hw_if/hal/src/hal_fw_patch_loader.c
+SRCS += hw_if/hal/src/common/hal_fw_patch_loader.c
 endif
 ifeq ($(FW_LOAD), $(filter $(FW_LOAD), RAM))
 SRCS += hw_if/hal/src/hal_fw_ram_loader.c
