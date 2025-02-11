@@ -37,7 +37,7 @@ static enum nrf_wifi_status umac_event_off_raw_tx_stats_process(
 
 	nrf_wifi_osal_mem_cpy(fmac_dev_ctx->fw_stats,
 			      &stats->fw,
-			      sizeof(*fmac_dev_ctx->fw_stats));
+			      sizeof(stats->fw));
 
 	fmac_dev_ctx->stats_req = false;
 
