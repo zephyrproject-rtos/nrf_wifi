@@ -5,7 +5,7 @@
  */
 
 /**
- * @file hal_structs.h
+ * @file
  *
  * @brief Header containing structure declarations for the HAL Layer of the Wi-Fi driver.
  */
