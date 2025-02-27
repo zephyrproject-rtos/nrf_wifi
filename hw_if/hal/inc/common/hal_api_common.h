@@ -5,7 +5,7 @@
  */
 
 /**
- * @file hal_api.h
+ * @file
  *
  * @brief Header containing API declarations for the HAL Layer of the Wi-Fi driver.
  */
