@@ -259,6 +259,14 @@ static enum nrf_wifi_status umac_event_ctrl_process(struct nrf_wifi_fmac_dev_ctx
 		nrf_wifi_osal_mem_cpy(&fmac_dev_ctx->alpha2,
 				      &get_reg_event->nrf_wifi_alpha2,
 				      sizeof(get_reg_event->nrf_wifi_alpha2));
+
+		fmac_dev_ctx->reg_chan_count = get_reg_event->num_channels;
+
+		nrf_wifi_osal_mem_cpy(fmac_dev_ctx->reg_chan_info,
+				      &get_reg_event->chn_info,
+				      fmac_dev_ctx->reg_chan_count *
+				      sizeof(struct nrf_wifi_get_reg_chn_info));
+
 		fmac_dev_ctx->alpha2_valid = true;
 		break;
 	case NRF_WIFI_UMAC_EVENT_REG_CHANGE:
