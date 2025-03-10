@@ -21,6 +21,9 @@
 #define RX_CAPTURE_TIMEOUT_CONST 11
 #define CAPTURE_DURATION_IN_SEC 600
 
+#define VBAT_OFFSET_MILLIVOLT (2500)
+#define VBAT_SCALING_FACTOR (70)
+
 enum nrf_wifi_rf_test {
 	NRF_WIFI_RF_TEST_RX_ADC_CAP,
 	NRF_WIFI_RF_TEST_RX_STAT_PKT_CAP,
@@ -32,6 +35,7 @@ enum nrf_wifi_rf_test {
 	NRF_WIFI_RF_TEST_GET_TEMPERATURE,
 	NRF_WIFI_RF_TEST_XO_CALIB,
 	NRF_WIFI_RF_TEST_XO_TUNE,
+	NRF_WIFI_RF_TEST_GET_BAT_VOLT,
 	NRF_WIFI_RF_TEST_MAX,
 };
 
@@ -45,6 +49,8 @@ enum nrf_wifi_rf_test_event {
 	NRF_WIFI_RF_TEST_EVENT_SLEEP,
 	NRF_WIFI_RF_TEST_EVENT_TEMP_MEAS,
 	NRF_WIFI_RF_TEST_EVENT_XO_CALIB,
+	NRF_WIFI_RF_TEST_EVENT_XO_TUNE,
+	NRF_WIFI_RF_TEST_EVENT_GET_BAT_VOLT,
 	NRF_WIFI_RF_TEST_EVENT_MAX,
 };
 
@@ -130,6 +136,17 @@ struct nrf_wifi_temperature_params {
 	 * 1: Reading failed
 	 */
 	unsigned int readTemperatureStatus;
+} __NRF_WIFI_PKD;
+
+struct nrf_wifi_bat_volt_params {
+	unsigned char test;
+	/** Measured battery voltage in milliVolts. */
+	unsigned char voltage;
+	/** Status of the voltage measurement command.
+	 * 0: Reading successful
+	 * 1: Reading failed
+	 */
+	unsigned int cmd_status;
 } __NRF_WIFI_PKD;
 
 struct nrf_wifi_rf_get_rf_rssi {
