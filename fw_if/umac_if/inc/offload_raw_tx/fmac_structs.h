@@ -32,7 +32,6 @@
 struct nrf_wifi_off_raw_tx_fmac_dev_ctx {
     enum nrf_wifi_cmd_status off_raw_tx_cmd_status;
     bool off_raw_tx_cmd_done;
-    unsigned char country_code[NRF_WIFI_COUNTRY_CODE_LEN];
 };
 
 

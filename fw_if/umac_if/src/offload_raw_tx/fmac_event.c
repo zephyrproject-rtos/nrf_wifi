@@ -100,7 +100,6 @@ static enum nrf_wifi_status umac_event_ctrl_process(struct nrf_wifi_fmac_dev_ctx
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_SUCCESS;
 	struct nrf_wifi_umac_hdr *umac_hdr = NULL;
-	struct nrf_wifi_off_raw_tx_fmac_dev_ctx *dev_ctx_off_raw_tx = NULL;
 	struct nrf_wifi_reg *get_reg_event = NULL;
 	unsigned char if_id = 0;
 	unsigned int event_num = 0;
@@ -110,8 +109,6 @@ static enum nrf_wifi_status umac_event_ctrl_process(struct nrf_wifi_fmac_dev_ctx
 				      __func__);
 		goto out;
 	}
-
-	dev_ctx_off_raw_tx = wifi_dev_priv(fmac_dev_ctx);
 
 	umac_hdr = event_data;
 	if_id = umac_hdr->ids.wdev_id;
@@ -139,9 +136,17 @@ static enum nrf_wifi_status umac_event_ctrl_process(struct nrf_wifi_fmac_dev_ctx
 	case NRF_WIFI_UMAC_EVENT_GET_REG:
 		get_reg_event = (struct nrf_wifi_reg *)event_data;
 
-		nrf_wifi_osal_mem_cpy(&dev_ctx_off_raw_tx->country_code,
+		nrf_wifi_osal_mem_cpy(&fmac_dev_ctx->alpha2,
 				      &get_reg_event->nrf_wifi_alpha2,
 				      sizeof(get_reg_event->nrf_wifi_alpha2));
+
+		fmac_dev_ctx->reg_chan_count = get_reg_event->num_channels;
+
+		nrf_wifi_osal_mem_cpy(fmac_dev_ctx->reg_chan_info,
+				      &get_reg_event->chn_info,
+				      fmac_dev_ctx->reg_chan_count *
+				      sizeof(struct nrf_wifi_get_reg_chn_info));
+
 		fmac_dev_ctx->alpha2_valid = true;
 		break;
 	default:
