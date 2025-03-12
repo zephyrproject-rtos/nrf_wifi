@@ -1657,7 +1657,7 @@ struct rpu_off_raw_tx_fw_stats {
 struct nrf_wifi_sys_umac_event_stats {
 	/** UMAC header, @ref nrf_wifi_sys_head */
 	struct nrf_wifi_sys_head sys_head;
-	/** All the statistics that the firmware can provide @ref rpu_fw_stats*/
+	/** All the statistics that the firmware can provide @ref rpu_sys_fw_stats*/
 	struct rpu_sys_fw_stats fw;
 } __NRF_WIFI_PKD;
 
@@ -1674,7 +1674,7 @@ struct nrf_wifi_sys_umac_event_stats {
 struct nrf_wifi_rt_umac_event_stats {
 	/** UMAC header, @ref nrf_wifi_sys_head */
 	struct nrf_wifi_sys_head sys_head;
-	/** All the statistics that the firmware can provide @ref rpu_fw_stats*/
+	/** All the statistics that the firmware can provide @ref rpu_rt_fw_stats*/
 	struct rpu_rt_fw_stats fw;
 } __NRF_WIFI_PKD;
 
@@ -1691,7 +1691,7 @@ struct nrf_wifi_rt_umac_event_stats {
 struct nrf_wifi_off_raw_tx_umac_event_stats {
 	/** UMAC header, @ref nrf_wifi_sys_head */
 	struct nrf_wifi_sys_head sys_head;
-	/** All the statistics that the firmware can provide @ref rpu_fw_stats*/
+	/** All the statistics that the firmware can provide @ref rpu_off_raw_tx_fw_stats*/
 	struct rpu_off_raw_tx_fw_stats fw;
 } __NRF_WIFI_PKD;
 
