@@ -311,7 +311,7 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_conf(struct nrf_wifi_fmac_dev_ctx 
 
 		nrf_wifi_osal_log_err("%s: Failed to set configuration, check config against %.2s regulatory domain rules",
 				      __func__,
-				      dev_ctx_off_raw_tx->country_code);
+				      fmac_dev_ctx->alpha2);
 		status = NRF_WIFI_STATUS_FAIL;
 		goto out;
 	}
