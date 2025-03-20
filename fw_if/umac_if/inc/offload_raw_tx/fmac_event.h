@@ -20,9 +20,9 @@
  * event is based on whether it contains data or control messages
  * and invokes further handlers based on that.
  *
- * @param data Pointer to the device driver context.
- * @param event_data Pointer to event data.
- * @param len Length of event data pointed to by @p event_data.
+ * @param mac_dev_ctx Pointer to the device driver context.
+ * @param rpu_event_data Pointer to event data.
+ * @param rpu_event_len Length of event data pointed to by @p rpu_event_data.
  *
  * @return Status
  *         - Pass: NRF_WIFI_STATUS_SUCCESS
