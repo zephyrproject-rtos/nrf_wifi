@@ -67,7 +67,7 @@ void *nrf_wifi_osal_mem_zalloc(size_t size);
  *
  * @param size Size of the memory to be allocated in bytes.
  *
- * Allocates memory of @size bytes, zeroes it out and returns a pointer to the
+ * Allocates memory of @p size bytes, zeroes it out and returns a pointer to the
  * start of the memory allocated.
  *
  * @return: Pointer to start of allocated memory or NULL.
@@ -78,8 +78,8 @@ void *nrf_wifi_osal_data_mem_zalloc(size_t size);
  * @brief Free previously allocated memory for control path requests.
  * @param buf Pointer to the memory to be freed.
  *
- * Free up memory which has been allocated using  nrf_wifi_osal_mem_alloc or
- * nrf_wifi_osal_mem_zalloc.
+ * Free up memory which has been allocated using  @ref nrf_wifi_osal_mem_alloc or
+ * @ref nrf_wifi_osal_mem_zalloc.
  */
 void nrf_wifi_osal_mem_free(void *buf);
 
@@ -88,10 +88,9 @@ void nrf_wifi_osal_mem_free(void *buf);
  *
  * @param buf Pointer to the memory to be freed.
  *
- * Free up memory which has been allocated using @nrf_wifi_osal_mem_alloc or
- * @nrf_wifi_osal_mem_zalloc.
+ * Free up memory which has been allocated using @ref nrf_wifi_osal_mem_alloc or
+ * @ref nrf_wifi_osal_mem_zalloc.
  *
- * @return: None.
  */
 void nrf_wifi_osal_data_mem_free(void *buf);
 
