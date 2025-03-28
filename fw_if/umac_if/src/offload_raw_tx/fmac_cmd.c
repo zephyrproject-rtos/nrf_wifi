@@ -135,6 +135,12 @@ enum nrf_wifi_status umac_cmd_off_raw_tx_init(struct nrf_wifi_fmac_dev_ctx *fmac
 	umac_cmd_data->coex_disable_ptiwin_for_wifi_scan = 0;
 #endif /* NRF_WIFI_COEX_DISABLE_PRIORITY_WINDOW_FOR_SCAN */
 
+	umac_cmd_data->max_ps_poll_fail_cnt = NRF_WIFI_MAX_PS_POLL_FAIL_CNT;
+
+#ifdef NRF_WIFI_RX_STBC_HT
+	umac_cmd_data->stbc_enable_in_ht = 1;
+#endif /* NRF_WIFI_RX_STBC_HT */
+
 	status = nrf_wifi_hal_ctrl_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 					    umac_cmd,
 					    (sizeof(*umac_cmd) + len));
