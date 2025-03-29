@@ -3,16 +3,22 @@
 
 add_library(nrf-wifi-osal STATIC "")
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm*")
-  # Set the CPU architecture to armv8-m.main (Cortex-M33), default is armv4t for Zephyr ARM targets
-  if(CONFIG_SOC_SERIES_NRF91X)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -mcpu=cortex-m33 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -mcpu=cortex-m33 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16")
-  else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -mcpu=cortex-m33 -mthumb")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -mcpu=cortex-m33 -mthumb")
-  endif()
-endif()
+# Automatically set CPU architecture and other flags from Zephyr interface
+target_compile_options(
+  nrf-wifi-osal
+  PRIVATE
+  $<TARGET_PROPERTY:zephyr_interface,INTERFACE_COMPILE_OPTIONS>
+)
+target_compile_definitions(
+  nrf-wifi-osal
+  PRIVATE
+  $<TARGET_PROPERTY:zephyr_interface,INTERFACE_COMPILE_DEFINITIONS>
+)
+target_include_directories(
+  nrf-wifi-osal
+  PRIVATE
+  $<TARGET_PROPERTY:zephyr_interface,INTERFACE_INCLUDE_DIRECTORIES>
+)
 
 set(NRF_WIFI_DIR ${ZEPHYR_NRF_WIFI_MODULE_DIR})
 
