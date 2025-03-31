@@ -54,7 +54,8 @@ static bool hal_rpu_is_mem_core_indirect(enum RPU_PROC_TYPE proc,
 
 static bool hal_rpu_is_mem_readable(enum RPU_PROC_TYPE proc, unsigned int addr)
 {
-	return hal_rpu_is_mem_ram(proc, addr);
+	return hal_rpu_is_mem_ram(proc, addr) ||
+		   hal_rpu_is_mem_core_direct(proc, addr);
 }
 
 
