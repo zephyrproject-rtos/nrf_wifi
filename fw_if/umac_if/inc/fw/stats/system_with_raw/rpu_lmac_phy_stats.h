@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022 Nordic Semiconductor ASA
+ * Copyright (c) 2025 Nordic Semiconductor ASA
  *
- * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 /**
@@ -11,18 +11,12 @@
 #ifndef __RPU_LMAC_STATS_H__
 #define __RPU_LMAC_STATS_H__
 
-/**
- * @brief Common debug variables structure.
- */
-struct stat {	
-	char name[32];
-	unsigned int addr;
-};
+#include "rpu_stats_common.h"
 
 /**
 * @brief MAC debug variables.
 */
-struct stat rpu_lmac_stats[] = {
+struct rpu_stat_from_mem rpu_lmac_stats[] = {
 	{"resetCmdCnt", 0x80040f2c },
 	{"resetCompleteEventCnt", 0x80040f30 },
 	{"unableGenEvent", 0x80040f44 },
@@ -63,7 +57,7 @@ struct stat rpu_lmac_stats[] = {
 /**
 * @brief MAC softrecovery debug variables.
 */
-struct rpu_soft_recovery_stats[] = {
+struct rpu_stat_from_mem rpu_soft_recovery_stats[] = {
 	{"rpusoftLockup", 0x80040f24 },
 	{"rpusoftLockupRecoverySuccess", 0x80040f28 },
 };
@@ -71,11 +65,21 @@ struct rpu_soft_recovery_stats[] = {
 /**
 * @brief PHY debug variables.
 */
-struct rpu_phy_stats[] = {
+struct rpu_stat_from_mem rpu_phy_stats[] = {
 	{"dsss_crc32_fail_cnt", 0x800410c0 },
 	{"dsss_crc32_pass_cnt", 0x80041098 },
 	{"ofdm_crc32_fail_cnt", 0x80041094 },
 	{"ofdm_crc32_pass_cnt", 0x80041090 },
 };
- 
+
+
+/**
+ * @brief Global array to hold all debug variable arrays and their sizes.
+ */
+struct rpu_stat_global rpu_all_lmac_stats[] = {
+	{"global", rpu_lmac_stats},
+	{"soft_recovery", rpu_soft_recovery_stats},
+	{"phy", rpu_phy_stats},
+	{"", NULL}
+};
 #endif /* __RPU_LMAC_STATS_H__ */

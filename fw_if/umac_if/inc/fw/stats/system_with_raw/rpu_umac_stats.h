@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022 Nordic Semiconductor ASA
+ * Copyright (c) 2025 Nordic Semiconductor ASA
  *
- * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 /**
@@ -11,18 +11,12 @@
 #ifndef __RPU_UMAC_STATS_H__
 #define __RPU_UMAC_STATS_H__
 
-/**
- * @brief Common debug variables structure.
- */
-struct stat {	
-	char name[32];
-	unsigned int addr;
-};
+#include "rpu_stats_common.h"
 
 /**
 * @brief MAC debug variables.
 */
-struct stat rpu_umac_stats[] = {
+struct rpu_stat_from_mem rpu_umac_stats[] = {
 	{"tx_cmd", 0x8008bd9c },
 	{"tx_cmds_currently_in_use", 0x8008bdb0 },
 	{"tx_done_events_send_to_host", 0x8008bdb4 },
@@ -55,7 +49,7 @@ struct stat rpu_umac_stats[] = {
 /**
 * @brief Raw TX RX debug variables.
 */
-struct stat rpu_rawtx_stats[] = {
+struct rpu_stat_from_mem rpu_rawtx_stats[] = {
 	{"raw_tx_from_host", 0x80098160 },
 	{"raw_tx_to_lmac", 0x80098164 },
 	{"raw_tx_dones_from_lmac", 0x80098168 },
@@ -66,6 +60,16 @@ struct stat rpu_rawtx_stats[] = {
 	{"valid_raw_rx_pkts_from_lmac", 0x80098178 },
 	{"raw_tx_dones_from_lmac", 0x80098168 },
 	{"raw_rx_pkts_to_host", 0x8009817c },
+};
+
+/**
+ * @brief Global array to hold all debug variable arrays and their sizes.
+ */
+struct rpu_stat_global rpu_all_umac_stats[] = {
+	{"umac", rpu_umac_stats},
+	{"rawtx", rpu_rawtx_stats},
+	/* End of the list */
+	{"", NULL}
 };
  
 #endif /* __RPU_UMAC_STATS_H__ */

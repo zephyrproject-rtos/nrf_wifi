@@ -114,6 +114,37 @@ target_include_directories(
   ${NRF_WIFI_DIR}/fw_load/mips/fw/inc
   ${NRF_WIFI_DIR}/hw_if/hal/inc
   ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw
+  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats
+)
+
+target_include_directories_ifdef(CONFIG_NRF70_SYSTEM_MODE
+  nrf-wifi-osal
+  PUBLIC
+  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/system
+)
+
+target_include_directories_ifdef(CONFIG_NRF70_RADIO_TEST
+  nrf-wifi-osal
+  PUBLIC
+  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/radio_test
+)
+
+target_include_directories_ifdef(CONFIG_NRF70_OFFLOADED_RAW_TX
+  nrf-wifi-osal
+  PUBLIC
+  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/offload_raw_tx
+)
+
+target_include_directories_ifdef(CONFIG_NRF70_SCAN_ONLY
+  nrf-wifi-osal
+  PUBLIC
+  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/scan_only
+)
+
+target_include_directories_ifdef(CONFIG_NRF70_SYSTEM_MODE
+  nrf-wifi-osal
+  PUBLIC
+  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/system
 )
 
 target_sources(nrf-wifi-osal PRIVATE
