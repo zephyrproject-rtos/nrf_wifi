@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022 Nordic Semiconductor ASA
+ * Copyright (c) 2025 Nordic Semiconductor ASA
  *
- * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 /**
@@ -11,18 +11,12 @@
 #ifndef __RPU_UMAC_STATS_H__
 #define __RPU_UMAC_STATS_H__
 
-/**
- * @brief Common debug variables structure.
- */
-struct stat {	
-	char name[32];
-	unsigned int addr;
-};
+#include "rpu_stats_common.h"
 
 /**
 * @brief MAC debug variables.
 */
-struct stat rpu_umac_stats[] = {
+struct rpu_stat_from_mem rpu_umac_stats[] = {
 	{"tx_cmd", 0x8008bd9c },
 	{"tx_cmds_currently_in_use", 0x8008bdb0 },
 	{"tx_done_events_send_to_host", 0x8008bdb4 },
@@ -50,6 +44,16 @@ struct stat rpu_umac_stats[] = {
 	{"event_node_alloc_fail", 0x8008be3c },
 	{"hpqm_event_pop_fail", 0x8008be40 },
 	{"total_events_to_host", 0x8008be48 },
+	{"", 0 }
+
 };
- 
+
+/**
+ * @brief Global array to hold all debug variable arrays.
+ */
+struct rpu_stat_global rpu_all_umac_stats[] = {
+	{"global", rpu_umac_stats},
+	{"", NULL}
+};
+
 #endif /* __RPU_UMAC_STATS_H__ */
