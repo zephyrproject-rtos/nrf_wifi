@@ -26,9 +26,10 @@ struct stat rpu_umac_stats[] = {
 	{"tx_cmd", 0x8008bd9c },
 	{"tx_cmds_currently_in_use", 0x8008bdb0 },
 	{"tx_done_events_send_to_host", 0x8008bdb4 },
-	{"tx_cmd_to_lmactx_dones_from_lmac", 0x8008bdec },
+	{"tx_cmd_to_lmac", 0x8008bdec },
 	{"tx_dones_from_lmac", 0x8008bdf0 },
 	{"total_cmds_to_lmac", 0x8008bdf4 },
+	{"cmd_processing", 0x80132000 },
 	{"lmac_events", 0x80080388 },
 	{"rx_events", 0x8008038c },
 	{"current_refill_gap", 0x8008039c },
@@ -36,9 +37,6 @@ struct stat rpu_umac_stats[] = {
 	{"host_consumed_pkts", 0x800803ac },
 	{"rx_mbox_post", 0x800803b0 },
 	{"rx_mbox_receive", 0x800803b4 },
-	{"null_skb_pointer_from_lmac", 0x80080415 },
-	{"cmd_init", 0x8008bec4 },
-	{"event_init_done", 0x8008bec5 },
 	{"cmd_trigger_scan", 0x8008bedc },
 	{"event_scan_done", 0x8008bee0 },
 	{"umac_scan_req", 0x8008bee8 },
@@ -50,16 +48,19 @@ struct stat rpu_umac_stats[] = {
 	{"event_node_alloc_fail", 0x8008be3c },
 	{"hpqm_event_pop_fail", 0x8008be40 },
 	{"total_events_to_host", 0x8008be48 },
+	{"cmd_init", 0x8008bec4 },
+	{"event_init_done", 0x8008e070 },
+	{"null_skb_pointer_from_lmac", 0x8008e06c },
 };
  
 /**
 * @brief offload raw tx debug variables.
 */
 struct rpu_offload_raw_tx_stats[] = {
-	{"offload_raw_tx_state", 0x8008e050 },
-	{"offload_raw_tx_cnt", 0x8008e054 },
-	{"offload_raw_tx_complete_cnt", 0x8008e058 },
-	{"warm_boot_cnt", 0x8008e05c },
+	{"offload_raw_tx_state", 0x8008e0e4 },
+	{"offload_raw_tx_cnt", 0x8008e0e8 },
+	{"offload_raw_tx_complete_cnt", 0x8008e0ec },
+	{"warm_boot_cnt", 0x8008e0f0 },
 };
  
 #endif /* __RPU_UMAC_STATS_H__ */
