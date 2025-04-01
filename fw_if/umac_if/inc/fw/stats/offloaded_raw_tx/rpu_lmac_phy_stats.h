@@ -78,10 +78,10 @@ struct rpu_stat_from_mem rpu_phy_stats[] = {
 /**
 * @brief offload raw tx debug variables.
 */
-struct rpu_stat_from_mem rpu_offload_raw_tx_stats[] = {
-	{"offLoad_raw_tx_state", 0x800473c4 },
-	{"offload_raw_tx_cnt", 0x800473a8 },
-	{"offload_raw_tx_complete_cnt", 0x800473ac },
+struct rpu_offload_raw_tx_stats[] = {
+	{"offload_raw_tx_state", 0x800473b4 },
+	{"offload_raw_tx_cnt", 0x80047398 },
+	{"offload_raw_tx_complete_cnt", 0x8004739c },
 	{"offload_raw_tx_stats.warm_boot_cnt", 0x8004116c },
 	{"", 0 }
 };
