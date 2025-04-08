@@ -2650,6 +2650,7 @@ struct nrf_wifi_umac_event_new_scan_display_results {
 #define NRF_WIFI_EVENT_MLME_WME_UAPSD_QUEUES_VALID (1 << 5)
 #define NRF_WIFI_EVENT_MLME_RXMGMT_FLAGS_VALID (1 << 6)
 #define NRF_WIFI_EVENT_MLME_IE_VALID   (1 << 7)
+#define NRF_WIFI_EVENT_MLME_RXDEAUTH_FROM_AP   (1 << 8)
 
 #define NRF_WIFI_EVENT_MLME_TIMED_OUT (1 << 0)
 #define NRF_WIFI_EVENT_MLME_ACK (1 << 1)
