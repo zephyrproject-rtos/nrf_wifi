@@ -80,13 +80,9 @@ static int nrf_wifi_patch_feature_flags_compat(struct nrf_wifi_fmac_dev_ctx *fma
 		return -1;
 	}
 #elif defined(NRF70_SYSTEM_MODE)
-	if (!(feature_flags & NRF70_FEAT_SYSTEM_MODE)) {
-		nrf_wifi_osal_log_err("System mode feature flag not set");
-		return -1;
-	}
-#elif defined(NRF70_SYSTEM_WITH_RAW_MODES)
-	if (!(feature_flags & NRF70_FEAT_SYSTEM_WITH_RAW_MODES)) {
-		nrf_wifi_osal_log_err("System with raw modes feature flag not set");
+	if (!(feature_flags & NRF70_FEAT_SYSTEM_MODE) &&
+	    !(feature_flags & NRF70_FEAT_SYSTEM_WITH_RAW_MODES)) {
+		nrf_wifi_osal_log_err("System mode or system with raw mode feature flag not set");
 		return -1;
 	}
 #else
