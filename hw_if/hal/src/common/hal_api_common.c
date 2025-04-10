@@ -456,7 +456,7 @@ static enum nrf_wifi_status hal_rpu_cmd_process_queue(struct nrf_wifi_hal_dev_ct
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_hal_msg *cmd = NULL;
 
-	while ((cmd = nrf_wifi_utils_q_dequeue(hal_dev_ctx->cmd_q))) {
+	while ((cmd = nrf_wifi_utils_ctrl_q_dequeue(hal_dev_ctx->cmd_q))) {
 		status = hal_rpu_ready_wait(hal_dev_ctx,
 					    NRF_WIFI_HAL_MSG_TYPE_CMD_CTRL);
 
@@ -526,7 +526,7 @@ static enum nrf_wifi_status hal_rpu_cmd_queue(struct nrf_wifi_hal_dev_ctx *hal_d
 
 			hal_msg->len = size;
 
-			status = nrf_wifi_utils_q_enqueue(hal_dev_ctx->cmd_q,
+			status = nrf_wifi_utils_ctrl_q_enqueue(hal_dev_ctx->cmd_q,
 							  hal_msg);
 
 			if (status != NRF_WIFI_STATUS_SUCCESS) {
@@ -554,7 +554,7 @@ static enum nrf_wifi_status hal_rpu_cmd_queue(struct nrf_wifi_hal_dev_ctx *hal_d
 
 		hal_msg->len = len;
 
-		status = nrf_wifi_utils_q_enqueue(hal_dev_ctx->cmd_q,
+		status = nrf_wifi_utils_ctrl_q_enqueue(hal_dev_ctx->cmd_q,
 						  hal_msg);
 
 		if (status != NRF_WIFI_STATUS_SUCCESS) {
@@ -617,7 +617,7 @@ enum nrf_wifi_status hal_rpu_eventq_process(struct nrf_wifi_hal_dev_ctx *hal_dev
 	unsigned int event_len = 0;
 
 	while (1) {
-		event = nrf_wifi_utils_q_dequeue(hal_dev_ctx->event_q);
+		event = nrf_wifi_utils_ctrl_q_dequeue(hal_dev_ctx->event_q);
 		if (!event) {
 			goto out;
 		}
@@ -653,7 +653,7 @@ static void hal_rpu_eventq_drain(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 		nrf_wifi_osal_spinlock_irq_take(hal_dev_ctx->lock_rx,
 						&flags);
 
-		event = nrf_wifi_utils_q_dequeue(hal_dev_ctx->event_q);
+		event = nrf_wifi_utils_ctrl_q_dequeue(hal_dev_ctx->event_q);
 
 		nrf_wifi_osal_spinlock_irq_rel(hal_dev_ctx->lock_rx,
 					       &flags);

@@ -317,12 +317,30 @@ int nrf_wifi_osal_log_err(const char *fmt, ...);
 void *nrf_wifi_osal_llist_node_alloc(void);
 
 /**
+ * @brief Allocate a linked list node from control pool.
+ *
+ * Allocate a linked list node from control pool.
+ *
+ * @return Pointer to the linked list node allocated.
+ *         NULL if there is an error.
+ */
+ void *nrf_wifi_osal_ctrl_llist_node_alloc(void);
+
+/**
  * @brief Free a linked list node.
  * @param node Pointer to a linked list node.
  *
  * Frees a linked list node(node) which was allocated by nrf_wifi_osal_llist_node_alloc.
  */
 void nrf_wifi_osal_llist_node_free(void *node);
+
+/**
+ * @brief Free a linked list node in control pool.
+ * @param node Pointer to a linked list node.
+ *
+ * Frees a linked list node(node) which was allocated by nrf_wifi_osal_ctrl_llist_node_alloc.
+ */
+void nrf_wifi_osal_ctrl_llist_node_free(void *node);
 
 /**
  * @brief Get data stored in a linked list node.

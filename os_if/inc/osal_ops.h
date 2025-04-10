@@ -306,11 +306,25 @@ struct nrf_wifi_osal_ops {
 	void *(*llist_node_alloc)(void);
 
 	/**
+	 * @brief Allocate a linked list node from control pool.
+	 *
+	 * @return A pointer to the allocated linked list node.
+	 */
+	 void *(*ctrl_llist_node_alloc)(void);
+
+	/**
 	 * @brief Free a linked list node.
 	 *
 	 * @param node A pointer to the linked list node to free.
 	 */
 	void (*llist_node_free)(void *node);
+
+	/**
+	 * @brief Free a linked list node from control pool.
+	 *
+	 * @param node A pointer to the linked list node to free.
+	 */
+	 void (*ctrl_llist_node_free)(void *node);
 
 	/**
 	 * @brief Get the pointer to the data which the linked list node points to.
