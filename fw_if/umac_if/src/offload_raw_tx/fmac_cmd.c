@@ -83,12 +83,12 @@ enum nrf_wifi_status umac_cmd_off_raw_tx_init(struct nrf_wifi_fmac_dev_ctx *fmac
 
 #ifdef NRF_WIFI_MGMT_BUFF_OFFLOAD
 	umac_cmd_data->mgmt_buff_offload =  1;
-	nrf_wifi_osal_log_dbg("Management buffer offload enabled\n");
+	nrf_wifi_osal_log_dbg("Management buffer offload enabled");
 #endif /* NRF_WIFI_MGMT_BUFF_OFFLOAD */
 #ifdef NRF_WIFI_FEAT_KEEPALIVE
 	umac_cmd_data->keep_alive_enable = KEEP_ALIVE_ENABLED;
 	umac_cmd_data->keep_alive_period = NRF_WIFI_KEEPALIVE_PERIOD_S;
-	nrf_wifi_osal_log_dbg("Keepalive enabled with period %d\n",
+	nrf_wifi_osal_log_dbg("Keepalive enabled with period %d",
 				   umac_cmd_data->keepalive_period);
 #endif /* NRF_WIFI_FEAT_KEEPALIVE */
 

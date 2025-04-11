@@ -781,7 +781,7 @@ enum nrf_wifi_status rawtx_cmd_prepare(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 
 	txq_len = nrf_wifi_utils_list_len(txq);
 	if (txq_len == 0) {
-		nrf_wifi_osal_log_err("%s: txq_len = %d\n",
+		nrf_wifi_osal_log_err("%s: txq_len = %d",
 				      __func__,
 				      txq_len);
 		goto err;
@@ -1906,7 +1906,7 @@ enum nrf_wifi_status nrf_wifi_fmac_start_rawpkt_xmit(void *dev_ctx,
 				     ac,
 				     peer_id);
 	if (tx_status == NRF_WIFI_FMAC_TX_STATUS_FAIL) {
-		nrf_wifi_osal_log_dbg("%s: Failed to send packet\n",
+		nrf_wifi_osal_log_dbg("%s: Failed to send packet",
 				      __func__);
 		/** Increment failure count */
 		sys_dev_ctx->raw_pkt_stats.raw_pkt_send_failure += 1;
