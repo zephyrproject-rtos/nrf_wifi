@@ -137,7 +137,7 @@ unsigned long nrf_wifi_sys_hal_buf_map_rx(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 	unsigned long rpu_addr = 0;
 
 	if (!hal_dev_ctx || !hal_dev_ctx->rx_buf_info[pool_id]) {
-		nrf_wifi_osal_log_err("%s: Invalid parameters\n",
+		nrf_wifi_osal_log_err("%s: Invalid parameters",
 				      __func__);
 		goto out;
 	}

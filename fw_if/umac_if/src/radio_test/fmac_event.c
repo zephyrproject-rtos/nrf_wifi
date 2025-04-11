@@ -120,13 +120,13 @@ static enum nrf_wifi_status umac_event_rt_rf_test_process(struct nrf_wifi_fmac_d
 		if (bat_volt_params.cmd_status) {
 			nrf_wifi_osal_log_err("Battery Volatge reading failed");
 		} else {
-			bat_volt = (VBAT_OFFSET_MILLIVOLT + 
+			bat_volt = (VBAT_OFFSET_MILLIVOLT +
 			(VBAT_SCALING_FACTOR * bat_volt_params.voltage));
 
 			nrf_wifi_osal_log_info("The battery voltage is = %d mV",
 						bat_volt);
 		}
-		break;		
+		break;
 	case NRF_WIFI_RF_TEST_EVENT_RF_RSSI:
 		nrf_wifi_osal_mem_cpy(&rf_get_rf_rssi,
 				(const unsigned char *)&rf_test_event->rf_test_info.rfevent[0],
@@ -243,7 +243,7 @@ static enum nrf_wifi_status umac_event_ctrl_process(struct nrf_wifi_fmac_dev_ctx
 	}
 
 #ifdef NRF_WIFI_CMD_EVENT_LOG
-	nrf_wifi_osal_log_info("%s: Event %d received from UMAC\n",
+	nrf_wifi_osal_log_info("%s: Event %d received from UMAC",
 			      __func__,
 			      event_num);
 #else
@@ -320,7 +320,7 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_event_callback(void *mac_dev_ctx,
 	umac_msg_type = umac_hdr->cmd_evnt;
 
 #ifdef NRF_WIFI_CMD_EVENT_LOG
-	nrf_wifi_osal_log_info("%s: Event type %d recd\n",
+	nrf_wifi_osal_log_info("%s: Event type %d recd",
 			      __func__,
 			      rpu_msg->type);
 #else
@@ -352,4 +352,3 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_event_callback(void *mac_dev_ctx,
 out:
 	return status;
 }
-
