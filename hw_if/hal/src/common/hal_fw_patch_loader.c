@@ -288,7 +288,7 @@ enum nrf_wifi_status nrf_wifi_hal_fw_patch_boot(struct nrf_wifi_hal_dev_ctx *hal
 					   sleepctrl_addr,
 					   sleepctrl_val);
 		if (status != NRF_WIFI_STATUS_SUCCESS) {
-			nrf_wifi_osal_log_err("%s: Sleep control reg write failed for RPU(%d)\n",
+			nrf_wifi_osal_log_err("%s: Sleep control reg write failed for RPU(%d)",
 					      __func__,
 					      rpu_proc);
 
@@ -304,7 +304,7 @@ enum nrf_wifi_status nrf_wifi_hal_fw_patch_boot(struct nrf_wifi_hal_dev_ctx *hal
 					   boot_vector->addr,
 					   boot_vector->val);
 		if (status != NRF_WIFI_STATUS_SUCCESS) {
-			nrf_wifi_osal_log_err("%s: Writing boot vector failed for RPU(%d)\n",
+			nrf_wifi_osal_log_err("%s: Writing boot vector failed for RPU(%d)",
 					      __func__,
 					      rpu_proc);
 

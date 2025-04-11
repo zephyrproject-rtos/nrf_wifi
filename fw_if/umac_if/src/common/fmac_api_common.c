@@ -235,7 +235,7 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_reset(struct nrf_wifi_fmac_dev_ctx *fmac_d
 						 wifi_proc[i].type);
 
 		if (status != NRF_WIFI_STATUS_SUCCESS) {
-			nrf_wifi_osal_log_err("%s: %s processor reset failed\n",
+			nrf_wifi_osal_log_err("%s: %s processor reset failed",
 					      __func__, wifi_proc[i].name);
 			return NRF_WIFI_STATUS_FAIL;
 		}
@@ -255,7 +255,7 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_boot(struct nrf_wifi_fmac_dev_ctx *fmac_de
 						    wifi_proc[i].is_patch_present);
 
 		if (status != NRF_WIFI_STATUS_SUCCESS) {
-			nrf_wifi_osal_log_err("%s: %s processor ROM boot failed\n",
+			nrf_wifi_osal_log_err("%s: %s processor ROM boot failed",
 					      __func__, wifi_proc[i].name);
 			return NRF_WIFI_STATUS_FAIL;
 		}
@@ -264,7 +264,7 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_boot(struct nrf_wifi_fmac_dev_ctx *fmac_de
 						  wifi_proc[i].type);
 
 		if (status != NRF_WIFI_STATUS_SUCCESS) {
-			nrf_wifi_osal_log_err("%s: %s processor ROM boot check failed\n",
+			nrf_wifi_osal_log_err("%s: %s processor ROM boot check failed",
 					      __func__, wifi_proc[i].name);
 			return NRF_WIFI_STATUS_FAIL;
 		}
@@ -292,7 +292,7 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_load(struct nrf_wifi_fmac_dev_ctx *fmac_de
 
 	status = nrf_wifi_fmac_fw_reset(fmac_dev_ctx);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
-		nrf_wifi_osal_log_err("%s: FW reset failed\n",
+		nrf_wifi_osal_log_err("%s: FW reset failed",
 				      __func__);
 		goto out;
 	}
@@ -308,11 +308,11 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_load(struct nrf_wifi_fmac_dev_ctx *fmac_de
 						    fmac_fw->umac_patch_sec.size);
 
 		if (status != NRF_WIFI_STATUS_SUCCESS) {
-			nrf_wifi_osal_log_err("%s: UMAC patch load failed\n",
+			nrf_wifi_osal_log_err("%s: UMAC patch load failed",
 					      __func__);
 			goto out;
 		} else {
-			nrf_wifi_osal_log_dbg("%s: UMAC patches loaded\n",
+			nrf_wifi_osal_log_dbg("%s: UMAC patches loaded",
 					      __func__);
 		}
 	} else {
@@ -330,11 +330,11 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_load(struct nrf_wifi_fmac_dev_ctx *fmac_de
 						    fmac_fw->lmac_patch_sec.size);
 
 		if (status != NRF_WIFI_STATUS_SUCCESS) {
-			nrf_wifi_osal_log_err("%s: LMAC patch load failed\n",
+			nrf_wifi_osal_log_err("%s: LMAC patch load failed",
 					      __func__);
 			goto out;
 		} else {
-			nrf_wifi_osal_log_dbg("%s: LMAC patches loaded\n",
+			nrf_wifi_osal_log_dbg("%s: LMAC patches loaded",
 					      __func__);
 		}
 	} else {
@@ -343,7 +343,7 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_load(struct nrf_wifi_fmac_dev_ctx *fmac_de
 
 	status = nrf_wifi_fmac_fw_boot(fmac_dev_ctx);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
-		nrf_wifi_osal_log_err("%s: FW boot failed\n",
+		nrf_wifi_osal_log_err("%s: FW boot failed",
 				      __func__);
 		goto out;
 	}

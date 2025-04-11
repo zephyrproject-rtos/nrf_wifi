@@ -3322,7 +3322,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_set_ps_exit_strategy(void *dev_ctx,
 	set_ps_exit_strategy_cmd = nrf_wifi_osal_mem_zalloc(sizeof(*set_ps_exit_strategy_cmd));
 
 	if (!set_ps_exit_strategy_cmd) {
-		nrf_wifi_osal_log_err("%s: Unable to allocate memory\n", __func__);
+		nrf_wifi_osal_log_err("%s: Unable to allocate memory", __func__);
 		goto out;
 	}
 
@@ -3771,7 +3771,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_set_packet_filter(void *dev_ctx, unsigned
 	int len = 0;
 
 	if (!fmac_dev_ctx) {
-		nrf_wifi_osal_log_err("%s: Invalid parameters\n",
+		nrf_wifi_osal_log_err("%s: Invalid parameters",
 				      __func__);
 		goto out;
 	}
@@ -3787,7 +3787,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_set_packet_filter(void *dev_ctx, unsigned
 				  NRF_WIFI_HOST_RPU_MSG_TYPE_SYSTEM,
 				  len);
 	if (!umac_cmd) {
-		nrf_wifi_osal_log_err("%s: umac_cmd_alloc failed\n",
+		nrf_wifi_osal_log_err("%s: umac_cmd_alloc failed",
 				      __func__);
 		goto out;
 	}
