@@ -136,7 +136,7 @@ static bool hal_rpu_irq_wdog_chk(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 					RPU_REG_MIPS_MCU_UCCP_INT_STATUS);
 
 		if (status != NRF_WIFI_STATUS_SUCCESS) {
-			nrf_wifi_osal_log_err("%s: Reading from interrupt status register failed\n",
+			nrf_wifi_osal_log_err("%s: Reading from interrupt status register failed",
 						__func__);
 			goto out;
 		}
@@ -145,13 +145,13 @@ static bool hal_rpu_irq_wdog_chk(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 			break;
 		}
 
-		nrf_wifi_osal_log_err("%s: Reading from interrupt status register failed 0x%x\n",
+		nrf_wifi_osal_log_err("%s: Reading from interrupt status register failed 0x%x",
 					__func__,
 					val);
 	}
 
 	if (i == max_read_retries) {
-		nrf_wifi_osal_log_err("%s: Reading from interrupt status register failed 0x%x\n",
+		nrf_wifi_osal_log_err("%s: Reading from interrupt status register failed 0x%x",
 				      __func__,
 				      val);
 		goto out;

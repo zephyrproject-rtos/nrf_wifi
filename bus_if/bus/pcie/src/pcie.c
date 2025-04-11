@@ -43,7 +43,7 @@ void *nrf_wifi_bus_pcie_dev_add(void *bus_priv,
 	if (!pcie_dev_ctx)
 	{
 		nrf_wifi_osal_log_err(
-			"%s: Unable to allocate pcie_dev_ctx\n", __func__);
+			"%s: Unable to allocate pcie_dev_ctx", __func__);
 		goto out;
 	}
 
@@ -57,7 +57,7 @@ void *nrf_wifi_bus_pcie_dev_add(void *bus_priv,
 	if (!pcie_dev_ctx->os_pcie_dev_ctx)
 	{
 		nrf_wifi_osal_log_err(
-			"%s: nrf_wifi_osal_bus_pcie_dev_add failed\n", __func__);
+			"%s: nrf_wifi_osal_bus_pcie_dev_add failed", __func__);
 
 		nrf_wifi_osal_mem_free(
 			pcie_dev_ctx);
@@ -94,7 +94,7 @@ void *nrf_wifi_bus_pcie_dev_add(void *bus_priv,
 	if (status != NRF_WIFI_STATUS_SUCCESS)
 	{
 		nrf_wifi_osal_log_err(
-			"%s: Unable to register PCIe interrupt to the OS\n",
+			"%s: Unable to register PCIe interrupt to the OS",
 			__func__);
 
 		nrf_wifi_osal_iomem_unmap(
@@ -147,7 +147,7 @@ enum nrf_wifi_status nrf_wifi_bus_pcie_dev_init(void *bus_dev_ctx)
 	if (status != NRF_WIFI_STATUS_SUCCESS)
 	{
 		nrf_wifi_osal_log_err(
-			"%s: nrf_wifi_osal_pcie_dev_init failed\n", __func__);
+			"%s: nrf_wifi_osal_pcie_dev_init failed", __func__);
 
 		goto out;
 	}
@@ -176,7 +176,7 @@ void *nrf_wifi_bus_pcie_init(void *params,
 	if (!pcie_priv)
 	{
 		nrf_wifi_osal_log_err(
-			"%s: Unable to allocate memory for pcie_priv\n",
+			"%s: Unable to allocate memory for pcie_priv",
 			__func__);
 		goto out;
 	}
@@ -198,7 +198,7 @@ void *nrf_wifi_bus_pcie_init(void *params,
 	if (!pcie_priv->os_pcie_priv)
 	{
 		nrf_wifi_osal_log_err(
-			"%s: Unable to register PCIe driver\n",
+			"%s: Unable to register PCIe driver",
 			__func__);
 
 		nrf_wifi_osal_mem_free(
@@ -385,7 +385,7 @@ unsigned long nrf_wifi_bus_pcie_dma_unmap(void *dev_ctx,
 #endif
 	if (status != NRF_WIFI_STATUS_SUCCESS)
 		nrf_wifi_osal_log_err(
-			"%s: pal_rpu_addr_offset_get failed\n", __func__);
+			"%s: pal_rpu_addr_offset_get failed", __func__);
 #endif /* OFFLINE_MODE */
 
 	return virt_addr;
