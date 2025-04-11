@@ -408,7 +408,7 @@ static enum nrf_wifi_status hal_rpu_event_get(struct nrf_wifi_hal_dev_ctx *hal_d
 
 		event->len = hal_dev_ctx->event_data_len;
 
-		status = nrf_wifi_utils_q_enqueue(hal_dev_ctx->event_q,
+		status = nrf_wifi_utils_ctrl_q_enqueue(hal_dev_ctx->event_q,
 						  event);
 
 		if (status != NRF_WIFI_STATUS_SUCCESS) {

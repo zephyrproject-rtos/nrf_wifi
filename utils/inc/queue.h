@@ -25,10 +25,15 @@ void nrf_wifi_utils_ctrl_q_free(void *q);
 enum nrf_wifi_status nrf_wifi_utils_q_enqueue(void *q,
 					      void *q_node);
 
+enum nrf_wifi_status nrf_wifi_utils_ctrl_q_enqueue(void *q,
+					       void *q_node);
+
 enum nrf_wifi_status nrf_wifi_utils_q_enqueue_head(void *q,
 						   void *q_node);
 
 void *nrf_wifi_utils_q_dequeue(void *q);
+
+void *nrf_wifi_utils_ctrl_q_dequeue(void *q);
 
 void *nrf_wifi_utils_q_peek(void *q);
 

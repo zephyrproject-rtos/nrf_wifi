@@ -238,9 +238,21 @@ void *nrf_wifi_osal_llist_node_alloc(void)
 }
 
 
+void *nrf_wifi_osal_ctrl_llist_node_alloc(void)
+{
+	return os_ops->ctrl_llist_node_alloc();
+}
+
+
 void nrf_wifi_osal_llist_node_free(void *node)
 {
 	os_ops->llist_node_free(node);
+}
+
+
+void nrf_wifi_osal_ctrl_llist_node_free(void *node)
+{
+	os_ops->ctrl_llist_node_free(node);
 }
 
 
