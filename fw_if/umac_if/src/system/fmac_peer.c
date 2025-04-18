@@ -78,6 +78,7 @@ int nrf_wifi_fmac_peer_add(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 			peer->peer_id = i;
 			peer->is_legacy = is_legacy;
 			peer->qos_supported = qos_supported;
+#ifndef NRF71_ON_IPC
 			if (vif_ctx->if_type == NRF_WIFI_IFTYPE_AP) {
 				hal_rpu_mem_write(fmac_dev_ctx->hal_dev_ctx,
 						  (RPU_MEM_UMAC_PEND_Q_BMP +
@@ -85,10 +86,10 @@ int nrf_wifi_fmac_peer_add(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 						  peer->ra_addr,
 						  NRF_WIFI_FMAC_ETH_ADDR_LEN);
 			}
+#endif /* !NRF71_ON_IPC */
 			return i;
 		}
 	}
-
 	nrf_wifi_osal_log_err("%s: Failed !! No Space Available",
 			      __func__);
 
@@ -118,6 +119,7 @@ void nrf_wifi_fmac_peer_remove(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 		return;
 	}
 
+#ifndef NRF71_ON_IPC
 	if (vif_ctx->if_type == NRF_WIFI_IFTYPE_AP) {
 		hal_rpu_mem_write(fmac_dev_ctx->hal_dev_ctx,
 				  (RPU_MEM_UMAC_PEND_Q_BMP +
@@ -125,7 +127,7 @@ void nrf_wifi_fmac_peer_remove(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 				  peer->ra_addr,
 				  NRF_WIFI_FMAC_ETH_ADDR_LEN);
 	}
-
+#endif /* !NRF71_ON_IPC */
 	nrf_wifi_osal_mem_set(peer,
 			      0x0,
 			      sizeof(struct peers_info));
