@@ -111,6 +111,7 @@ enum NRF_WIFI_HAL_STATUS {
 	NRF_WIFI_HAL_STATUS_DISABLED,
 };
 
+#ifndef NRF71_ON_IPC
 /**
  * @brief Structure to hold RPU information.
  */
@@ -122,6 +123,7 @@ struct nrf_wifi_hal_info {
 	/** TX command base */
 	unsigned int tx_cmd_base;
 };
+#endif /* !NRF71_ON_IPC */
 
 /**
  * @brief Structure to hold buffer mapping information for the HAL layer.
@@ -195,7 +197,6 @@ struct nrf_wifi_hal_priv {
 	unsigned long addr_pktram_base;
 };
 
-
 /**
  * @brief Structure to hold per device context information for the HAL layer.
  */
@@ -209,7 +210,11 @@ struct nrf_wifi_hal_dev_ctx {
 	/** Device index */
 	unsigned char idx;
 	/** RPU information */
+#ifndef NRF71_ON_IPC
 	struct nrf_wifi_hal_info rpu_info;
+#else /* NRF71_ON_IPC */
+	void *ipc_msg;
+#endif /* !NRF71_ON_IPC */
 	/** Number of commands */
 	unsigned int num_cmds;
 	/** Command queue */

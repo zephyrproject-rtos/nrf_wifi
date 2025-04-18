@@ -858,3 +858,12 @@ unsigned char nrf_wifi_osal_rand8_get(void)
 {
 	return os_ops->rand8_get();
 }
+
+#ifdef NRF71_ON_IPC
+int nrf_wifi_osal_ipc_send_msg(unsigned int msg_type,
+				 void *msg,
+				 unsigned int msg_len)
+{
+	return os_ops->ipc_send_msg(msg_type, msg, msg_len);
+}
+#endif /* NRF71_ON_IPC */

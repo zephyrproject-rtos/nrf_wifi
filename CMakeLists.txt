@@ -55,6 +55,7 @@ target_compile_definitions(
   $<$<BOOL:${CONFIG_NRF_WIFI_COEX_DISABLE_PRIORITY_WINDOW_FOR_SCAN}>:NRF_WIFI_COEX_DISABLE_PRIORITY_WINDOW_FOR_SCAN>
   $<$<BOOL:${CONFIG_NRF_WIFI_RX_STBC_HT}>:NRF_WIFI_RX_STBC_HT>
   $<$<BOOL:${CONFIG_NRF70_SR_COEX_SLEEP_CTRL_GPIO_CTRL}>:NRF70_SR_COEX_SLEEP_CTRL_GPIO_CTRL>
+  $<$<BOOL:${CONFIG_NRF71_ON_IPC}>:NRF71_ON_IPC>
   NRF_WIFI_MAX_PS_POLL_FAIL_CNT=${CONFIG_NRF_WIFI_MAX_PS_POLL_FAIL_CNT}
   NRF70_RX_NUM_BUFS=${CONFIG_NRF70_RX_NUM_BUFS}
   NRF70_MAX_TX_TOKENS=${CONFIG_NRF70_MAX_TX_TOKENS}
@@ -155,17 +156,22 @@ target_sources(nrf-wifi-osal PRIVATE
   ${NRF_WIFI_DIR}/utils/src/util.c
   ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_api_common.c
   ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_fw_patch_loader.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_interrupt.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_mem.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_reg.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hpqm.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/common/pal.c
   ${NRF_WIFI_DIR}/bus_if/bal/src/bal.c
   ${NRF_WIFI_DIR}/bus_if/bus/qspi/src/qspi.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_cmd_common.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_api_common.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_util.c
 )
+
+if(NOT CONFIG_NRF71_ON_IPC)
+  target_sources(nrf-wifi-osal PRIVATE
+    ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_interrupt.c
+    ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_mem.c
+    ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_reg.c
+    ${NRF_WIFI_DIR}/hw_if/hal/src/common/hpqm.c
+    ${NRF_WIFI_DIR}/hw_if/hal/src/common/pal.c
+  )
+endif()
 
 if(CONFIG_NRF70_RADIO_TEST OR CONFIG_NRF70_BM_RADIO_TEST)
   target_sources(nrf-wifi-osal PRIVATE
