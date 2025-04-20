@@ -484,7 +484,7 @@ static inline bool is_rpu_recovery_needed(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 	unsigned int rpu_sleep_opp_diff_ms = nrf_wifi_osal_time_elapsed_ms(
 		hal_dev_ctx->last_rpu_sleep_opp_time_ms);
 
-#ifdef WIFI_RPU_RECOVERY_DEBUG
+#ifdef NRF_WIFI_RPU_RECOVERY_DEBUG
 	nrf_wifi_osal_log_info(
 "RPU sleep opp diff: %d ms, last RPU sleep opp time: %lu",
 			      rpu_sleep_opp_diff_ms,
@@ -510,7 +510,7 @@ static enum nrf_wifi_status hal_rpu_process_wdog(struct nrf_wifi_hal_dev_ctx *ha
 	enum nrf_wifi_status nrf_wifi_status = NRF_WIFI_STATUS_FAIL;
 	bool rpu_recovery = false;
 
-#ifdef WIFI_RPU_RECOVERY_DEBUG
+#ifdef NRF_WIFI_RPU_RECOVERY_DEBUG
 	nrf_wifi_osal_log_info("Processing watchdog interrupt");
 #else
 	nrf_wifi_osal_log_dbg("Processing watchdog interrupt");
