@@ -581,7 +581,11 @@ enum nrf_wifi_status hal_rpu_irq_process(struct nrf_wifi_hal_dev_ctx *hal_dev_ct
 #ifdef NRF_WIFI_RPU_RECOVERY
 		hal_dev_ctx->wdt_irq_received++;
 #endif /* NRF_WIFI_RPU_RECOVERY */
+#ifdef NRF_WIFI_RPU_RECOVERY_DEBUG
+		nrf_wifi_osal_log_info("Received watchdog interrupt");
+#else
 		nrf_wifi_osal_log_dbg("Received watchdog interrupt");
+#endif
 
 		status = hal_rpu_process_wdog(hal_dev_ctx, do_rpu_recovery);
 		if (status == NRF_WIFI_STATUS_FAIL) {
