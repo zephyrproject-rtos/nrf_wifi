@@ -1015,6 +1015,7 @@ enum nrf_wifi_status tx_cmd_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct host_rpu_msg *umac_cmd = NULL;
 	unsigned int len = 0;
+	void *nwb = NULL;
 
 	len += sizeof(struct nrf_wifi_tx_buff_info);
 	len *= nrf_wifi_utils_list_len(txq);
@@ -1046,6 +1047,16 @@ enum nrf_wifi_status tx_cmd_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 						0);
 
 	nrf_wifi_osal_mem_free(umac_cmd);
+
+	while (nrf_wifi_utils_q_len(txq)) {
+		nwb = nrf_wifi_utils_q_dequeue(txq);
+
+		if (!nwb) {
+			continue;
+		}
+
+		nrf_wifi_osal_nbuf_free(nwb);
+	}
 out:
 	return status;
 }
@@ -1292,8 +1303,6 @@ static enum nrf_wifi_status tx_done_process(struct nrf_wifi_fmac_dev_ctx *fmac_d
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_fmac_priv *fpriv = NULL;
-	void *nwb = NULL;
-	void *nwb_list = NULL;
 	unsigned int desc = 0;
 	unsigned int frame = 0;
 	unsigned int desc_id = 0;
@@ -1322,7 +1331,6 @@ static enum nrf_wifi_status tx_done_process(struct nrf_wifi_fmac_dev_ctx *fmac_d
 	}
 
 	pkt_info = &sys_dev_ctx->tx_config.pkt_info_p[desc];
-	nwb_list = pkt_info->pkt;
 
 	for (frame = 0;
 	     frame < sys_dev_ctx->tx_config.send_pkt_coalesce_count_p[desc];
@@ -1359,17 +1367,6 @@ static enum nrf_wifi_status tx_done_process(struct nrf_wifi_fmac_dev_ctx *fmac_d
 
 	pkt = 0;
 
-	while (nrf_wifi_utils_q_len(nwb_list)) {
-		nwb = nrf_wifi_utils_q_dequeue(nwb_list);
-
-		if (!nwb) {
-			continue;
-		}
-
-		nrf_wifi_osal_nbuf_free(nwb);
-		pkt++;
-	}
-
 	sys_dev_ctx->host_stats.total_tx_done_pkts += pkt;
 
 	pkts_pending = tx_buff_req_free(fmac_dev_ctx, tx_desc_num, &queue);
@@ -1379,6 +1376,7 @@ static enum nrf_wifi_status tx_done_process(struct nrf_wifi_fmac_dev_ctx *fmac_d
 		unsigned char *data = NULL;
 		struct nrf_wifi_fmac_vif_ctx *vif_ctx;
 		unsigned char if_idx;
+		void *nwb = NULL;
 
 		pkt_info = &sys_dev_ctx->tx_config.pkt_info_p[desc];
 		txq = pkt_info->pkt;
