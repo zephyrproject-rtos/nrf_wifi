@@ -3384,8 +3384,9 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *f
 		 (count < NRF_WIFI_FMAC_STATS_RECV_TIMEOUT));
 
 	if (count == NRF_WIFI_FMAC_STATS_RECV_TIMEOUT) {
-		nrf_wifi_osal_log_err("%s: Timed out",
-				      __func__);
+		status = NRF_WIFI_STATUS_FAIL;
+		fmac_dev_ctx->stats_req = false;
+		nrf_wifi_osal_log_err("%s: Timed out(%dms)", __func__, NRF_WIFI_FMAC_STATS_RECV_TIMEOUT);
 		goto out;
 	}
 
