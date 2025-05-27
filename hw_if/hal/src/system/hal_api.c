@@ -363,13 +363,13 @@ enum nrf_wifi_status nrf_wifi_sys_hal_data_cmd_send(struct nrf_wifi_hal_dev_ctx 
 
 	addr = addr_base + (max_cmd_size * desc_id);
 	host_addr = addr;
-
+#ifndef WIFI_NRF71
 	/* This is a indrect write to core memory */
 	if (cmd_type == NRF_WIFI_HAL_MSG_TYPE_CMD_DATA_RX) {
 		host_addr &= RPU_ADDR_MASK_OFFSET;
 		host_addr |= RPU_MCU_CORE_INDIRECT_BASE;
 	}
-
+#endif /* !WIFI_NRF71 */
 	/* Copy the information to the suggested address */
 	status = hal_rpu_mem_write(hal_dev_ctx,
 				   host_addr,

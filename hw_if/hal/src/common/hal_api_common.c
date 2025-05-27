@@ -1160,7 +1160,7 @@ enum nrf_wifi_status nrf_wifi_hal_otp_ft_prog_ver_get(struct nrf_wifi_hal_dev_ct
 out:
 	return status;
 }
-
+#ifndef WIFI_NRF71
 enum nrf_wifi_status nrf_wifi_hal_otp_pack_info_get(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 						    unsigned int *package_info)
 {
@@ -1185,6 +1185,7 @@ enum nrf_wifi_status nrf_wifi_hal_otp_pack_info_get(struct nrf_wifi_hal_dev_ctx 
 out:
 	return status;
 }
+#endif /* !WIFI_NRF71 */
 #endif /* !NRF71_ON_IPC */
 
 void nrf_wifi_hal_enable(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)

@@ -3583,7 +3583,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 				      __func__);
 		goto out;
 	}
-
+#ifndef WIFI_NRF71
 	status = nrf_wifi_hal_otp_pack_info_get(fmac_dev_ctx->hal_dev_ctx,
 						&package_info);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
@@ -3591,7 +3591,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 				      __func__);
 		goto out;
 	}
-
+#endif /* !WIFI_NRF71 */
 	ret = nrf_wifi_sys_fmac_phy_rf_params_init(phy_rf_params,
 					      package_info,
 					      NRF_WIFI_SYS_DEF_RF_PARAMS);
