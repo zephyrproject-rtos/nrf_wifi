@@ -122,7 +122,7 @@ static enum nrf_wifi_status hal_rpu_irq_ack(struct nrf_wifi_hal_dev_ctx *hal_dev
 	return status;
 }
 
-
+#ifndef WIFI_NRF71
 static bool hal_rpu_irq_wdog_chk(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
@@ -201,7 +201,7 @@ static enum nrf_wifi_status hal_rpu_irq_wdog_rearm(struct nrf_wifi_hal_dev_ctx *
 out:
 	return status;
 }
-
+#endif /* !WIFI_NRF71 */
 
 static enum nrf_wifi_status hal_rpu_event_free(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 					       unsigned int event_addr)
@@ -504,6 +504,7 @@ static inline bool is_rpu_recovery_needed(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 }
 #endif /* NRF_WIFI_RPU_RECOVERY */
 
+#ifndef WIFI_NRF71
 static enum nrf_wifi_status hal_rpu_process_wdog(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 						  bool *do_rpu_recovery)
 {
@@ -556,6 +557,7 @@ out:
 
 	return nrf_wifi_status;
 }
+#endif /* !WIFI_NRF71 */
 
 enum nrf_wifi_status hal_rpu_irq_process(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 		bool *do_rpu_recovery)
@@ -577,6 +579,7 @@ enum nrf_wifi_status hal_rpu_irq_process(struct nrf_wifi_hal_dev_ctx *hal_dev_ct
 	 */
 	num_events = hal_rpu_event_get_all(hal_dev_ctx);
 
+#ifndef WIFI_NRF71
 	if (hal_rpu_irq_wdog_chk(hal_dev_ctx)) {
 #ifdef NRF_WIFI_RPU_RECOVERY
 		hal_dev_ctx->wdt_irq_received++;
@@ -601,7 +604,7 @@ enum nrf_wifi_status hal_rpu_irq_process(struct nrf_wifi_hal_dev_ctx *hal_dev_ct
 			goto out;
 		}
 	}
-
+#endif /* !WIFI_NRF71 */
 	if (!num_events) {
 		status = NRF_WIFI_STATUS_SUCCESS;
 		goto out;
