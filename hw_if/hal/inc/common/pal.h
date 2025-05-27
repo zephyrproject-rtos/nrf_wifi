@@ -90,9 +90,15 @@ enum nrf_wifi_fw_subtype {
 	NRF_WIFI_FW_SUBTYPE_MAX
 };
 
-#ifndef WIFI_NRF71
+#ifdef WIFI_NRF71
+unsigned long pal_rpu_hard_rst_reg_offset_get(void);
+unsigned long pal_rpu_rom_access_reg_addr_get(void);
+unsigned long pal_rpu_wicr_reg_offset_get(void);
+#else /* WIFI_NRF71 */
 bool pal_check_rpu_mcu_regions(enum RPU_PROC_TYPE proc, unsigned int addr_val);
+#endif /* !WIFI_NRF71 */
 
+#ifndef WIFI_NRF71
 static inline enum RPU_MCU_ADDR_REGIONS pal_mem_type_to_region(enum HAL_RPU_MEM_TYPE mem_type)
 {
 	switch (mem_type) {
@@ -111,7 +117,6 @@ static inline enum RPU_MCU_ADDR_REGIONS pal_mem_type_to_region(enum HAL_RPU_MEM_
 enum nrf_wifi_status pal_rpu_addr_offset_get(unsigned int rpu_addr,
 					     unsigned long *addr_offset,
 					     enum RPU_PROC_TYPE proc);
-
 
 #ifdef NRF_WIFI_LOW_POWER
 unsigned long pal_rpu_ps_ctrl_reg_addr_get(void);
