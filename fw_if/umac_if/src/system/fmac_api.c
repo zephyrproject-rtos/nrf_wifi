@@ -3354,7 +3354,6 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *f
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	unsigned char count = 0;
-	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
 
 	if (fmac_dev_ctx->op_mode != NRF_WIFI_OP_MODE_SYS) {
 		nrf_wifi_osal_log_err("%s: Invalid op mode",
@@ -3389,12 +3388,6 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *f
 		nrf_wifi_osal_log_err("%s: Timed out(%dms)", __func__, NRF_WIFI_FMAC_STATS_RECV_TIMEOUT);
 		goto out;
 	}
-
-	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
-
-	nrf_wifi_osal_mem_cpy(&stats->host,
-			      &sys_dev_ctx->host_stats,
-			      sizeof(sys_dev_ctx->host_stats));
 
 	status = NRF_WIFI_STATUS_SUCCESS;
 out:
