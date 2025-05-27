@@ -186,8 +186,9 @@ static enum nrf_wifi_status umac_event_sys_stats_process(
 	}
 
 	if (!fmac_dev_ctx->stats_req) {
-		nrf_wifi_osal_log_err("%s: Stats recd when req was not sent!",
+		nrf_wifi_osal_log_dbg("%s: Stats recd when req was not sent!",
 				      __func__);
+		status = NRF_WIFI_STATUS_SUCCESS;
 		goto out;
 	}
 
