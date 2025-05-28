@@ -125,7 +125,6 @@ void *nrf_wifi_osal_mem_set(void *start,
 			    int val,
 			    size_t size);
 
-
 /**
  * @brief Memory map IO memory into CPU space.
  * @param addr Address of the IO memory to be mapped.

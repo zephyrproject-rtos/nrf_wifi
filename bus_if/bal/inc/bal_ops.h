@@ -142,7 +142,6 @@ struct nrf_wifi_bal_ops {
 				   unsigned long phy_addr,
 				   size_t len,
 				   enum nrf_wifi_osal_dma_dir dma_dir);
-
 #if defined(NRF_WIFI_LOW_POWER) || defined(__DOXYGEN__)
 	/**
 	 * @brief Put the device into power-saving sleep mode.

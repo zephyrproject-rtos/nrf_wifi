@@ -78,6 +78,12 @@ static const unsigned int SOC_MMAP_ADDR_OFFSETS_MCU[] = {
 #define NRF_WIFI_FW_UMAC_PATCH_LOC_PRI "img/wlan/nrf_wifi_umac_patch_pri.bimg"
 #define NRF_WIFI_FW_UMAC_PATCH_LOC_SEC "img/wlan/nrf_wifi_umac_patch_sec.bin"
 
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+#define SOC_HOST_DATA_RAM_BASE 0x02C00000
+#define SOC_HOST_DATA_RAM_LEN (4 * 1024 * 1024)
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 enum nrf_wifi_fw_type {
 	NRF_WIFI_FW_TYPE_LMAC_PATCH,
 	NRF_WIFI_FW_TYPE_UMAC_PATCH,

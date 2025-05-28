@@ -145,7 +145,7 @@ unsigned long pal_rpu_rom_access_reg_addr_get(void)
 }
 
 #ifdef RPU_HARD_RESET_SUPPORT
-unsigned long pal_rpu_hard_rst_reg_offset_get(struct nrf_wifi_osal_priv *opriv)
+unsigned long pal_rpu_hard_rst_reg_offset_get(void)
 {
 	return SOC_MMAP_ADDR_OFFSET_HARDRESET;
 }
