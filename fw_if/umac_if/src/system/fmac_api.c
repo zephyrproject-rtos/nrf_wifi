@@ -24,7 +24,6 @@
 #include "system/fmac_bb.h"
 #include "util.h"
 
-
 static unsigned char nrf_wifi_fmac_vif_idx_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
 {
 	unsigned char i = 0;
@@ -371,7 +370,6 @@ out:
 	return fmac_dev_ctx;
 }
 
-
 enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 #ifdef NRF_WIFI_LOW_POWER
 					    int sleep_type,
@@ -387,8 +385,8 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 #ifndef NRF71_ON_IPC
         struct nrf_wifi_fmac_otp_info otp_info;
-#endif /* !NRF71_ON_IPC */
 	struct nrf_wifi_phy_rf_params phy_rf_params;
+#endif /* !NRF71_ON_IPC */
 
 	if (!fmac_dev_ctx) {
 		nrf_wifi_osal_log_err("%s: Invalid device context",
@@ -3401,10 +3399,12 @@ static int nrf_wifi_sys_fmac_phy_rf_params_init(struct nrf_wifi_phy_rf_params *p
 {
 	int ret = -1;
 	unsigned int rf_param_offset = BAND_2G_LW_ED_BKF_DSSS_OFST - NRF_WIFI_RF_PARAMS_CONF_SIZE;
+
 	/* Initilaize reserved bytes */
 	nrf_wifi_osal_mem_set(prf,
 			      0x0,
 			      sizeof(prf));
+
 	/* Initialize PD adjust values for MCS7. Currently these 4 bytes are not being used */
 	prf->pd_adjust_val.pd_adjt_lb_chan = PD_ADJUST_VAL;
 	prf->pd_adjust_val.pd_adjt_hb_low_chan = PD_ADJUST_VAL;
@@ -3578,7 +3578,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 				      __func__);
 		goto out;
 	}
-#ifndef WIFI_NRF71
+
 	status = nrf_wifi_hal_otp_pack_info_get(fmac_dev_ctx->hal_dev_ctx,
 						&package_info);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
@@ -3586,22 +3586,21 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 				      __func__);
 		goto out;
 	}
-#endif /* !WIFI_NRF71 */
+
 	ret = nrf_wifi_sys_fmac_phy_rf_params_init(phy_rf_params,
 					      package_info,
 					      NRF_WIFI_SYS_DEF_RF_PARAMS);
-
 	if (ret == -1) {
 		nrf_wifi_osal_log_err("%s: Initialization of RF params with default values failed",
 				      __func__);
 		status = NRF_WIFI_STATUS_FAIL;
 		goto out;
 	}
+
 	if (!(otp_info.flags & (~CALIB_XO_FLAG_MASK))) {
 		nrf_wifi_osal_mem_cpy(&phy_rf_params->xo_offset.xo_freq_offset,
 				      (char *)otp_info.info.calib + OTP_OFF_CALIB_XO,
 				      OTP_SZ_CALIB_XO);
-
 	}
 
 	ft_prog_ver = (ft_prog_ver & FT_PROG_VER_MASK) >> 16;

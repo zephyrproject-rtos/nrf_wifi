@@ -127,7 +127,6 @@ void nrf_wifi_bal_write_block(void *ctx,
 		unsigned long dest_addr_offset,
 		const void *src_addr,
 		size_t len);
-
 /**
  * @brief Map a virtual address to a physical address for DMA transfer.
  *
