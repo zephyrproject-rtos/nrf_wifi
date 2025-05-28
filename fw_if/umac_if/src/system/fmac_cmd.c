@@ -62,7 +62,6 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 				      NRF_WIFI_RF_PARAMS_SIZE);
 	}
 
-
 	umac_cmd_data->sys_params.phy_calib = phy_calib;
 	umac_cmd_data->sys_params.hw_bringup_time = HW_DELAY;
 	umac_cmd_data->sys_params.sw_bringup_time = SW_DELAY;
@@ -163,7 +162,6 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 #else
 	umac_cmd_data->raw_scan_enable = 0;
 #endif /* WIFI_MGMT_RAW_SCAN_RESULTS */
-
 	umac_cmd_data->max_ps_poll_fail_cnt = NRF_WIFI_MAX_PS_POLL_FAIL_CNT;
 
 	#ifdef NRF_WIFI_RX_STBC_HT

@@ -340,7 +340,6 @@ struct umac_rx_dbg_params {
 	unsigned int null_skb_pointer_from_lmac;
 	/** Number of unexpected management packets received in coalesce event */
 	unsigned int unexpected_mgmt_pkt;
-
 } __NRF_WIFI_PKD;
 
 /**
@@ -847,7 +846,7 @@ enum op_band {
 	/** All bands */
 	BAND_ALL,
 	/** 2.4Ghz band */
-	BAND_24G
+	BAND_24G,
 };
 
 /**
