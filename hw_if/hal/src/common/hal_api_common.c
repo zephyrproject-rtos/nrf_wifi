@@ -300,10 +300,15 @@ static enum nrf_wifi_status hal_rpu_msg_trigger(struct nrf_wifi_hal_dev_ctx *hal
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 
+#ifdef WIFI_NRF71
+	status = hal_rpu_reg_write(hal_dev_ctx,
+			WEZEN_RPU_REG_INT_TO_WIFICORE_BELLBOARD_TASKS_TRIGGER,
+			1);
+#else /* WIFI_NRF71 */
 	status = hal_rpu_reg_write(hal_dev_ctx,
 				   RPU_REG_INT_TO_MCU_CTRL,
 				   (hal_dev_ctx->num_cmds | 0x7fff0000));
-
+#endif /* !WIFI_NRF71 */
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		nrf_wifi_osal_log_err("%s: Writing to MCU cmd register failed",
 				      __func__);
