@@ -550,7 +550,6 @@ out:
 	/* TODO: Ideally this should be done after successful recovery */
 	hal_rpu_irq_wdog_rearm(hal_dev_ctx);
 
-	nrf_wifi_osal_log_info("RPU recovery: %d", rpu_recovery);
 
 	nrf_wifi_status = NRF_WIFI_STATUS_SUCCESS;
 	*do_rpu_recovery = rpu_recovery;
