@@ -164,6 +164,14 @@ static enum nrf_wifi_status nrf_wifi_sys_fmac_deinit_rx(struct nrf_wifi_fmac_dev
 	sys_fpriv = wifi_fmac_priv(fpriv);
 	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
+	if (!sys_dev_ctx->rx_buf_info) {
+		/* RX path is not initialized, nothing to deinit */
+		nrf_wifi_osal_log_dbg("%s: RX path is not initialized",
+				      __func__);
+		status = NRF_WIFI_STATUS_SUCCESS;
+		goto out;
+	}
+
 #ifdef NRF70_RX_WQ_ENABLED
 	nrf_wifi_osal_tasklet_free(sys_dev_ctx->rx_tasklet);
 	nrf_wifi_utils_q_free(sys_dev_ctx->rx_tasklet_event_q);
