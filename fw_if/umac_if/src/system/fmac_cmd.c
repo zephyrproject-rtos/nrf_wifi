@@ -174,6 +174,10 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 		umac_cmd_data->dbs_war_ctrl = 1;
 	#endif /* NRF_WIFI_DYNAMIC_BANDWIDTH_SIGNALLING */
 
+	#ifdef NRF_WIFI_DYNAMIC_ED
+		umac_cmd_data->dynamic_ed = 1;
+	#endif /* NRF_WIFI_DYNAMIC_ED */
+
 	status = nrf_wifi_hal_ctrl_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 					    umac_cmd,
 					    (sizeof(*umac_cmd) + len));
