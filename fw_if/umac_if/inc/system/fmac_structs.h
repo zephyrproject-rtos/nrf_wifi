@@ -143,6 +143,14 @@ struct nrf_wifi_fmac_callbk_fns {
 	void (*event_get_reg)(void *if_priv,
 		struct nrf_wifi_reg *get_reg,
 		unsigned int event_len);
+
+#if defined(NRF70_STA_MODE) || defined(NRF70_RAW_DATA_RX) || defined(__DOXYGEN__)
+	/** Callback function to be called when a set interface response is received. */
+	void (*set_if_callbk_fn)(void *os_vif_ctx,
+				 struct nrf_wifi_umac_event_set_interface *set_if_event,
+				 unsigned int event_len);
+#endif
+
 #if defined(NRF70_STA_MODE) || defined(__DOXYGEN__)
 	/** Callback function to be called when an interface association state changes. */
 	enum nrf_wifi_status (*if_carr_state_chg_callbk_fn)(void *os_vif_ctx,
@@ -201,11 +209,6 @@ struct nrf_wifi_fmac_callbk_fns {
 	void (*tx_status_callbk_fn)(void *os_vif_ctx,
 				    struct nrf_wifi_umac_event_mlme *tx_status_event,
 				    unsigned int event_len);
-
-	/** Callback function to be called when a set interface response is received. */
-	void (*set_if_callbk_fn)(void *os_vif_ctx,
-				 struct nrf_wifi_umac_event_set_interface *set_if_event,
-				 unsigned int event_len);
 
 	/** Callback function to be called when a remain on channel response is received. */
 	void (*roc_callbk_fn)(void *os_vif_ctx,
@@ -279,7 +282,7 @@ struct nrf_wifi_fmac_callbk_fns {
 				     unsigned int event_len);
 };
 
-#if defined(NRF70_STA_MODE) || defined(__DOXYGEN__)
+#if defined(NRF70_STA_MODE) || defined(NRF70_RAW_DATA_RX) || defined(__DOXYGEN__)
 /**
  * @brief The TWT sleep state of device.
  *
@@ -469,13 +472,15 @@ struct nrf_wifi_sys_fmac_dev_ctx {
 	unsigned char num_ap;
 	/** Queue for storing mapping info of RX buffers. */
 	struct nrf_wifi_fmac_buf_map_info *rx_buf_info;
-#if defined(NRF70_STA_MODE)
-	/** Queue for storing mapping info of TX buffers. */
-	struct nrf_wifi_fmac_buf_map_info *tx_buf_info;
+#if defined(NRF70_STA_MODE) || defined(NRF70_RAW_DATA_RX)
 	/** Context information related to TX path. */
 	struct tx_config tx_config;
 	/** TWT state of the RPU. */
 	enum nrf_wifi_fmac_twt_state twt_sleep_status;
+#endif
+#if defined(NRF70_STA_MODE)
+	/** Queue for storing mapping info of TX buffers. */
+	struct nrf_wifi_fmac_buf_map_info *tx_buf_info;
 #if defined(NRF70_TX_DONE_WQ_ENABLED)
 	/** Tasklet for TX done. */
 	void *tx_done_tasklet;
