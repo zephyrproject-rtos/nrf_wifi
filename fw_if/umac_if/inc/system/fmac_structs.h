@@ -426,8 +426,6 @@ struct raw_tx_pkt_header {
 	unsigned char tx_mode;
 	/** Wi-Fi access category mapping for packet @ref nrf_wifi_fmac_ac. */
 	unsigned char queue;
-	/** Flag indicating raw packet transmission. */
-	unsigned char raw_tx_flag;
 };
 
 /**

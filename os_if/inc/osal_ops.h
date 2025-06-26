@@ -524,7 +524,31 @@ struct nrf_wifi_osal_ops {
 	 * @param chksum_done The checksum status to set.
 	 */
 	void (*nbuf_set_chksum_done)(void *nbuf, unsigned char chksum_done);
+#if defined(NRF70_RAW_DATA_TX) || defined(__DOXYGEN__)
+	/**
+	 * @brief Set the raw Tx header in a network buffer.
+	 *
+	 * @param nbuf A pointer to the network buffer.
+	 * @param raw_hdr_len The length of the raw header to set.
+	 */
+	void *(*nbuf_set_raw_tx_hdr)(void *nbuf, unsigned short raw_hdr_len);
+	/**
+	 * @brief Get the raw Tx header from a network buffer.
+	 *
+	 * @param nbuf A pointer to the network buffer.
+	 * @return A pointer to the raw Tx header.
+	 */
+	void *(*nbuf_get_raw_tx_hdr)(void *nbuf);
 
+	/**
+	 * @brief Check if the network buffer is a raw Tx buffer.
+	 *
+	 * @param nbuf A pointer to the network buffer.
+	 *
+	 * @return true if it is a raw Tx buffer, false otherwise.
+	 */
+	bool (*nbuf_is_raw_tx)(void *nbuf);
+#endif /* NRF70_RAW_DATA_TX || __DOXYGEN__ */
 	/**
 	 * @brief Allocate a tasklet structure.
 	 *

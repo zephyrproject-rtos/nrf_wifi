@@ -621,6 +621,40 @@ unsigned char nrf_wifi_osal_nbuf_get_chksum_done(void *nbuf);
 void nrf_wifi_osal_nbuf_set_chksum_done(void *nbuf,
 					unsigned char chksum_done);
 
+#if defined(CONFIG_NRF70_RAW_DATA_TX) || defined(__DOXYGEN__)
+/**
+ * @brief Set the raw Tx header in a network buffer.
+ * @param nbuf Pointer to a network buffer.
+ * @param raw_hdr_len Length of the raw Tx header to be set.
+ *
+ * Sets the raw Tx header in a network buffer.
+ *
+ * * @return Pointer to the raw Tx header if successful, NULL otherwise.
+ */
+void *nrf_wifi_osal_nbuf_set_raw_tx_hdr(void *nbuf,
+					unsigned short raw_hdr_len);
+
+/**
+ * @brief Get the raw Tx header from a network buffer.
+ * @param nbuf Pointer to a network buffer.
+ *
+ * Gets the raw Tx header from a network buffer.
+ *
+ * @return Pointer to the raw Tx header if successful, NULL otherwise.
+ */
+void *nrf_wifi_osal_nbuf_get_raw_tx_hdr(void *nbuf);
+
+/**
+ * @brief Check if a network buffer is a raw Tx buffer.
+ * @param nbuf Pointer to a network buffer.
+ *
+ * Checks if a network buffer is a raw Tx buffer.
+ *
+ * @return true if the network buffer is a raw Tx buffer, false otherwise.
+ */
+bool nrf_wifi_osal_nbuf_is_raw_tx(void *nbuf);
+#endif /* CONFIG_NRF70_RAW_DATA_TX || __DOXYGEN__ */
+
 /**
  * @brief Allocate a tasklet.
  * @param type Type of tasklet.
