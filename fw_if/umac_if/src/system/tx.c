@@ -399,7 +399,7 @@ static int tx_aggr_check(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	}
 
 #ifdef NRF70_RAW_DATA_TX
-	if (sys_dev_ctx->raw_tx_config.raw_tx_flag) {
+	if (nrf_wifi_osal_nbuf_is_raw_tx(first_nwb)) {
 		return false;
 	}
 #endif /* NRF70_RAW_DATA_TX */
@@ -486,12 +486,6 @@ static int tx_curr_peer_opp_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 		return MAX_PEERS;
 	}
 
-#ifdef NRF70_RAW_DATA_TX
-	if (sys_dev_ctx->raw_tx_config.raw_tx_flag) {
-		return MAX_PEERS;
-	}
-#endif /* NRF70_RAW_DATA_TX */
-
 	peer_id = get_peer_from_wakeup_q(fmac_dev_ctx, ac);
 
 	if (peer_id != -1) {
@@ -549,14 +543,24 @@ static size_t _tx_pending_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	max_txq_len = sys_fpriv->data_config.max_tx_aggregation;
 	avail_ampdu_len_per_token = sys_fpriv->avail_ampdu_len_per_token;
 
-	peer_id = tx_curr_peer_opp_get(fmac_dev_ctx, ac);
+#ifdef NRF70_RAW_DATA_TX
+	/* Check for Raw packets first, if not found, then check for
+	 * regular packets.
+	 */
+	pend_pkt_q = sys_dev_ctx->tx_config.data_pending_txq[MAX_PEERS][ac];
+	if (!(nrf_wifi_utils_q_len(pend_pkt_q) > 0 &&
+		  nrf_wifi_osal_nbuf_is_raw_tx(nrf_wifi_utils_q_peek(pend_pkt_q))))
+#endif
+	{
+		peer_id = tx_curr_peer_opp_get(fmac_dev_ctx, ac);
 
-	/* No pending frames for any peer in that AC. */
-	if (peer_id == -1) {
-		return 0;
+		/* No pending frames for any peer in that AC. */
+		if (peer_id == -1) {
+			return 0;
+		}
+
+		pend_pkt_q = sys_dev_ctx->tx_config.data_pending_txq[peer_id][ac];
 	}
-
-	pend_pkt_q = sys_dev_ctx->tx_config.data_pending_txq[peer_id][ac];
 
 	if (nrf_wifi_utils_q_len(pend_pkt_q) == 0) {
 		return 0;
@@ -821,13 +825,20 @@ enum nrf_wifi_status rawtx_cmd_prepare(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 	config->sys_head.len = sizeof(*config);
 	config->if_index = vif_id;
 	config->raw_tx_info.desc_num = desc;
-	config->raw_tx_info.queue_num = sys_dev_ctx->raw_tx_config.queue;
-	if (len != sys_dev_ctx->raw_tx_config.packet_length) {
-		goto err;
-	}
 	config->raw_tx_info.pkt_length = len;
-	config->raw_tx_info.rate = sys_dev_ctx->raw_tx_config.data_rate;
-	config->raw_tx_info.rate_flags = sys_dev_ctx->raw_tx_config.tx_mode;
+
+	/* Check first packet in queue for per-packet raw TX config */
+	void *first_nwb = nrf_wifi_utils_list_peek(txq);
+	struct raw_tx_pkt_header *raw_tx_hdr = NULL;
+
+	if (first_nwb && nrf_wifi_osal_nbuf_is_raw_tx(first_nwb)) {
+		raw_tx_hdr = nrf_wifi_osal_nbuf_get_raw_tx_hdr(first_nwb);
+		if (raw_tx_hdr) {
+			config->raw_tx_info.queue_num = raw_tx_hdr->queue;
+			config->raw_tx_info.rate = raw_tx_hdr->data_rate;
+			config->raw_tx_info.rate_flags = raw_tx_hdr->tx_mode;
+		}
+	}
 
 	info.fmac_dev_ctx = fmac_dev_ctx;
 	info.raw_config = config;
@@ -998,10 +1009,6 @@ enum nrf_wifi_status rawtx_cmd_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	status = nrf_wifi_hal_ctrl_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 					    umac_cmd,
 					    (sizeof(*umac_cmd) + len));
-
-	/* clear the raw tx config data */
-	nrf_wifi_osal_mem_set(&sys_dev_ctx->raw_tx_config,
-			      0, sizeof(struct raw_tx_pkt_header));
 out:
 	return status;
 }
@@ -1068,6 +1075,7 @@ enum nrf_wifi_status tx_pending_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_c
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
+	void *first_nwb = NULL;
 
 	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
@@ -1078,21 +1086,27 @@ enum nrf_wifi_status tx_pending_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_c
 	}
 
 	if (_tx_pending_process(fmac_dev_ctx, desc, ac)) {
+		first_nwb = nrf_wifi_utils_list_peek(sys_dev_ctx->tx_config.pkt_info_p[desc].pkt);
+		/* Should never happen, but just in case */
+		if (!first_nwb) {
+			nrf_wifi_osal_log_err("%s: No pending packets in txq",
+					      __func__);
+			goto out;
+		}
 #ifdef NRF70_RAW_DATA_TX
-		if (!sys_dev_ctx->raw_tx_config.raw_tx_flag) {
-#endif
-			status = tx_cmd_init(fmac_dev_ctx,
-					     sys_dev_ctx->tx_config.pkt_info_p[desc].pkt,
-					     desc,
-					     sys_dev_ctx->tx_config.pkt_info_p[desc].peer_id);
-#ifdef NRF70_RAW_DATA_TX
-		} else {
+		if (nrf_wifi_osal_nbuf_is_raw_tx(first_nwb)) {
 			status = rawtx_cmd_init(fmac_dev_ctx,
 						sys_dev_ctx->tx_config.pkt_info_p[desc].pkt,
 						desc,
 						sys_dev_ctx->tx_config.pkt_info_p[desc].peer_id);
-		}
+		} else
 #endif
+		{
+			status = tx_cmd_init(fmac_dev_ctx,
+						 sys_dev_ctx->tx_config.pkt_info_p[desc].pkt,
+						 desc,
+						 sys_dev_ctx->tx_config.pkt_info_p[desc].peer_id);
+		}
 	} else {
 		tx_desc_free(fmac_dev_ctx,
 			     desc,
@@ -1403,10 +1417,6 @@ static enum nrf_wifi_status tx_done_process(struct nrf_wifi_fmac_dev_ctx *fmac_d
 			}
 #ifdef NRF70_RAW_DATA_TX
 		} else {
-			nrf_wifi_osal_mem_cpy(&sys_dev_ctx->raw_tx_config,
-					      data,
-					      sizeof(struct raw_tx_pkt_header));
-
 			/**
 			 * check if the if_type is STA_TX_INJECTOR
 			 * if so, we need to check for TWT_SLEEP.
@@ -1884,7 +1894,7 @@ enum nrf_wifi_status nrf_wifi_fmac_start_rawpkt_xmit(void *dev_ctx,
 	enum nrf_wifi_fmac_tx_status tx_status = NRF_WIFI_FMAC_TX_STATUS_FAIL;
 	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
 	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
-	void *nwb_data = NULL;
+	struct raw_tx_pkt_header *raw_tx_hdr = NULL;
 	int ac;
 	int peer_id;
 
@@ -1910,14 +1920,21 @@ enum nrf_wifi_status nrf_wifi_fmac_start_rawpkt_xmit(void *dev_ctx,
 		goto out;
 	}
 
-	nwb_data = nrf_wifi_osal_nbuf_data_get(nwb);
-	nrf_wifi_osal_mem_cpy(&sys_dev_ctx->raw_tx_config,
-			      nwb_data,
-			      sizeof(struct raw_tx_pkt_header));
+	raw_tx_hdr = nrf_wifi_osal_nbuf_set_raw_tx_hdr(nwb, sizeof(struct raw_tx_pkt_header));
+	if (!raw_tx_hdr) {
+		nrf_wifi_osal_log_err("%s: Failed to get raw tx header",
+				      __func__);
+		goto fail;
+	}
 
-	sys_dev_ctx->raw_tx_config.raw_tx_flag = 1;
 	peer_id = MAX_PEERS;
-	ac = sys_dev_ctx->raw_tx_config.queue;
+	ac = raw_tx_hdr->queue;
+	if (ac >= NRF_WIFI_FMAC_AC_MAX) {
+		nrf_wifi_osal_log_err("%s: Invalid access category %d",
+				      __func__,
+				      ac);
+		goto fail;
+	}
 
 	tx_status = nrf_wifi_fmac_tx(fmac_dev_ctx,
 				     if_idx,

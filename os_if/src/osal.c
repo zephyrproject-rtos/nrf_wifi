@@ -416,6 +416,25 @@ void nrf_wifi_osal_nbuf_set_chksum_done(void *nbuf,
 	return os_ops->nbuf_set_chksum_done(nbuf, chksum_done);
 }
 
+#ifdef CONFIG_NRF70_RAW_DATA_TX
+void *nrf_wifi_osal_nbuf_set_raw_tx_hdr(void *nbuf,
+					unsigned short raw_hdr_len)
+{
+	return os_ops->nbuf_set_raw_tx_hdr(nbuf,
+				      raw_hdr_len);
+}
+
+void *nrf_wifi_osal_nbuf_get_raw_tx_hdr(void *nbuf)
+{
+	return os_ops->nbuf_get_raw_tx_hdr(nbuf);
+}
+
+bool nrf_wifi_osal_nbuf_is_raw_tx(void *nbuf)
+{
+	return os_ops->nbuf_is_raw_tx(nbuf);
+}
+#endif /* CONFIG_NRF70_RAW_DATA_TX */
+
 
 void *nrf_wifi_osal_tasklet_alloc(int type)
 {
