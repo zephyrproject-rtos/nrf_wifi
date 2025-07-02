@@ -1530,6 +1530,9 @@ struct nrf_wifi_umac_cmd_key {
 	struct nrf_wifi_umac_key_info key_info;
 	/** MAC address associated with the key */
 	unsigned char mac_addr[NRF_WIFI_ETH_ADDR_LEN];
+#ifdef WIFI_NRF71
+	unsigned char peerDBIndex;
+#endif /* WIFI_NRF71 */
 } __NRF_WIFI_PKD;
 
 /**
