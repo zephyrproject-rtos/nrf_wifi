@@ -449,6 +449,73 @@ struct raw_tx_stats {
 };
 #endif /* NRF70_RAW_DATA_TX */
 
+#ifdef WIFI_NRF71
+#define MAX_NUM_SESSIONS 8
+#define WLAN_OPER_INVALID 10
+#define MAX_ENC_KEY_LEN 32
+#define MAX_MIC_KEY_LEN 16
+#define MICHAEL_LEN 8
+enum VIF_STATE {
+	VIF_INVALID,
+	VIF_VALID
+};
+
+enum keyState {
+	KEY_INVALID,
+	KEY_VALID
+};
+
+enum VIF_CONNECTED_STATE {
+	VIF_DISCONNECTED,
+	VIF_CONNECTED
+};
+
+enum VIF_IF_MODE {
+	VIF_BSS_STA,
+	VIF_IBSS,
+	VIF_AP
+};
+
+#define VIF_MIC_KEY_LEN_PER_VIF 0x40
+#define VIF_KEY_LEN_PER_VIF 0x80
+#define VIF_MIC_KEY_LEN_PER_KEYID 0x10
+#define VIF_KEY_LEN_PER_KEYID 0x20
+#define VIF_KEY_DB_OFFSET 0x1000
+#define  PEER_MIC_KEY_LEN_8  0x08
+#define  PEER_MIC_KEY_LEN_16 0x10
+#define  PEER_UNICAST_KEY_LEN 0x20
+#define  PEER_BCST_KEY_LEN 0x20
+#define  PEER_ENC_KEY_LEN_16 0x10
+#define  PEER_ENC_KEY_LEN_32 0x20
+#define  PEER_KEY_TOTAL_LEN 0xf0
+
+struct peerKeydataBase {
+	unsigned int  keyValid;
+	unsigned int  keyType;
+	unsigned int  ucstCipherType;
+	unsigned int  bcstCipherType;
+	unsigned int  bcstKeyId;
+	unsigned char peerMacAddr[NRF_WIFI_ETH_ADDR_LEN];
+	unsigned char vifMacAddr[NRF_WIFI_ETH_ADDR_LEN];
+	unsigned char ucstKey[MAX_ENC_KEY_LEN];
+	union {
+		struct {
+			unsigned char TxMicKey[MICHAEL_LEN];
+			unsigned char RxMicKey[MICHAEL_LEN];
+		} ucst;
+		unsigned char ucstWapiMicKey[MAX_MIC_KEY_LEN];
+	};
+	unsigned char bcstKey[MAX_ENC_KEY_LEN];
+	union {
+		struct {
+			unsigned char TxMicKey[MICHAEL_LEN];
+			unsigned char RxMicKey[MICHAEL_LEN];
+		} bcst;
+		unsigned char bcstWapiMicKey[MAX_MIC_KEY_LEN];
+	};
+};
+#endif /* WIFI_NRF71 */
+
 /**
  * @brief Structure to hold per device context information for the UMAC IF layer.
  *
@@ -490,6 +557,10 @@ struct nrf_wifi_sys_fmac_dev_ctx {
 	struct raw_tx_pkt_header raw_tx_config;
 	struct raw_tx_stats raw_pkt_stats;
 #endif /* NRF70_RAW_DATA_TX */
+#ifdef WIFI_NRF71
+	/* Peer key info */
+	struct peerKeydataBase peerKeyDB[MAX_NUM_SESSIONS];
+#endif /* WIFI_NRF71 */
 };
 
 /**
@@ -553,7 +624,6 @@ struct rpu_sys_op_stats {
 	/** Firmware statistics. */
 	struct rpu_sys_fw_stats fw;
 };
-
 /**
  * @}
  */
