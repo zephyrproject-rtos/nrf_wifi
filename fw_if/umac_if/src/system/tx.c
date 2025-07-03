@@ -1967,6 +1967,10 @@ enum nrf_wifi_status nrf_wifi_fmac_start_rawpkt_xmit(void *dev_ctx,
 
 	return NRF_WIFI_STATUS_SUCCESS;
 fail:
+	if (nwb) {
+		nrf_wifi_osal_nbuf_free(nwb);
+	}
+
 	if (sys_dev_ctx) {
 		sys_dev_ctx->raw_pkt_stats.raw_pkt_send_failure += 1;
 	}
