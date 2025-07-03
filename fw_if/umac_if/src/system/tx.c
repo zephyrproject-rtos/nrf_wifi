@@ -1955,14 +1955,17 @@ enum nrf_wifi_status nrf_wifi_fmac_start_rawpkt_xmit(void *dev_ctx,
 		sys_dev_ctx->raw_pkt_stats.raw_pkt_send_success += 1;
 	}
 
+	return NRF_WIFI_STATUS_SUCCESS;
+fail:
+	if (nwb) {
+		nrf_wifi_osal_nbuf_free(nwb);
+	}
+	sys_dev_ctx->raw_pkt_stats.raw_pkt_send_failure += 1;
 	/**
 	 * Always silently drop the RAW packet and not send Failure.
 	 * The network stack might think interface is down
 	 */
 	return NRF_WIFI_STATUS_SUCCESS;
-fail:
-	sys_dev_ctx->raw_pkt_stats.raw_pkt_send_failure += 1;
-	return NRF_WIFI_STATUS_FAIL;
 }
 #endif /* NRF70_RAW_DATA_TX */
 
