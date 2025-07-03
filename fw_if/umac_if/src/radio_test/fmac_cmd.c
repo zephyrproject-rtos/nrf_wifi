@@ -324,15 +324,9 @@ enum nrf_wifi_status umac_cmd_rt_prog_rf_test(struct nrf_wifi_fmac_dev_ctx *fmac
 
 	umac_cmd_data->rf_test_info.len = rf_test_params_sz;
 
-#ifdef NRF_WIFI_CMD_EVENT_LOG
 	nrf_wifi_osal_log_info("%s: RF test command type %d",
 			      __func__,
 			      umac_cmd_data->rf_test_info.rfcmd[0]);
-#else
-	nrf_wifi_osal_log_dbg("%s: RF test command type %d",
-			      __func__,
-			      umac_cmd_data->rf_test_info.rfcmd[0]);
-#endif /* NRF_WIFI_CMD_EVENT_LOG */
 
 	status = nrf_wifi_hal_ctrl_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 					    umac_cmd,
