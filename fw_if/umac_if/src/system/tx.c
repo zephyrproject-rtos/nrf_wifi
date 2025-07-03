@@ -1910,6 +1910,8 @@ enum nrf_wifi_status nrf_wifi_fmac_start_rawpkt_xmit(void *dev_ctx,
 	fmac_dev_ctx = (struct nrf_wifi_fmac_dev_ctx *)dev_ctx;
 	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
+	sys_dev_ctx->raw_pkt_stats.raw_pkts_from_stack += 1;
+
 	/**
 	 * only allow raw packet to be transmitted if interface type allows it
 	 * do not queue the packet if interface type does not allow raw tx
@@ -1917,7 +1919,7 @@ enum nrf_wifi_status nrf_wifi_fmac_start_rawpkt_xmit(void *dev_ctx,
 	if (!nrf_wifi_raw_pkt_mode_enabled(sys_dev_ctx->vif_ctx[if_idx])) {
 		nrf_wifi_osal_log_err("%s: raw_packet mode is not enabled",
 				      __func__);
-		goto out;
+		goto fail;
 	}
 
 	raw_tx_hdr = nrf_wifi_osal_nbuf_set_raw_tx_hdr(nwb, sizeof(struct raw_tx_pkt_header));
@@ -1944,8 +1946,7 @@ enum nrf_wifi_status nrf_wifi_fmac_start_rawpkt_xmit(void *dev_ctx,
 	if (tx_status == NRF_WIFI_FMAC_TX_STATUS_FAIL) {
 		nrf_wifi_osal_log_dbg("%s: Failed to send packet",
 				      __func__);
-		/** Increment failure count */
-		sys_dev_ctx->raw_pkt_stats.raw_pkt_send_failure += 1;
+		goto fail;
 	} else {
 		/**
 		 * Increment success count.
@@ -1954,15 +1955,17 @@ enum nrf_wifi_status nrf_wifi_fmac_start_rawpkt_xmit(void *dev_ctx,
 		sys_dev_ctx->raw_pkt_stats.raw_pkt_send_success += 1;
 	}
 
+	return NRF_WIFI_STATUS_SUCCESS;
+fail:
+	if (nwb) {
+		nrf_wifi_osal_nbuf_free(nwb);
+	}
+	sys_dev_ctx->raw_pkt_stats.raw_pkt_send_failure += 1;
 	/**
 	 * Always silently drop the RAW packet and not send Failure.
 	 * The network stack might think interface is down
 	 */
-out:
-	sys_dev_ctx->raw_pkt_stats.raw_pkts_sent += 1;
 	return NRF_WIFI_STATUS_SUCCESS;
-fail:
-	return NRF_WIFI_STATUS_FAIL;
 }
 #endif /* NRF70_RAW_DATA_TX */
 
