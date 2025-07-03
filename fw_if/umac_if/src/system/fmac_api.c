@@ -3346,6 +3346,89 @@ out:
 
 	return status;
 }
+
+#ifdef NRF71_HOST_RX_BUF_CMD
+enum nrf_wifi_status nrf_wifi_sys_fmac_prog_rx_buf_info(void *dev_ctx,
+							struct nrf_wifi_rx_buf *rx_buf,
+							unsigned int rx_buf_nums)
+{
+        enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+        struct nrf_wifi_cmd_rx_buf_info *rx_buf_cmd = NULL;
+        struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+        struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx = NULL;
+        struct nrf_wifi_rx_buf *rx_buf_iter = NULL;
+        int i = 0, remained_buf_cnt = 0, counter = 0,  rx_buff_prog_cnt = 0;
+
+	fmac_dev_ctx = dev_ctx;
+        def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+
+	if (rx_buf_nums > MAX_RX_BUFS_PER_CMD) {
+                rx_buff_prog_cnt = MAX_RX_BUFS_PER_CMD;
+                remained_buf_cnt = rx_buf_nums % MAX_RX_BUFS_PER_CMD;
+                counter = rx_buf_nums / MAX_RX_BUFS_PER_CMD;
+        } else {
+                rx_buff_prog_cnt = rx_buf_nums;
+                counter = 1;
+        }
+
+	rx_buf_iter = rx_buf;
+
+	for (i = 0; i < counter; i++) {
+                rx_buf_cmd = nrf_wifi_osal_mem_zalloc(sizeof(*rx_buf_cmd) +
+					      rx_buff_prog_cnt *
+					      sizeof(struct nrf_wifi_rx_buf));
+                if (!rx_buf_cmd) {
+                        nrf_wifi_osal_log_err("%s: Unable to allocate memory\n",
+					       __func__);
+                        goto out;
+                }
+
+                rx_buf_cmd->umac_hdr.cmd_evnt = NRF_WIFI_UMAC_CMD_CONFIG_RX_BUF;
+                nrf_wifi_osal_mem_cpy(&rx_buf_cmd->info,
+                                      rx_buf,
+                                      rx_buff_prog_cnt * sizeof(struct nrf_wifi_rx_buf));
+
+                rx_buf_cmd->rx_buf_num = rx_buff_prog_cnt;
+
+                status = umac_cmd_cfg(fmac_dev_ctx,
+                                      rx_buf_cmd,
+                                      sizeof(*rx_buf_cmd) +
+				      rx_buff_prog_cnt *
+				      sizeof(struct nrf_wifi_rx_buf));
+                if (rx_buf_cmd) {
+                        nrf_wifi_osal_mem_free(rx_buf_cmd);
+                }
+        }
+	if (remained_buf_cnt > 0) {
+                rx_buf_cmd = nrf_wifi_osal_mem_zalloc(sizeof(*rx_buf_cmd) +
+						      remained_buf_cnt *
+						      sizeof(struct nrf_wifi_rx_buf));
+                if (!rx_buf_cmd) {
+                        nrf_wifi_osal_log_err("%s: Unable to allocate memory\n",
+					       __func__);
+                        goto out;
+                }
+
+                rx_buf_cmd->umac_hdr.cmd_evnt = NRF_WIFI_UMAC_CMD_CONFIG_RX_BUF;
+                nrf_wifi_osal_mem_cpy(&rx_buf_cmd->info,
+                                      rx_buf + (MAX_RX_BUFS_PER_CMD),
+                                      remained_buf_cnt * sizeof(struct nrf_wifi_rx_buf));
+
+                rx_buf_cmd->rx_buf_num = remained_buf_cnt;
+
+                status = umac_cmd_cfg(fmac_dev_ctx,
+                                      rx_buf_cmd,
+                                      sizeof(*rx_buf_cmd) +
+				      remained_buf_cnt *
+				      sizeof(struct nrf_wifi_rx_buf));
+                if (rx_buf_cmd) {
+                        nrf_wifi_osal_mem_free(rx_buf_cmd);
+                }
+        }
+out:
+        return status;
+}
+#endif /* NRF71_HOST_RX_BUF_CMD */
 #endif /* NRF70_STA_MODE */
 
 enum nrf_wifi_status nrf_wifi_sys_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
