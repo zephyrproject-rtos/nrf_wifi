@@ -71,6 +71,16 @@ static enum nrf_wifi_status umac_event_rt_rf_test_process(struct nrf_wifi_fmac_d
 
 	rf_test_event = ((struct nrf_wifi_event_rftest *)event);
 
+#ifdef NRF_WIFI_CMD_EVENT_LOG
+	nrf_wifi_osal_log_info("%s: RF test event %d received from RPU",
+			       __func__,
+			       rf_test_event->rf_test_info.rfevent[0]);
+#else
+	nrf_wifi_osal_log_dbg("%s: RF test event %d received from RPU",
+			       __func__,
+			       rf_test_event->rf_test_info.rfevent[0]);
+#endif /* NRF_WIFI_CMD_EVENT_LOG */
+
 	if (rf_test_event->rf_test_info.rfevent[0] != def_dev_ctx->rf_test_type) {
 		nrf_wifi_osal_log_err("%s: Invalid event type (%d) recd for RF test type (%d)",
 				      __func__,
@@ -163,6 +173,16 @@ static enum nrf_wifi_status umac_event_rt_proc_events(struct nrf_wifi_fmac_dev_c
 
 	def_dev_ctx_rt = wifi_dev_priv(fmac_dev_ctx);
 	sys_head = (unsigned char *)rpu_msg->msg;
+
+#ifdef NRF_WIFI_CMD_EVENT_LOG
+	nrf_wifi_osal_log_info("%s: Event %d received from RPU",
+			       __func__,
+			       ((struct nrf_wifi_sys_head *)sys_head)->cmd_event);
+#else
+	nrf_wifi_osal_log_dbg("%s: Event %d received from RPU",
+			       __func__,
+			       ((struct nrf_wifi_sys_head *)sys_head)->cmd_event);
+#endif /* NRF_WIFI_CMD_EVENT_LOG */
 
 	switch (((struct nrf_wifi_sys_head *)sys_head)->cmd_event) {
 	case NRF_WIFI_EVENT_STATS:
@@ -296,7 +316,7 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_event_callback(void *mac_dev_ctx,
 	umac_msg_type = umac_hdr->cmd_evnt;
 
 #ifdef NRF_WIFI_CMD_EVENT_LOG
-	nrf_wifi_osal_log_info("%s: Event type %d recd\n",
+	nrf_wifi_osal_log_info("%s: Event type %d recd",
 			      __func__,
 			      rpu_msg->type);
 #else
