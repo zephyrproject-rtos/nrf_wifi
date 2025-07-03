@@ -440,12 +440,12 @@ struct raw_tx_pkt_header {
  * transmit statistics.
  */
 struct raw_tx_stats {
-	/** Total number of raw packets sent. */
-	unsigned int raw_pkts_sent;
-	/** Count of successful raw packets sent. */
+	/** Total number of raw packets from stack. */
+	unsigned int raw_pkts_from_stack;
+	/** Total number of raw packets dropped. */
 	unsigned int raw_pkt_send_failure;
-	/** Count of un-successful raw packets sent. */
-	unsigned int raw_pkt_send_success;
+	/** Total number of raw packets sent. */
+	unsigned int raw_pkt_send_success;;
 };
 #endif /* NRF70_RAW_DATA_TX */
 
