@@ -260,7 +260,11 @@ enum nrf_wifi_band {
 	/** Around 5 GHz band (4.9 - 5.7 GHz) */
 	NRF_WIFI_BAND_5GHZ,
 	/** Unused */
+#ifdef WIFI_NRF71
+	NRF_WIFI_BAND_6GHZ,
+#else
 	NRF_WIFI_BAND_60GHZ,
+#endif /* WIFI_NRF71 */
 	/** Invalid */
 	NRF_WIFI_BAND_INVALID
 };
@@ -683,8 +687,12 @@ struct nrf_wifi_channel {
 
 
 #define NRF_WIFI_SCAN_MAX_NUM_SSIDS 2
+#ifdef WIFI_NRF71
+#define NRF_WIFI_SCAN_MAX_NUM_FREQUENCIES 89
+#define MAX_NUM_CHANNELS 42
+#else /* WIFI_NRF71 */
 #define NRF_WIFI_SCAN_MAX_NUM_FREQUENCIES 64
-
+#endif /* !WIFI_NRF71 */
 #define NRF_WIFI_SCAN_BAND_2GHZ	(1 << 0)
 #define NRF_WIFI_SCAN_BAND_5GHZ	(1 << 1)
 #define NRF_WIFI_SCAN_BAND_6GHZ	(1 << 2)
@@ -1807,8 +1815,11 @@ struct nrf_wifi_ext_capability {
 
 } __NRF_WIFI_PKD;
 
+#ifdef WIFI_NRF71
+#define NRF_WIFI_SUPPORTED_CHANNELS_MAX_LEN 89
+#else /* WIFI_NRF71 */
 #define NRF_WIFI_SUPPORTED_CHANNELS_MAX_LEN 64
-
+#endif /* !WIFI_NRF71 */
 /**
  * @brief Supported channels.
  */
@@ -2948,8 +2959,10 @@ struct nrf_wifi_umac_event_power_save_info {
 	unsigned int ps_timeout;
 	/** Listen interval value */
 	unsigned short listen_interval;
+#ifndef WIFI_NRF71
 	/** Power save exit strategy */
 	unsigned char ps_exit_strategy;
+#endif /* !WIFI_NRF71 */
 	/** Number TWT flows */
 	unsigned char num_twt_flows;
 	/** TWT info of each flow nrf_wifi_umac_config_twt_info */
