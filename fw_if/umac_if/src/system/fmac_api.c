@@ -384,8 +384,13 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 #ifndef NRF71_ON_IPC
+#ifdef WIFI_NRF71
+	struct nrf_wifi_phy_rf_params phy_rf_params = { 0};
+	int ret = -1;
+#else /* WIFI_NRF71 */
         struct nrf_wifi_fmac_otp_info otp_info;
 	struct nrf_wifi_phy_rf_params phy_rf_params;
+#endif /* !WIFI_NRF71 */
 #endif /* !NRF71_ON_IPC */
 
 	if (!fmac_dev_ctx) {
@@ -414,6 +419,21 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 	}
 
 #ifndef NRF71_ON_IPC
+#ifdef WIFI_NRF71
+	nrf_wifi_osal_mem_set(&phy_rf_params,
+			      0x0,
+			      sizeof(phy_rf_params));
+
+	ret = nrf_wifi_utils_hex_str_to_val(
+			(unsigned char *)&phy_rf_params.phy_params,
+			sizeof(phy_rf_params.phy_params),
+			NRF_WIFI_SYS_DEF_RF_PARAMS);
+	if (ret == -1) {
+		nrf_wifi_osal_log_err("%s: Initialization of RF params with default values failed", __func__);
+		status = NRF_WIFI_STATUS_FAIL;
+		goto out;
+	}
+#else /* WIFI_NRF71 */
 	nrf_wifi_osal_mem_set(&otp_info,
 			      0xFF,
 			      sizeof(otp_info));
@@ -435,6 +455,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 				      __func__);
 		goto out;
 	}
+#endif  /* !WIFI_NRF71 */
 #endif /* !NRF71_ON_IPC */
 
 	status = nrf_wifi_sys_fmac_fw_init(fmac_dev_ctx,
@@ -3727,13 +3748,14 @@ static int nrf_wifi_sys_fmac_phy_rf_params_init(struct nrf_wifi_phy_rf_params *p
 						unsigned char *str)
 {
 	int ret = -1;
+#ifndef WIFI_NRF71
 	unsigned int rf_param_offset = BAND_2G_LW_ED_BKF_DSSS_OFST - NRF_WIFI_RF_PARAMS_CONF_SIZE;
-
+#endif /* !WIFI_NRF71 */
 	/* Initilaize reserved bytes */
 	nrf_wifi_osal_mem_set(prf,
 			      0x0,
 			      sizeof(prf));
-
+#ifndef WIFI_NRF71
 	/* Initialize PD adjust values for MCS7. Currently these 4 bytes are not being used */
 	prf->pd_adjust_val.pd_adjt_lb_chan = PD_ADJUST_VAL;
 	prf->pd_adjust_val.pd_adjt_hb_low_chan = PD_ADJUST_VAL;
@@ -3854,7 +3876,7 @@ static int nrf_wifi_sys_fmac_phy_rf_params_init(struct nrf_wifi_phy_rf_params *p
 	prf->phy_params[rf_param_offset + 31]  = NRF70_PCB_LOSS_5G_BAND1;
 	prf->phy_params[rf_param_offset + 32]  = NRF70_PCB_LOSS_5G_BAND2;
 	prf->phy_params[rf_param_offset + 33]  = NRF70_PCB_LOSS_5G_BAND3;
-
+#endif /* !WIFI_NRF71 */
 	return(ret);
 }
 
@@ -3869,9 +3891,10 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 	/* If package_info is not written to OTP then the default value will be 0xFF. */
 	unsigned int package_info = 0xFFFFFFFF;
 	struct nrf_wifi_tx_pwr_ceil_params *tx_pwr_ceil_params;
+#ifndef WIFI_NRF71
 	unsigned char backoff_2g_dsss = 0, backoff_2g_ofdm = 0;
 	unsigned char backoff_5g_lowband = 0, backoff_5g_midband = 0, backoff_5g_highband = 0;
-
+#endif /* !WIFI_NRF71 */
 	if (!fmac_dev_ctx || !phy_rf_params) {
 		nrf_wifi_osal_log_err("%s: Invalid parameters",
 				      __func__);
@@ -3925,7 +3948,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 		status = NRF_WIFI_STATUS_FAIL;
 		goto out;
 	}
-
+#ifndef WIFI_NRF71
 	if (!(otp_info.flags & (~CALIB_XO_FLAG_MASK))) {
 		nrf_wifi_osal_mem_cpy(&phy_rf_params->xo_offset.xo_freq_offset,
 				      (char *)otp_info.info.calib + OTP_OFF_CALIB_XO,
@@ -3982,7 +4005,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 	MIN(tx_pwr_ceil_params->max_pwr_5g_high_mcs0,
 	        phy_rf_params->max_pwr_ceil.max_hb_high_chan_mcs0_pwr) - backoff_5g_highband;
 #endif /* NRF70_2_4G_ONLY */
-
+#endif /* !WIFI_NRF71 */
 	status = NRF_WIFI_STATUS_SUCCESS;
 out:
 	return status;

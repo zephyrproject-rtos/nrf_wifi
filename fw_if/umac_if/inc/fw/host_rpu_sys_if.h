@@ -224,6 +224,9 @@ enum rpu_ch_bw {
  *
  */
 struct chan_params {
+#ifdef WIFI_NRF71
+	unsigned int op_band;
+#endif /* WIFI_NRF71 */
 	/** Primary channel number */
 	unsigned int primary_num;
 	/** Channel bandwidth */
@@ -340,6 +343,14 @@ struct umac_rx_dbg_params {
 	unsigned int null_skb_pointer_from_lmac;
 	/** Number of unexpected management packets received in coalesce event */
 	unsigned int unexpected_mgmt_pkt;
+#ifdef WIFI_NRF71
+	/** Number of packets flushed from reorder buffer
+	 *  before going to sleep
+	 */
+	unsigned int reorder_flush_pkt_count;
+	/** Unprotected error data frames received in security mode */
+	unsigned int unsecured_data_error;
+#endif /* WIFI_NRF71 */
 } __NRF_WIFI_PKD;
 
 /**
@@ -847,6 +858,11 @@ enum op_band {
 	BAND_ALL,
 	/** 2.4Ghz band */
 	BAND_24G,
+#ifdef WIFI_NRF71
+	BAND_5G,
+	/** 6 GHz band */
+	BAND_6G
+#endif /* WIFI_NRF71 */
 };
 
 /**
