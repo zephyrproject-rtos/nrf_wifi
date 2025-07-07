@@ -27,12 +27,7 @@
 #define PCIE_BAR_OFFSET_WLAN_RPU 0x0
 #define PCIE_DMA_MASK 0xFFFFFFFF
 
-#ifdef WIFI_NRF71
-#ifdef RPU_HARD_RESET_SUPPORT
-#define SOC_MMAP_ADDR_OFFSET_HARDRESET 0x3FFFFC
-#endif /* RPU_HARD_RESET_SUPPORT */
-#else /* WIFI_NRF71 */
-
+#ifndef WIFI_NRF71
 #define SOC_MMAP_ADDR_OFFSET_PKTRAM_HOST_VIEW 0x0C0000
 #define SOC_MMAP_ADDR_OFFSET_PKTRAM_RPU_VIEW 0x380000
 #endif /* !WIFI_NRF71 */
@@ -97,7 +92,6 @@ enum nrf_wifi_fw_subtype {
 };
 
 #ifdef WIFI_NRF71
-unsigned long pal_rpu_hard_rst_reg_offset_get(void);
 unsigned long pal_rpu_rom_access_reg_addr_get(void);
 unsigned long pal_rpu_wicr_reg_offset_get(void);
 #else /* WIFI_NRF71 */

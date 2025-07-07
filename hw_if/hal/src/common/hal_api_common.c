@@ -1182,7 +1182,16 @@ nrf_wifi_hal_init(struct nrf_wifi_hal_cfg_params *cfg_params,
 	}
 
 	bal_cfg_params.addr_pktram_base = hpriv->addr_pktram_base;
-
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	hpriv->hostram_addr_base_inline_rx =
+		(unsigned long)nrf_wifi_osal_iomem_mmap_inline_rx(
+				SOC_HOST_DATA_RAM_BASE,
+				SOC_HOST_DATA_RAM_LEN);
+	bal_cfg_params.addr_hostram_base_inline_rx =
+		hpriv->hostram_addr_base_inline_rx;
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 	hpriv->bpriv = nrf_wifi_bal_init(&bal_cfg_params,
 					 &nrf_wifi_hal_irq_handler);
 
@@ -1206,6 +1215,11 @@ out:
 void nrf_wifi_hal_deinit(struct nrf_wifi_hal_priv *hpriv)
 {
 	nrf_wifi_bal_deinit(hpriv->bpriv);
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	nrf_wifi_osal_iomem_unmap_inline_rx(hpriv->hostram_addr_base_inline_rx);
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 	nrf_wifi_osal_mem_free(hpriv);
 }
 

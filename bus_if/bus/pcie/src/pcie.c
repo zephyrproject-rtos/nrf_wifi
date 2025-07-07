@@ -279,6 +279,40 @@ void nrf_wifi_bus_pcie_write_block(void *dev_ctx,
 	nrf_wifi_osal_iomem_cpy_to(mmap_addr, src_addr,	len);
 }
 
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+unsigned long nrf_wifi_bus_pcie_dma_map_inline_rx(void *dev_ctx,
+					  unsigned long virt_addr,
+					  size_t len,
+					  enum nrf_wifi_osal_dma_dir dma_dir)
+{
+	struct nrf_wifi_bus_pcie_dev_ctx *pcie_dev_ctx = NULL;
+	unsigned long phy_addr = 0;
+
+	pcie_dev_ctx = (struct nrf_wifi_bus_pcie_dev_ctx *)dev_ctx;
+
+	phy_addr = SOC_HOST_DATA_RAM_BASE +
+		(virt_addr - pcie_dev_ctx->addr_hostram_base_inline_rx);
+	return phy_addr;
+}
+
+unsigned long nrf_wifi_bus_pcie_dma_unmap_inline_rx(void *dev_ctx,
+					    unsigned long phy_addr,
+					    size_t len,
+					    enum nrf_wifi_osal_dma_dir dma_dir)
+{
+	struct nrf_wifi_bus_pcie_dev_ctx *pcie_dev_ctx = NULL;
+	unsigned long virt_addr = 0;
+
+	pcie_dev_ctx = (struct nrf_wifi_bus_pcie_dev_ctx *)dev_ctx;
+
+	virt_addr = pcie_dev_ctx->addr_hostram_base_inline_rx +
+			(phy_addr - SOC_HOST_DATA_RAM_BASE);
+
+	return virt_addr;
+}
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 
 unsigned long nrf_wifi_bus_pcie_dma_map(void *dev_ctx,
 					unsigned long virt_addr,
@@ -292,10 +326,10 @@ unsigned long nrf_wifi_bus_pcie_dma_map(void *dev_ctx,
 
 #ifdef INLINE_MODE
 	phy_addr = (unsigned long)nrf_wifi_osal_bus_pcie_dev_dma_map(
-		pcie_dev_ctx->os_pcie_dev_ctx,
-		(void *)virt_addr,
-		len,
-		dma_dir);
+						pcie_dev_ctx->os_pcie_dev_ctx,
+						(void *)virt_addr,
+						len,
+						dma_dir);
 #endif /* INLINE_MODE */
 #ifdef INLINE_BB_MODE
 	phy_addr = SOC_HOST_PKTRAM_BASE + (virt_addr - pcie_dev_ctx->addr_pktram_base);
@@ -322,11 +356,10 @@ unsigned long nrf_wifi_bus_pcie_dma_unmap(void *dev_ctx,
 	pcie_dev_ctx = (struct nrf_wifi_bus_pcie_dev_ctx *)dev_ctx;
 
 #ifdef INLINE_MODE
-	nrf_wifi_osal_bus_pcie_dev_dma_unmap(
-		pcie_dev_ctx->os_pcie_dev_ctx,
-		(void *)phy_addr,
-		len,
-		dma_dir);
+	nrf_wifi_osal_bus_pcie_dev_dma_unmap(pcie_dev_ctx->os_pcie_dev_ctx,
+					     (void *)phy_addr,
+					     len,
+					     dma_dir);
 #endif /* INLINE_MODE */
 #ifdef INLINE_BB_MODE
 	virt_addr = pcie_dev_ctx->addr_pktram_base + (phy_addr - SOC_HOST_PKTRAM_BASE);
