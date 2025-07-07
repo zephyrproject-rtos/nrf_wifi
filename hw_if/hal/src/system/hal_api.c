@@ -148,12 +148,21 @@ unsigned long nrf_wifi_sys_hal_buf_map_rx(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 #ifdef WIFI_NRF71
 	rpu_addr = RPU_MEM_DATA_RAM_BASE +
 			(bounce_buf_addr - hal_dev_ctx->addr_rpu_pktram_base);
+#ifdef INLINE_RX
+	nrf_wifi_osal_mem_cpy((void *)bounce_buf_addr,
+		      (void *)buf,
+		      hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz);
+#else /* INLINE_RX */
+	rpu_addr = RPU_MEM_DATA_RAM_BASE +
+		(bounce_buf_addr - hal_dev_ctx->addr_rpu_pktram_base);
 	hal_rpu_mem_write(hal_dev_ctx,
 			  (unsigned int)rpu_addr,
 			  (void *)buf,
 			  hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz);
+#endif /* !INLINE_RX */
 #else /* WIFI_NRF71 */
-	rpu_addr = RPU_MEM_PKT_BASE + (bounce_buf_addr - hal_dev_ctx->addr_rpu_pktram_base);
+	rpu_addr = RPU_MEM_PKT_BASE +
+			(bounce_buf_addr - hal_dev_ctx->addr_rpu_pktram_base);
 
 	hal_rpu_mem_write(hal_dev_ctx,
 			  (unsigned int)rpu_addr,
@@ -163,10 +172,18 @@ unsigned long nrf_wifi_sys_hal_buf_map_rx(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 	addr_to_map = bounce_buf_addr + hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz;
 
 #ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	rx_buf_info->phy_addr = nrf_wifi_bal_dma_map_inline_rx(
+						hal_dev_ctx->bal_dev_ctx,
+						addr_to_map,
+						buf_len,
+						NRF_WIFI_OSAL_DMA_DIR_FROM_DEV);
+#else /* INLINE_RX */
 	rx_buf_info->phy_addr = nrf_wifi_bal_dma_map(hal_dev_ctx->bal_dev_ctx,
 					     addr_to_map,
 					     buf_len,
 					     NRF_WIFI_OSAL_DMA_DIR_FROM_DEV);
+#endif /* !INLINE_RX */
 #else /* WIFI_NRF71 */
 	rx_buf_info->phy_addr = nrf_wifi_bal_dma_map(hal_dev_ctx->bal_dev_ctx,
 					     addr_to_map,
@@ -208,6 +225,13 @@ unsigned long nrf_wifi_sys_hal_buf_unmap_rx(struct nrf_wifi_hal_dev_ctx *hal_dev
 	}
 
 #ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	unmapped_addr = nrf_wifi_bal_dma_unmap_inline_rx(
+				hal_dev_ctx->bal_dev_ctx,
+				rx_buf_info->phy_addr,
+				rx_buf_info->buf_len,
+				NRF_WIFI_OSAL_DMA_DIR_FROM_DEV);
+#else /* INLINE_RX */
 	unmapped_addr = nrf_wifi_bal_dma_unmap(hal_dev_ctx->bal_dev_ctx,
 					       rx_buf_info->phy_addr,
 					       rx_buf_info->buf_len,
@@ -215,6 +239,7 @@ unsigned long nrf_wifi_sys_hal_buf_unmap_rx(struct nrf_wifi_hal_dev_ctx *hal_dev
 
 	rpu_addr = RPU_MEM_DATA_RAM_BASE +
 			(unmapped_addr - hal_dev_ctx->addr_rpu_pktram_base);
+#endif /* !INLINE_RX */
 #else /* WIFI_NRF71 */
 	rpu_addr = RPU_MEM_PKT_BASE +
 			(unmapped_addr - hal_dev_ctx->addr_rpu_pktram_base);
@@ -226,11 +251,18 @@ unsigned long nrf_wifi_sys_hal_buf_unmap_rx(struct nrf_wifi_hal_dev_ctx *hal_dev
 			goto out;
 		}
 #ifdef WIFI_NRF71
+#ifdef INLINE_RX
+		nrf_wifi_osal_mem_cpy((void *)(rx_buf_info->virt_addr +
+			hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz),
+			(void *)unmapped_addr,
+			data_len);
+#else /* INLINE_RX */
 		hal_rpu_mem_read(hal_dev_ctx,
 			 (void *)(rx_buf_info->virt_addr +
 			  hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz),
 			 (unsigned int)rpu_addr,
 			 data_len);
+#endif /* !INLINE_RX */
 #else /* WIFI_NRF71 */
 		hal_rpu_mem_read(hal_dev_ctx,
 			 (void *)(rx_buf_info->virt_addr +

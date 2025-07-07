@@ -195,6 +195,11 @@ struct nrf_wifi_hal_priv {
 	struct nrf_wifi_hal_cfg_params cfg_params;
 	/** PKTRAM base address */
 	unsigned long addr_pktram_base;
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	unsigned long hostram_addr_base_inline_rx;
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 };
 
 /**
@@ -293,6 +298,11 @@ struct nrf_wifi_hal_dev_ctx {
 	void *recovery_tasklet;
 	/** Recovery lock */
 	void *lock_recovery;
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	unsigned long addr_rpu_host_ram_base;
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 };
 
 /**
