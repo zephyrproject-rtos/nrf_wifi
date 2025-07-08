@@ -144,4 +144,9 @@ enum nrf_wifi_status nrf_wifi_hal_coex_config_sleep_ctrl_gpio_ctrl(
 			unsigned int invert_bt_coex_grant_output);
 #endif /* NRF70_SR_COEX_SLEEP_CTRL_GPIO_CTRL */
 
+#ifdef NRF71_HOST_RX_BUF_CMD
+unsigned long nrf_wifi_sys_hal_get_buf_map_rx(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
+					      unsigned int pool_id,
+					      unsigned int buf_id);
+#endif /* NRF71_HOST_RX_BUF_CMD */
 #endif /* __HAL_API_SYS_H__ */
