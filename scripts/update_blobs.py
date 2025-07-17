@@ -55,7 +55,7 @@ def get_wifi_blob_info(name: str) -> BlobInfo:
         "1.0.0",  # This will be overridden by actual binary parsing
         f"nrf_wifi/bin/zephyr/{name}/{WIFI_FW_BIN_NAME}",
         f"wifi_fw_bins/{name}/{WIFI_FW_BIN_NAME}",
-        f"nrf_wifi/doc",
+        f"https://docs.nordicsemi.com/bundle/ps_nrf7000/page/chapters/notice/doc/notice_on_sw.html",
     )
 
 
@@ -94,7 +94,7 @@ def render_template(template_path: str, output_path: str, latest_sha: str) -> No
         blob_info["rpath"] = blob.rpath
         blob_info["version"] = blob.version
         blob_info["url"] = f"{nrfxlib_url}/{blob.rpath}"
-        blob_info["doc_url"] = f"{nrfxlib_url}/{blob.docpath}"
+        blob_info["doc_url"] = f"{blob.docpath}"
 
         # Download the binary to compute SHA-256 and extract version
         response = requests.get(blob_info["url"])
