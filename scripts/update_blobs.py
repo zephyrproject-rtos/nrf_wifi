@@ -26,11 +26,33 @@ BlobInfo = namedtuple(
 )
 
 
+def parse_version_from_binary(binary_data: bytes) -> str:
+    """
+    Parse version from firmware binary.
+    Version is stored at bytes 8-12, e.g., 02 0e 02 01 -> 1.2.14.2
+    """
+    if len(binary_data) < 12:
+        logger.warning("Binary too short to extract version, using default")
+        return "1.0.0"
+
+    # Extract version bytes (positions 8-12)
+    version_bytes = binary_data[8:12]
+
+    # Convert to version string: 02 0e 02 01 -> 1.2.14.2
+    version_parts = []
+    for byte in version_bytes:
+        version_parts.append(str(byte))
+
+    version = ".".join(version_parts)
+    logger.debug(f"Extracted version from binary: {version}")
+    return version
+
+
 def get_wifi_blob_info(name: str) -> BlobInfo:
     return BlobInfo(
         name,
         f"nRF70 Wi-Fi firmware for {name} mode",
-        "1.0.0",
+        "1.0.0",  # This will be overridden by actual binary parsing
         f"nrf_wifi/bin/zephyr/{name}/{WIFI_FW_BIN_NAME}",
         f"wifi_fw_bins/{name}/{WIFI_FW_BIN_NAME}",
         f"nrf_wifi/doc",
@@ -73,9 +95,19 @@ def render_template(template_path: str, output_path: str, latest_sha: str) -> No
         blob_info["version"] = blob.version
         blob_info["url"] = f"{nrfxlib_url}/{blob.rpath}"
         blob_info["doc_url"] = f"{nrfxlib_url}/{blob.docpath}"
-        blob_info["sha256"] = compute_sha256(blob_info["url"])
+
+        # Download the binary to compute SHA-256 and extract version
+        response = requests.get(blob_info["url"])
+        response.raise_for_status()
+        binary_data = response.content
+
+        blob_info["sha256"] = hashlib.sha256(binary_data).hexdigest()
         blob_info["description"] = blob.description
-        blobs[blob] = blob_info
+
+        # Parse version from the actual binary
+        blob_info["version"] = parse_version_from_binary(binary_data)
+
+        blobs[blob.name] = blob_info
 
     logger.debug(blobs)
     # Render the template with the provided context
