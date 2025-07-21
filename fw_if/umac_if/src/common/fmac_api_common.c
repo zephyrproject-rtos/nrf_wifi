@@ -88,6 +88,7 @@ static int nrf_wifi_patch_feature_flags_compat(struct nrf_wifi_fmac_dev_ctx *fma
 #else
 	nrf_wifi_osal_log_err("Invalid feature flags: 0x%x or build configuration",
 			      feature_flags);
+	return -1;
 #endif
 	} else if (fmac_dev_ctx->op_mode == NRF_WIFI_OP_MODE_OFF_RAW_TX) {
 		if (!(feature_flags & NRF70_FEAT_OFFLOADED_RAW_TX)) {
