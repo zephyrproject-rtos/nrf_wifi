@@ -810,12 +810,6 @@ enum nrf_wifi_status rawtx_cmd_prepare(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 	}
 
 	nwb = nrf_wifi_utils_list_peek(txq);
-	/**
-	 * Pull the Raw packet header and only send the buffer to the UMAC
-	 * with the parameters configured to the UMAC
-	 */
-	nrf_wifi_osal_nbuf_data_pull(nwb,
-				     sizeof(struct raw_tx_pkt_header));
 
 	sys_dev_ctx->tx_config.send_pkt_coalesce_count_p[desc] = txq_len;
 	config = (struct nrf_wifi_cmd_raw_tx *)(umac_cmd->msg);
