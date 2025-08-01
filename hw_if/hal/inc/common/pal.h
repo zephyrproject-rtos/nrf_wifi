@@ -27,18 +27,37 @@
 #define PCIE_BAR_OFFSET_WLAN_RPU 0x0
 #define PCIE_DMA_MASK 0xFFFFFFFF
 
-
+#ifndef WIFI_NRF71
 #define SOC_MMAP_ADDR_OFFSET_PKTRAM_HOST_VIEW 0x0C0000
 #define SOC_MMAP_ADDR_OFFSET_PKTRAM_RPU_VIEW 0x380000
+#endif /* !WIFI_NRF71 */
 
 #ifdef RPU_CONFIG_72
 #define SOC_MMAP_ADDR_OFFSET_GRAM_PKD 0xC00000
 #define SOC_MMAP_ADDR_OFFSET_SYSBUS 0xE00000
 #define SOC_MMAP_ADDR_OFFSET_PBUS 0xE40000
 #else
+#ifdef WIFI_NRF71
+#define SOC_MMAP_ADDR_OFFSET_WIFI_MCU_REGS 0x000000
+#define SOC_MMAP_ADDR_OFFSET_RAM0_PKD 0x100000
+#define SOC_MMAP_ADDR_OFFSET_RAM1_PKD 0x180000
+#define SOC_MMAP_ADDR_OFFSET_ROM0_PKD 0x100000
+#define SOC_MMAP_ADDR_OFFSET_ROM1_PKD 0x180000
+#define SOC_MMAP_ADDR_OFFSET_DATA_RAM_PKD 0x200000
+#define SOC_MMAP_ADDR_OFFSET_CODE_RAM_PKD 0x300000
+#define SOC_MMAP_ADDR_OFFSET_BELLBOARD_WIFI 0x384000
+#define SOC_MMAP_ADDR_OFFSET_BELLBOARD_APP 0x388000
+#define SOC_MMAP_ADDR_OFFSET_FPGA_REGS 0x3A0000
+#define SOC_MMAP_ADDR_OFFSET_GRTC 0x392000
+#define SOC_MMAP_ADDR_OFFSET_WICR_REGS 0x3B0000
+#define SOC_MMAP_ADDR_OFFSET_SECURERAM 0x3e0000
+#define SOC_MMAP_ADDR_OFFSET_ROM_ACCESS_FPGA_REG 0x3A1048
+//#define SOC_MMAP_ADDR_OFFSET_WICR 0x3BB004
+#else /* WIFI_NRF71 */
 #define SOC_MMAP_ADDR_OFFSET_GRAM_PKD 0x80000
 #define SOC_MMAP_ADDR_OFFSET_SYSBUS 0x00000
 #define SOC_MMAP_ADDR_OFFSET_PBUS 0x40000
+#endif /* !WIFI_NRF71 */
 
 static const unsigned int SOC_MMAP_ADDR_OFFSETS_MCU[] = {
 	0x100000,
@@ -54,6 +73,12 @@ static const unsigned int SOC_MMAP_ADDR_OFFSETS_MCU[] = {
 #define NRF_WIFI_FW_UMAC_PATCH_LOC_PRI "img/wlan/nrf_wifi_umac_patch_pri.bimg"
 #define NRF_WIFI_FW_UMAC_PATCH_LOC_SEC "img/wlan/nrf_wifi_umac_patch_sec.bin"
 
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+#define SOC_HOST_DATA_RAM_BASE 0x02C00000
+#define SOC_HOST_DATA_RAM_LEN (4 * 1024 * 1024)
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 enum nrf_wifi_fw_type {
 	NRF_WIFI_FW_TYPE_LMAC_PATCH,
 	NRF_WIFI_FW_TYPE_UMAC_PATCH,
@@ -66,8 +91,14 @@ enum nrf_wifi_fw_subtype {
 	NRF_WIFI_FW_SUBTYPE_MAX
 };
 
+#ifdef WIFI_NRF71
+unsigned long pal_rpu_rom_access_reg_addr_get(void);
+unsigned long pal_rpu_wicr_reg_offset_get(void);
+#else /* WIFI_NRF71 */
 bool pal_check_rpu_mcu_regions(enum RPU_PROC_TYPE proc, unsigned int addr_val);
+#endif /* !WIFI_NRF71 */
 
+#ifndef WIFI_NRF71
 static inline enum RPU_MCU_ADDR_REGIONS pal_mem_type_to_region(enum HAL_RPU_MEM_TYPE mem_type)
 {
 	switch (mem_type) {
@@ -81,11 +112,11 @@ static inline enum RPU_MCU_ADDR_REGIONS pal_mem_type_to_region(enum HAL_RPU_MEM_
 		return RPU_MCU_ADDR_REGION_MAX;
 	}
 }
+#endif /* !WIFI_NRF71 */
 
 enum nrf_wifi_status pal_rpu_addr_offset_get(unsigned int rpu_addr,
 					     unsigned long *addr_offset,
 					     enum RPU_PROC_TYPE proc);
-
 
 #ifdef NRF_WIFI_LOW_POWER
 unsigned long pal_rpu_ps_ctrl_reg_addr_get(void);

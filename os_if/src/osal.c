@@ -84,6 +84,21 @@ int nrf_wifi_osal_mem_cmp(const void *addr1,
 			       size);
 }
 
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+void *nrf_wifi_osal_iomem_mmap_inline_rx(unsigned long addr,
+					 unsigned long size)
+{
+	return os_ops->iomem_mmap_inline_rx(addr,
+					    size);
+}
+
+void nrf_wifi_osal_iomem_unmap_inline_rx(void *addr)
+{
+	os_ops->iomem_unmap_inline_rx(addr);
+}
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 
 void *nrf_wifi_osal_iomem_mmap(unsigned long addr,
 			       unsigned long size)

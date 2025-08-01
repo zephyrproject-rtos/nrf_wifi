@@ -93,7 +93,12 @@ struct nrf_wifi_osal_ops {
 	 *		than addr2, a positive value if addr1 is greater than addr2.
 	 */
 	int (*mem_cmp)(const void *addr1, const void *addr2, size_t size);
-
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	void *(*iomem_mmap_inline_rx)(unsigned long addr, unsigned long size);
+	void (*iomem_unmap_inline_rx)(void *addr);
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 	/**
 	 * @brief Map IO memory into CPU space.
 	 *
@@ -643,10 +648,10 @@ struct nrf_wifi_osal_ops {
 	 * @return A pointer to the initialized PCIe bus.
 	 */
 	void *(*bus_pcie_init)(const char *dev_name,
-						   unsigned int vendor_id,
-						   unsigned int sub_vendor_id,
-						   unsigned int device_id,
-						   unsigned int sub_device_id);
+			       unsigned int vendor_id,
+			       unsigned int sub_vendor_id,
+			       unsigned int device_id,
+			       unsigned int sub_device_id);
 
 	/**
 	 * @brief Deinitialize the PCIe bus.
@@ -663,7 +668,7 @@ struct nrf_wifi_osal_ops {
 	 * @return A pointer to the added PCIe device.
 	 */
 	void *(*bus_pcie_dev_add)(void *pcie_priv,
-							  void *osal_pcie_dev_ctx);
+				  void *osal_pcie_dev_ctx);
 
 	/**
 	 * @brief Remove a PCIe device from the bus.
@@ -716,9 +721,9 @@ struct nrf_wifi_osal_ops {
 	 * @return A pointer to the mapped DMA buffer.
 	 */
 	void *(*bus_pcie_dev_dma_map)(void *os_pcie_dev_ctx,
-								  void *virt_addr,
-								  size_t size,
-								  enum nrf_wifi_osal_dma_dir dir);
+				      void *virt_addr,
+				      size_t size,
+				      enum nrf_wifi_osal_dma_dir dir);
 
 	/**
 	 * @brief Unmap a DMA buffer for a PCIe device.
@@ -729,9 +734,9 @@ struct nrf_wifi_osal_ops {
 	 * @param dir The direction of the DMA transfer.
 	 */
 	void (*bus_pcie_dev_dma_unmap)(void *os_pcie_dev_ctx,
-								   void *dma_addr,
-								   size_t size,
-								   enum nrf_wifi_osal_dma_dir dir);
+				       void *dma_addr,
+				       size_t size,
+				       enum nrf_wifi_osal_dma_dir dir);
 
 	/**
 	 * @brief Get the host mapping of a PCIe device.
@@ -741,7 +746,12 @@ struct nrf_wifi_osal_ops {
 	 */
 	void (*bus_pcie_dev_host_map_get)(void *os_pcie_dev_ctx,
 			struct nrf_wifi_osal_host_map *host_map);
-
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	void (*bus_pcie_dev_host_map_get_inline_rx)(void *os_pcie_dev_ctx,
+			struct nrf_wifi_osal_host_map *host_map);
+#endif /*INLINE_RX */
+#endif /* WIFI_NRF71 */
 	/**
 	 * @brief Initialize the QSPI bus.
 	 *
@@ -764,7 +774,7 @@ struct nrf_wifi_osal_ops {
 	 * @return A pointer to the added QSPI device.
 	 */
 	void *(*bus_qspi_dev_add)(void *qspi_priv,
-							  void *osal_qspi_dev_ctx);
+				  void *osal_qspi_dev_ctx);
 
 	/**
 	 * @brief Remove a QSPI device from the bus.
@@ -838,7 +848,7 @@ struct nrf_wifi_osal_ops {
 	 * @return A pointer to the added SPI device.
 	 */
 	void *(*bus_spi_dev_add)(void *spi_priv,
-							 void *osal_spi_dev_ctx);
+				 void *osal_spi_dev_ctx);
 
 	/**
 	 * @brief Remove a SPI device from the bus.
@@ -913,8 +923,8 @@ struct nrf_wifi_osal_ops {
 	 * @param data The data to be passed to the callback function.
 	 */
 	void (*timer_init)(void *timer,
-					   void (*callback)(unsigned long),
-					   unsigned long data);
+			   void (*callback)(unsigned long),
+			   unsigned long data);
 
 	/**
 	 * @brief Schedule a timer.
@@ -965,9 +975,9 @@ struct nrf_wifi_osal_ops {
 	 * @param assert_msg The error message to display.
 	 */
 	void (*assert)(int test_val,
-				   int val,
-				   enum nrf_wifi_assert_op_type op,
-				   char *assert_msg);
+		       int val,
+		       enum nrf_wifi_assert_op_type op,
+		       char *assert_msg);
 
 	/**
 	 * @brief Get the length of a string.

@@ -19,6 +19,11 @@
 enum nrf_wifi_status hal_rpu_irq_enable(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+#ifdef WIFI_NRF71
+	status = hal_rpu_reg_write(hal_dev_ctx,
+				   WEZEN_RPU_REG_INT_FROM_MCU_CTRL,
+				   1);
+#else /* WIFI_NRF71 */
 	unsigned int val = 0;
 
 	/* First enable the blockwise interrupt for the relevant block in the
@@ -53,6 +58,7 @@ enum nrf_wifi_status hal_rpu_irq_enable(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx
 				   RPU_REG_INT_FROM_MCU_CTRL,
 				   val);
 
+#endif /* !WIFI_NRF71 */
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		nrf_wifi_osal_log_err("%s:Enabling MCU interrupt failed",
 				      __func__);
@@ -67,6 +73,11 @@ out:
 enum nrf_wifi_status hal_rpu_irq_disable(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+#ifdef WIFI_NRF71
+	status = hal_rpu_reg_write(hal_dev_ctx,
+				   WEZEN_RPU_REG_INT_FROM_MCU_CTRL,
+				   0);
+#else /* WIFI_NRF71 */
 	unsigned int val = 0;
 
 	status = hal_rpu_reg_read(hal_dev_ctx,
@@ -97,6 +108,7 @@ enum nrf_wifi_status hal_rpu_irq_disable(struct nrf_wifi_hal_dev_ctx *hal_dev_ct
 				   RPU_REG_INT_FROM_MCU_CTRL,
 				   val);
 
+#endif /* !WIFI_NRF71 */
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		nrf_wifi_osal_log_err("%s: Disabling MCU interrupt failed",
 				      __func__);
@@ -112,17 +124,21 @@ static enum nrf_wifi_status hal_rpu_irq_ack(struct nrf_wifi_hal_dev_ctx *hal_dev
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	unsigned int val = 0;
-
+#ifdef WIFI_NRF71
+	status = hal_rpu_reg_write(hal_dev_ctx,
+				   WEZEN_RPU_REG_INT_FROM_MCU_CLR,
+				   val);
+#else /* WIFI_NRF71 */
 	val = (1 << RPU_REG_BIT_INT_FROM_MCU_ACK);
 
 	status = hal_rpu_reg_write(hal_dev_ctx,
 				   RPU_REG_INT_FROM_MCU_ACK,
 				   val);
-
+#endif /* !WIFI_NRF71 */
 	return status;
 }
 
-
+#ifndef WIFI_NRF71
 static bool hal_rpu_irq_wdog_chk(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
@@ -201,7 +217,7 @@ static enum nrf_wifi_status hal_rpu_irq_wdog_rearm(struct nrf_wifi_hal_dev_ctx *
 out:
 	return status;
 }
-
+#endif /* !WIFI_NRF71 */
 
 static enum nrf_wifi_status hal_rpu_event_free(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 					       unsigned int event_addr)
@@ -504,6 +520,7 @@ static inline bool is_rpu_recovery_needed(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 }
 #endif /* NRF_WIFI_RPU_RECOVERY */
 
+#ifndef WIFI_NRF71
 static enum nrf_wifi_status hal_rpu_process_wdog(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 						  bool *do_rpu_recovery)
 {
@@ -556,6 +573,7 @@ out:
 
 	return nrf_wifi_status;
 }
+#endif /* !WIFI_NRF71 */
 
 enum nrf_wifi_status hal_rpu_irq_process(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 		bool *do_rpu_recovery)
@@ -577,6 +595,7 @@ enum nrf_wifi_status hal_rpu_irq_process(struct nrf_wifi_hal_dev_ctx *hal_dev_ct
 	 */
 	num_events = hal_rpu_event_get_all(hal_dev_ctx);
 
+#ifndef WIFI_NRF71
 	if (hal_rpu_irq_wdog_chk(hal_dev_ctx)) {
 #ifdef NRF_WIFI_RPU_RECOVERY
 		hal_dev_ctx->wdt_irq_received++;
@@ -601,7 +620,7 @@ enum nrf_wifi_status hal_rpu_irq_process(struct nrf_wifi_hal_dev_ctx *hal_dev_ct
 			goto out;
 		}
 	}
-
+#endif /* !WIFI_NRF71 */
 	if (!num_events) {
 		status = NRF_WIFI_STATUS_SUCCESS;
 		goto out;
