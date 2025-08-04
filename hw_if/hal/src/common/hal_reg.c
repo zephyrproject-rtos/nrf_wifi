@@ -17,9 +17,16 @@
 static bool hal_rpu_is_reg(unsigned int addr_val)
 {
 	unsigned int addr_base = (addr_val & RPU_ADDR_MASK_BASE);
-
+#ifdef WIFI_NRF71
+	if ((addr_base == RPU_ADDR_WIFI_MCU_REGS_REGION) ||
+	    (addr_base == RPU_ADDR_BELLBOARD_GRTC_REGION) ||
+	    (addr_base == RPU_ADDR_SECURERAM_REGION) ||
+	    (addr_base == RPU_ADDR_FPGA_REGS_REGION) ||
+	    (addr_base == RPU_ADDR_WICR_REGS_REGION)) {
+#else /* WIFI_NRF71 */
 	if ((addr_base == RPU_ADDR_SBUS_START) ||
 	    (addr_base == RPU_ADDR_PBUS_START)) {
+#endif /* !WIFI_NRF71 */
 		return true;
 	} else {
 		return false;
