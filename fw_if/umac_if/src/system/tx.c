@@ -685,8 +685,15 @@ enum nrf_wifi_status rawtx_cmd_prep_callbk_fn(void *callbk_data,
 
 	tx_buf_info->nwb = nwb;
 	tx_buf_info->mapped = true;
+#ifdef WIFI_NRF71
+	config->raw_tx_info.frame_ddr_pointer[0] = (unsigned long long)phy_addr;
+	config->raw_tx_info.pkt_length[0] = buf_len;
+	config->raw_tx_info.num_frames = 1;
+	config->raw_tx_info.aggregation = 0;
+#else
 	config->raw_tx_info.frame_ddr_pointer = (unsigned long long)phy_addr;
 	config->raw_tx_info.pkt_length = buf_len;
+#endif
 #else
 	tx_buf_info->nwb = nwb;
 	tx_buf_info->mapped = true;
@@ -819,7 +826,14 @@ enum nrf_wifi_status rawtx_cmd_prepare(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 	config->sys_head.len = sizeof(*config);
 	config->if_index = vif_id;
 	config->raw_tx_info.desc_num = desc;
+
+#ifdef WIFI_NRF71
+	config->raw_tx_info.num_frames = 1;
+	config->raw_tx_info.aggregation = 0;
+	config->raw_tx_info.pkt_length[0] = len;
+#else
 	config->raw_tx_info.pkt_length = len;
+#endif
 
 	/* Check first packet in queue for per-packet raw TX config */
 	void *first_nwb = nrf_wifi_utils_list_peek(txq);

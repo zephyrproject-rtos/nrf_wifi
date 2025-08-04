@@ -1303,6 +1303,35 @@ enum UMAC_QUEUE_NUM {
 	UMAC_AC_MAX_CNT
 };
 
+#ifdef WIFI_NRF71
+/**
+ * @brief This structure defines the raw tx parameters used in packet injector mode.
+ *
+ */
+struct nrf_wifi_raw_tx_pkt {
+        /* Queue number will be BK, BE, VI, VO and BCN refer @enum UMAC_QUEUE_NUM */
+        unsigned char queue_num;
+        /* Descriptor identifier or token identifier */
+        unsigned char desc_num;
+        /* Number of times a packet should be transmitted at each possible rate */
+        unsigned char rate_retries;
+        /** refer see &enum rpu_tput_mode */
+        unsigned char rate_flags;
+         /* rate: legacy rates: 1,2,55,11,6,9,12,18,24,36,48,54
+         *                11N VHT HE  : MCS index 0 to 7.
+     */
+        unsigned char rate;
+        /* @aggregation: AGGR_DISABLE(0)/AGGR_ENABLE(1) */
+        unsigned char aggregation;
+        /* @num_frames: Number of frames in this command */
+        unsigned char num_frames;
+        /* Packet lengths of frames */
+        unsigned short pkt_length[MAX_TX_AGG_SIZE];
+        /* Starting Physical address of each frame in Ext-RAM after dma_mapping */
+        unsigned int frame_ddr_pointer[MAX_TX_AGG_SIZE];
+} __NRF_WIFI_PKD;
+
+#else
 /**
  * @brief This structure defines the raw tx parameters used in packet injector mode.
  *
@@ -1325,6 +1354,7 @@ struct nrf_wifi_raw_tx_pkt {
 	/** Starting Physical address of each frame in Ext-RAM after dma_mapping. */
 	unsigned int  frame_ddr_pointer;
 } __NRF_WIFI_PKD;
+#endif
 
 /**
  * @brief This structure defines the command used to configure packet injector mode.
