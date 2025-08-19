@@ -61,7 +61,7 @@ jobs:
           
           # Parse YAML and generate comparison table
           echo "DEBUG: Starting Python script..." >&2
-          python3 << 'EOF'
+          python3 << 'PYTHON_SCRIPT_EOF'
           import yaml
           import sys
           import os
@@ -262,16 +262,16 @@ jobs:
               
               print(f"DEBUG: Successfully wrote diff_output.txt", file=sys.stderr)
               
-              print("diff_output<<DIFF_EOF", file=sys.stdout)
+              print("diff_output<<MODULE_MONITOR_DELIMITER", file=sys.stdout)
               print('\n'.join(diff_content), file=sys.stdout)
-              print("DIFF_EOF", file=sys.stdout)
+              print("MODULE_MONITOR_DELIMITER", file=sys.stdout)
                   
           except Exception as e:
-              print("diff_output<<DIFF_EOF", file=sys.stdout)
+              print("diff_output<<MODULE_MONITOR_DELIMITER", file=sys.stdout)
               print(f"Error generating comparison: {e}", file=sys.stdout)
-              print("DIFF_EOF", file=sys.stdout)
+              print("MODULE_MONITOR_DELIMITER", file=sys.stdout)
               print("DEBUG: Python script completed successfully", file=sys.stderr)
-          EOF
+          PYTHON_SCRIPT_EOF
 
       - name: Set output variables
         id: set-output
@@ -281,14 +281,14 @@ jobs:
           
           if [ -f diff_output.txt ]; then
             echo "DEBUG: diff_output.txt exists, size: $(wc -c < diff_output.txt)" >&2
-            echo "diff_output<<DIFF_EOF" >> $GITHUB_OUTPUT
+            echo "diff_output<<MODULE_MONITOR_DELIMITER" >> $GITHUB_OUTPUT
             cat diff_output.txt >> $GITHUB_OUTPUT
-            echo "DIFF_EOF" >> $GITHUB_OUTPUT
+            echo "MODULE_MONITOR_DELIMITER" >> $GITHUB_OUTPUT
           else
             echo "DEBUG: diff_output.txt not found" >&2
-            echo "diff_output<<DIFF_EOF" >> $GITHUB_OUTPUT
+            echo "diff_output<<MODULE_MONITOR_DELIMITER" >> $GITHUB_OUTPUT
             echo "No changes detected" >> $GITHUB_OUTPUT
-            echo "DIFF_EOF" >> $GITHUB_OUTPUT
+            echo "MODULE_MONITOR_DELIMITER" >> $GITHUB_OUTPUT
           fi
           
 
