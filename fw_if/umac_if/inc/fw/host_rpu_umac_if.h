@@ -2416,6 +2416,10 @@ struct nrf_wifi_umac_config_twt_info {
 	unsigned char twt_resp_status;
         /** TWT early wake duration */
         unsigned int twt_wake_ahead_duration;
+	/** Timeout value (in milliseconds) used by the RPU to send TWT requests
+	 *  to the AP before receiving a TWT response from the AP.
+	 */
+        unsigned int twt_req_timeout;
 } __NRF_WIFI_PKD;
 
 /**
