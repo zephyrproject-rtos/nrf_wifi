@@ -184,10 +184,15 @@ jobs:
               except:
                   pass
               
-              # Default: show short commit hash
-              return {
-                  'display': f"{commit_hash[:7]} (commit)" if commit_hash != "Unknown" else "Unknown"
-              }
+              # Default: show short commit hash with clickable link
+              if commit_hash != "Unknown":
+                  return {
+                      'display': f"[{commit_hash[:7]} (commit)](https://github.com/nrfconnect/sdk-nrfxlib/commit/{commit_hash})"
+                  }
+              else:
+                  return {
+                      'display': "Unknown"
+                  }
 
           def generate_diff_link(old_url, new_url):
               """Generate diff link for the source repository"""
