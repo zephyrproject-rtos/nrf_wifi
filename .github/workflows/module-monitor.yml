@@ -174,12 +174,12 @@ jobs:
                       
                       if is_on_main:
                           return {
-                              'display': f"{commit_hash[:7]} (main)" if commit_hash != "Unknown" else "Unknown (main)"
+                              'display': f"[{commit_hash[:7]} (main)](https://github.com/nrfconnect/sdk-nrfxlib/commit/{commit_hash})" if commit_hash != "Unknown" else "Unknown (main)"
                           }
                       elif branch_names:
                           # Show the first branch found
                           return {
-                              'display': f"{commit_hash[:7]} ({branch_names[0]})" if commit_hash != "Unknown" else f"Unknown ({branch_names[0]})"
+                              'display': f"[{commit_hash[:7]} ({branch_names[0]})](https://github.com/nrfconnect/sdk-nrfxlib/commit/{commit_hash})" if commit_hash != "Unknown" else f"Unknown ({branch_names[0]})"
                           }
               except:
                   pass
