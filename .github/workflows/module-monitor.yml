@@ -248,42 +248,7 @@ jobs:
                   diff_content.append("")
                   diff_content.extend(table_rows)
                   
-                  # Add commit details section
-                  diff_content.append("")
-                  diff_content.append("### Commit Details:")
-                  diff_content.append("")
-                  
-                  # Collect unique commits
-                  unique_commits = set()
-                  for path in sorted(all_paths):
-                      old_blob = old_blobs.get(path, {})
-                      new_blob = new_blobs.get(path, {})
-                      old_commit_hash = extract_commit_from_url(old_blob.get('url', ''))
-                      new_commit_hash = extract_commit_from_url(new_blob.get('url', ''))
-                      if old_commit_hash != "Unknown":
-                          unique_commits.add(old_commit_hash)
-                      if new_commit_hash != "Unknown":
-                          unique_commits.add(new_commit_hash)
-                  
-                  # Show commit details
-                  for commit_hash in sorted(unique_commits):
-                      commit_info = get_commit_info(commit_hash)
-                      commit_status = get_commit_status(commit_hash)
-                      
-                      if 'subject' in commit_info:
-                          commit_line = f"- **{commit_info['hash']}**: {commit_info['subject']} (by {commit_info['author']} on {commit_info['date']})"
-                          # Add branch information if available
-                          if 'display' in commit_status and '(' in commit_status['display']:
-                              branch_info = commit_status['display'].split('(')[1].rstrip(')')
-                              commit_line += f" - {branch_info}"
-                          diff_content.append(commit_line)
-                      else:
-                          commit_line = f"- **{commit_info['hash']}**: Commit details not available"
-                          # Add branch information if available
-                          if 'display' in commit_status and '(' in commit_status['display']:
-                              branch_info = commit_status['display'].split('(')[1].rstrip(')')
-                              commit_line += f" - {branch_info}"
-                          diff_content.append(commit_line)
+
               else:
                   diff_content.append("## No Changes Detected")
                   diff_content.append("")
@@ -303,35 +268,11 @@ jobs:
               print('\n'.join(diff_content), file=sys.stdout)
               print("EOF", file=sys.stdout)
               
-              # Also output current blob summary
-              blob_info = []
-              for blob in new_data.get('blobs', []):
-                  info = f"- **{blob.get('path', 'Unknown')}**\n"
-                  info += f"  - Version: {blob.get('version', 'Unknown')}\n"
-                  info += f"  - SHA256: {blob.get('sha256', 'Unknown')[:16]}...\n"
-                  info += f"  - Type: {blob.get('type', 'Unknown')}\n"
-                  info += f"  - Description: {blob.get('description', 'No description')}\n"
-                  blob_info.append(info)
-              
-              blob_content = ["## Current Firmware Blobs:"] + blob_info
-              
-              # Write to file for GitHub Actions output
-              print(f"DEBUG: Writing {len(blob_content)} lines to blob_summary.txt", file=sys.stderr)
-              with open('blob_summary.txt', 'w') as f:
-                  f.write('\n'.join(blob_content))
-              
-              print(f"DEBUG: Successfully wrote blob_summary.txt", file=sys.stderr)
-              
-              print("blob_summary<<EOF", file=sys.stdout)
-              print('\n'.join(blob_content), file=sys.stdout)
-              print("EOF", file=sys.stdout)
+
                   
           except Exception as e:
               print("diff_output<<EOF", file=sys.stdout)
               print(f"Error generating comparison: {e}", file=sys.stdout)
-              print("EOF", file=sys.stdout)
-              print("blob_summary<<EOF", file=sys.stdout)
-              print(f"Error parsing module.yml: {e}", file=sys.stdout)
               print("EOF", file=sys.stdout)
               print("DEBUG: Python script completed successfully", file=sys.stderr)
           EOF
@@ -354,42 +295,30 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
           fi
           
-          if [ -f blob_summary.txt ]; then
-            echo "DEBUG: blob_summary.txt exists, size: $(wc -c < blob_summary.txt)" >&2
-            echo "blob_summary<<EOF" >> $GITHUB_OUTPUT
-            cat blob_summary.txt >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "DEBUG: blob_summary.txt not found" >&2
-            echo "blob_summary<<EOF" >> $GITHUB_OUTPUT
-            echo "No blob summary available" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          fi
+
 
       - name: Create or update comment
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number
-            });
-            
-            const existingComment = comments.find(comment => 
-              comment.body.includes('Module Monitor')
-            );
-            
             console.log('DEBUG: diff_output length:', process.env.diff_output ? process.env.diff_output.length : 0);
-            console.log('DEBUG: blob_summary length:', process.env.blob_summary ? process.env.blob_summary.length : 0);
             
-            const commentBody = 'Module Monitor\n\nChanges detected in module.yml\n\n' + 
+            const commentBody = '## Module Monitor\n\nChanges detected in module.yml\n\n' + 
               (process.env.diff_output || 'No changes detected') + '\n\n' +
-              (process.env.blob_summary || '') + '\n\n' +
               'This comment was automatically generated.';
 
             try {
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number
+              });
+              
+              const existingComment = comments.find(comment => 
+                comment.body.includes('Module Monitor')
+              );
+              
               if (existingComment) {
                 await github.rest.issues.updateComment({
                   owner: context.repo.owner,
@@ -408,17 +337,18 @@ jobs:
                 console.log('Successfully created new comment');
               }
             } catch (error) {
-              console.log('Could not create/update comment due to permissions. This is normal for forks.');
+              console.log('Could not create/update comment due to permissions.');
               console.log('Error:', error.message);
               console.log('Comment body that would have been posted:');
+              console.log('---');
               console.log(commentBody);
+              console.log('---');
               
               // Don't fail the workflow - the PR detection worked correctly
               console.log('Workflow completed successfully - PR detection and diff generation worked correctly.');
             }
         env:
           diff_output: ${{ steps.set-output.outputs.diff_output }}
-          blob_summary: ${{ steps.set-output.outputs.blob_summary }}
 
 
 
@@ -430,5 +360,3 @@ jobs:
           echo '```diff' >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.set-output.outputs.diff_output }}" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.set-output.outputs.blob_summary }}" >> $GITHUB_STEP_SUMMARY
