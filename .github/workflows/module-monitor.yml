@@ -130,20 +130,25 @@ jobs:
                       break
               
               # Output the table
-              print("diff_output<<EOF", file=sys.stdout)
+              diff_content = []
               if has_changes:
-                  print("## Firmware Blob Changes", file=sys.stdout)
-                  print("", file=sys.stdout)
-                  for row in table_rows:
-                      print(row, file=sys.stdout)
+                  diff_content.append("## Firmware Blob Changes")
+                  diff_content.append("")
+                  diff_content.extend(table_rows)
               else:
-                  print("## No Changes Detected", file=sys.stdout)
-                  print("", file=sys.stdout)
-                  print("All firmware blobs remain unchanged in this PR.", file=sys.stdout)
-                  print("", file=sys.stdout)
-                  print("### Current Firmware Blob Summary:", file=sys.stdout)
-                  for row in table_rows[2:]:  # Skip header rows
-                      print(row, file=sys.stdout)
+                  diff_content.append("## No Changes Detected")
+                  diff_content.append("")
+                  diff_content.append("All firmware blobs remain unchanged in this PR.")
+                  diff_content.append("")
+                  diff_content.append("### Current Firmware Blob Summary:")
+                  diff_content.extend(table_rows[2:])  # Skip header rows
+              
+              # Write to file for GitHub Actions output
+              with open('diff_output.txt', 'w') as f:
+                  f.write('\n'.join(diff_content))
+              
+              print("diff_output<<EOF", file=sys.stdout)
+              print('\n'.join(diff_content), file=sys.stdout)
               print("EOF", file=sys.stdout)
               
               # Also output current blob summary
@@ -156,10 +161,14 @@ jobs:
                   info += f"  - Description: {blob.get('description', 'No description')}\n"
                   blob_info.append(info)
               
+              blob_content = ["## Current Firmware Blobs:"] + blob_info
+              
+              # Write to file for GitHub Actions output
+              with open('blob_summary.txt', 'w') as f:
+                  f.write('\n'.join(blob_content))
+              
               print("blob_summary<<EOF", file=sys.stdout)
-              print("## Current Firmware Blobs:", file=sys.stdout)
-              for info in blob_info:
-                  print(info, file=sys.stdout)
+              print('\n'.join(blob_content), file=sys.stdout)
               print("EOF", file=sys.stdout)
                   
           except Exception as e:
@@ -170,6 +179,16 @@ jobs:
               print(f"Error parsing module.yml: {e}", file=sys.stdout)
               print("EOF", file=sys.stdout)
           EOF
+
+      - name: Set output variables
+        run: |
+          echo "diff_output<<EOF" >> $GITHUB_OUTPUT
+          cat diff_output.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "blob_summary<<EOF" >> $GITHUB_OUTPUT
+          cat blob_summary.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create or update comment
         uses: actions/github-script@v7
