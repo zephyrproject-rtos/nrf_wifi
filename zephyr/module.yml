@@ -8,7 +8,7 @@ blobs:
     - path: wifi_fw_bins/default/nrf70.bin
       sha256: 6c041b612d01f38d7b7fe8148dbeec4cfb04ddb2374bfcb573c5ee701fe08253
       type: img
-      version: '3.14.2.2'
+      version: '3.14.2.3'
       license-path: ./LICENSE.txt
       url: https://github.com/nrfconnect/sdk-nrfxlib/raw/573844b3e5bbc7df6c2dd756823981fa208ff7da/nrf_wifi/bin/zephyr/default/nrf70.bin
       description: nRF70 Wi-Fi firmware for default mode
