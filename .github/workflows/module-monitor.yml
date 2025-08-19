@@ -1,8 +1,5 @@
 name: Module Monitor
 on:
-  push:
-    paths:
-      - 'zephyr/module.yml'
   pull_request_target:
     paths:
       - 'zephyr/module.yml'
@@ -24,7 +21,6 @@ jobs:
           persist-credentials: false
 
       - name: Fetch PR head
-        if: github.event_name == 'pull_request_target'
         run: |
           git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-head
 
@@ -44,25 +40,15 @@ jobs:
           GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
           GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
         run: |
-          # For pull requests, compare with base branch
-          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            BASE_REF="$GITHUB_BASE_SHA"
-            HEAD_REF="$GITHUB_HEAD_SHA"
-            echo "DEBUG: Comparing $BASE_REF to $HEAD_REF" >&2
-            echo "DEBUG: Current HEAD is $(git rev-parse HEAD)" >&2
-            echo "DEBUG: Available commits:" >&2
-            git log --oneline -5 >&2
-            DIFF_OUTPUT=$(git diff $BASE_REF $HEAD_REF -- zephyr/module.yml || echo "No changes found")
-            echo "DEBUG: Diff result: $DIFF_OUTPUT" >&2
-          else
-            # For push events, get the previous commit that modified module.yml
-            PREV_COMMIT=$(git log --oneline --follow -- zephyr/module.yml | head -2 | tail -1 | cut -d' ' -f1)
-            if [ -n "$PREV_COMMIT" ]; then
-              DIFF_OUTPUT=$(git diff $PREV_COMMIT HEAD -- zephyr/module.yml || echo "No changes found")
-            else
-              DIFF_OUTPUT="No previous commit found for module.yml"
-            fi
-          fi
+          # Compare with base branch for pull requests
+          BASE_REF="$GITHUB_BASE_SHA"
+          HEAD_REF="$GITHUB_HEAD_SHA"
+          echo "DEBUG: Comparing $BASE_REF to $HEAD_REF" >&2
+          echo "DEBUG: Current HEAD is $(git rev-parse HEAD)" >&2
+          echo "DEBUG: Available commits:" >&2
+          git log --oneline -5 >&2
+          DIFF_OUTPUT=$(git diff $BASE_REF $HEAD_REF -- zephyr/module.yml || echo "No changes found")
+          echo "DEBUG: Diff result: $DIFF_OUTPUT" >&2
           
           echo "diff_output<<EOF" >> $GITHUB_OUTPUT
           echo "$DIFF_OUTPUT" >> $GITHUB_OUTPUT
@@ -104,8 +90,7 @@ jobs:
               print("EOF", file=sys.stdout)
           EOF
 
-      - name: Create or update comment (Pull Request)
-        if: github.event_name == 'pull_request'
+      - name: Create or update comment
         uses: actions/github-script@v7
         with:
           script: |
@@ -124,54 +109,26 @@ jobs:
               (process.env.blob_summary || '') + '\n\n' +
               'This comment was automatically generated.';
 
-            try {
-              if (existingComment) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: existingComment.id,
-                  body: commentBody
-                });
-              } else {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.issue.number,
-                  body: commentBody
-                });
-              }
-            } catch (error) {
-              console.log('Could not create/update comment due to permissions. This is normal for forks.');
-              console.log('Error:', error.message);
-            }
-        env:
-          diff_output: ${{ steps.changes.outputs.diff_output }}
-          blob_summary: ${{ steps.changes.outputs.blob_summary }}
-
-      - name: Create commit comment (Push)
-        if: github.event_name == 'push'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const commentBody = 'Module Monitor\n\nChanges detected in module.yml\n\n' + 
-              (process.env.diff_output || 'No changes detected') + '\n\n' +
-              (process.env.blob_summary || '') + '\n\n' +
-              'This comment was automatically generated.';
-
-            try {
-              await github.rest.repos.createCommitComment({
+            if (existingComment) {
+              await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                commit_sha: context.sha,
+                comment_id: existingComment.id,
                 body: commentBody
               });
-            } catch (error) {
-              console.log('Could not create commit comment due to permissions. This is normal for forks.');
-              console.log('Error:', error.message);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
             }
         env:
           diff_output: ${{ steps.changes.outputs.diff_output }}
           blob_summary: ${{ steps.changes.outputs.blob_summary }}
+
+
 
       - name: Output summary
         run: |
