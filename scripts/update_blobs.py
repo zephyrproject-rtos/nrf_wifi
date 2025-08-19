@@ -14,8 +14,9 @@ import argparse
 import hashlib
 import requests
 import logging
+import os
 from jinja2 import Environment, FileSystemLoader
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from collections import namedtuple
 
 WIFI_FW_BIN_NAME: str = "nrf70.bin"
@@ -71,6 +72,48 @@ logger: logging.Logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
+def get_pr_head_commit(pr_number: str) -> str:
+    """Get the head commit SHA for a PR from GitHub API"""
+    github_token = os.environ.get('GITHUB_TOKEN')
+    headers = {}
+    if github_token:
+        headers['Authorization'] = f'token {github_token}'
+
+    url = f"https://api.github.com/repos/nrfconnect/sdk-nrfxlib/pulls/{pr_number}"
+
+    try:
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+
+        pr_data = response.json()
+
+        # Check if PR exists and is not closed/merged
+        if pr_data.get('state') == 'closed':
+            logger.warning(f"PR #{pr_number} is closed")
+
+        if pr_data.get('merged'):
+            logger.warning(f"PR #{pr_number} is already merged")
+
+        # Get head commit
+        head_commit = pr_data['head']['sha']
+        if not head_commit:
+            raise ValueError(f"PR #{pr_number} has no head commit")
+
+        logger.debug(f"PR #{pr_number} head commit: {head_commit}")
+        return head_commit
+
+    except requests.exceptions.RequestException as e:
+        if response.status_code == 404:
+            raise ValueError(f"PR #{pr_number} not found in nrfconnect/sdk-nrfxlib repository")
+        elif response.status_code == 403:
+            raise ValueError(f"Access denied to PR #{pr_number}. Check GITHUB_TOKEN permissions")
+        else:
+            raise ValueError(f"Failed to fetch PR #{pr_number}: {e}")
+    except KeyError as e:
+        raise ValueError(f"Invalid response format for PR #{pr_number}: missing {e}")
+    except Exception as e:
+        raise ValueError(f"Unexpected error fetching PR #{pr_number}: {e}")
+
 def compute_sha256(url: str) -> str:
     response = requests.get(url)
     response.raise_for_status()
@@ -78,7 +121,7 @@ def compute_sha256(url: str) -> str:
     return sha256_hash
 
 
-def render_template(template_path: str, output_path: str, latest_sha: str) -> None:
+def render_template(template_path: str, output_path: str, latest_sha: str, is_pr: bool = False, pr_number: Optional[str] = None) -> None:
     # Load the Jinja2 template
     env: Environment = Environment(loader=FileSystemLoader("."))
     template = env.get_template(template_path)
@@ -97,21 +140,41 @@ def render_template(template_path: str, output_path: str, latest_sha: str) -> No
         blob_info["doc_url"] = f"{blob.docpath}"
 
         # Download the binary to compute SHA-256 and extract version
-        response = requests.get(blob_info["url"])
-        response.raise_for_status()
-        binary_data = response.content
+        try:
+            response = requests.get(blob_info["url"], timeout=60)
+            response.raise_for_status()
+            binary_data = response.content
 
-        blob_info["sha256"] = hashlib.sha256(binary_data).hexdigest()
-        blob_info["description"] = blob.description
+            blob_info["sha256"] = hashlib.sha256(binary_data).hexdigest()
+            blob_info["description"] = blob.description
 
-        # Parse version from the actual binary
-        blob_info["version"] = parse_version_from_binary(binary_data)
+            # Parse version from the actual binary
+            blob_info["version"] = parse_version_from_binary(binary_data)
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to download blob from {blob_info['url']}: {e}")
+            raise ValueError(f"Failed to download blob for {blob.name}: {e}")
+        except Exception as e:
+             logger.error(f"Unexpected error processing blob {blob.name}: {e}")
+            raise ValueError(f"Error processing blob {blob.name}: {e}")
 
         blobs[blob.name] = blob_info
 
     logger.debug(blobs)
+
+    # Prepare metadata comment
+    metadata_comment = None
+    if is_pr and pr_number:
+        metadata_comment = f"# Generated from PR #{pr_number} (commit: {latest_sha})"
+    else:
+        metadata_comment = f"# Generated from commit: {latest_sha}"
+
     # Render the template with the provided context
-    rendered_content: str = template.render(blobs=blobs, latest_sha=latest_sha)
+    rendered_content: str = template.render(
+        blobs=blobs,
+        latest_sha=latest_sha,
+        metadata_comment=metadata_comment
+    )
 
     # Write the rendered content to the output file
     with open(output_path, "w") as output_file:
@@ -137,8 +200,12 @@ def main() -> None:
     parser.add_argument(
         "-c",
         "--commit",
-        required=True,
-        help="The latest commit SHA for the nrfxlib repository.",
+        help="The commit SHA for the nrfxlib repository (for merged commits).",
+    )
+    parser.add_argument(
+        "-p",
+        "--pr",
+        help="The PR number for the nrfxlib repository (for unmerged PRs).",
     )
     parser.add_argument(
         "-d", "--debug", action="store_true", help="Enable debug logging."
@@ -149,8 +216,47 @@ def main() -> None:
     if args.debug:
         logger.setLevel(logging.DEBUG)
 
-    # Render the template
-    render_template(args.template, args.output, args.commit)
+    # Validate arguments
+    if not args.commit and not args.pr:
+        parser.error("Either --commit or --pr must be specified")
+    if args.commit and args.pr:
+        parser.error("Only one of --commit or --pr can be specified")
+
+    # Validate commit format if provided
+    if args.commit:
+        import re
+        if not re.match(r'^[a-fA-F0-9]{7,40}$', args.commit):
+            parser.error(f"Invalid commit hash format: {args.commit}. Expected 7-40 hex characters.")
+
+    # Validate PR number if provided
+    if args.pr:
+        if not args.pr.isdigit() or int(args.pr) <= 0:
+            parser.error(f"Invalid PR number: {args.pr}. Expected a positive integer.")
+
+    # Determine the reference to use
+    try:
+        if args.pr:
+            # For PRs, get the head commit from GitHub API
+            logger.debug(f"Processing PR #{args.pr}")
+            reference = get_pr_head_commit(args.pr)
+            is_pr = True
+            pr_number = args.pr
+        else:
+            # For merged commits, use the commit hash directly
+            logger.debug(f"Processing commit {args.commit}")
+            reference = args.commit
+            is_pr = False
+            pr_number = None
+
+        # Render the template
+        render_template(args.template, args.output, reference, is_pr, pr_number)
+
+    except ValueError as e:
+        logger.error(f"Error: {e}")
+        exit(1)
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        exit(1)
 
 
 if __name__ == "__main__":
