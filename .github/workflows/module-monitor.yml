@@ -388,20 +388,29 @@ jobs:
               (process.env.blob_summary || '') + '\n\n' +
               'This comment was automatically generated.';
 
-            if (existingComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body: commentBody
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: commentBody
-              });
+            try {
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: commentBody
+                });
+                console.log('Successfully updated existing comment');
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: commentBody
+                });
+                console.log('Successfully created new comment');
+              }
+            } catch (error) {
+              console.log('Could not create/update comment due to permissions. This is normal for forks.');
+              console.log('Error:', error.message);
+              console.log('Comment body that would have been posted:');
+              console.log(commentBody);
             }
         env:
           diff_output: ${{ steps.set-output.outputs.diff_output }}
