@@ -688,11 +688,12 @@ enum nrf_wifi_status rawtx_cmd_prep_callbk_fn(void *callbk_data,
 	config->raw_tx_info.frame_ddr_pointer = (unsigned long long)phy_addr;
 	config->raw_tx_info.pkt_length = buf_len;
 #else
+	config->raw_tx_info.pkt_length[frame_indx] = buf_len;
 	tx_buf_info->nwb = nwb;
 	tx_buf_info->mapped = true;
-	nrf_wifi_osal_log_info("%s: frame pointer for data is 0x%x", __func__, nwb_data);
-        config->raw_tx_info.frame_ddr_pointer =  (unsigned long long)nwb_data;
-#endif /* !NRF71_ON_IPC */
+	nrf_wifi_osal_log_dbg("%s: frame pointer for data is 0x%x", __func__, nwb_data);
+        config->raw_tx_info.frame_ddr_pointer[frame_indx] =  (unsigned long long)nwb_data;
+#endif /* !CONFIG_NRF71_ON_IPC */
 	info->num_tx_pkts++;
 
 	status = NRF_WIFI_STATUS_SUCCESS;
@@ -819,7 +820,6 @@ enum nrf_wifi_status rawtx_cmd_prepare(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 	config->sys_head.len = sizeof(*config);
 	config->if_index = vif_id;
 	config->raw_tx_info.desc_num = desc;
-	config->raw_tx_info.pkt_length = len;
 
 	/* Check first packet in queue for per-packet raw TX config */
 	void *first_nwb = nrf_wifi_utils_list_peek(txq);
@@ -846,7 +846,11 @@ enum nrf_wifi_status rawtx_cmd_prepare(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 				      __func__);
 		goto err;
 	}
+#ifdef NRF71_ON_IPC
+	config->raw_tx_info.num_frames = info.num_tx_pkts;
+	config->raw_tx_info.aggregation = AGGR_ENABLE;
 	sys_dev_ctx->host_stats.total_tx_pkts += info.num_tx_pkts;
+#endif /* NRF71_ON_IPC */
 
 	return NRF_WIFI_STATUS_SUCCESS;
 err:
