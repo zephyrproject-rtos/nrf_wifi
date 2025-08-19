@@ -128,8 +128,8 @@ jobs:
                       with open('zephyr/module.yml', 'r') as f:
                           content = f.read()
                           # Look for PR metadata comment (more flexible pattern)
-                          pr_match = re.search(r'# Generated from PR #(\d+).*?commit: ([a-f0-9]+)', content, re.DOTALL)
-                          if pr_match and pr_match.group(2) == commit_hash:
+                          pr_match = re.search(r'# Generated from PR #(\d+) \(commit: ([a-f0-9]+)\)', content)
+                          if pr_match and (pr_match.group(2) == commit_hash or pr_match.group(2).startswith(commit_hash) or commit_hash.startswith(pr_match.group(2))):
                               pr_number = pr_match.group(1)
                               return {
                                   'display': f"[{commit_hash[:7]}](PR #{pr_number})",
