@@ -156,7 +156,7 @@ def render_template(template_path: str, output_path: str, latest_sha: str, is_pr
             raise ValueError(f"Failed to download blob for {blob.name}: {e}")
         except Exception as e:
              logger.error(f"Unexpected error processing blob {blob.name}: {e}")
-            raise ValueError(f"Error processing blob {blob.name}: {e}")
+             raise ValueError(f"Error processing blob {blob.name}: {e}")
 
         blobs[blob.name] = blob_info
 
