@@ -225,9 +225,11 @@ jobs:
                   old_commit_status = get_commit_status(old_commit_hash)
                   new_commit_status = get_commit_status(new_commit_hash)
                   
-                  # Format commit display - simplify for better table formatting
-                  old_commit_display = old_commit_hash[:7] if old_commit_hash != "Unknown" else "Unknown"
-                  new_commit_display = new_commit_hash[:7] if new_commit_hash != "Unknown" else "Unknown"
+                  # Format commit display with PR detection
+                  old_commit_status = get_commit_status(old_commit_hash)
+                  new_commit_status = get_commit_status(new_commit_hash)
+                  old_commit_display = old_commit_status['display']
+                  new_commit_display = new_commit_status['display']
                   
                   diff_link = generate_diff_link(old_blob.get('url', ''), new_blob.get('url', ''))
                   
