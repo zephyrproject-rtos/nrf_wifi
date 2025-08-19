@@ -107,6 +107,14 @@ target_compile_definitions(
   WIFI_NRF70_LOG_LEVEL=${CONFIG_WIFI_NRF70_LOG_LEVEL}
 )
 
+if (CONFIG_NRF71_ON_IPC)
+  target_compile_definitions(
+    nrf-wifi-osal
+    PUBLIC
+    NRF_WIFI_RX_BUFF_PROG_UMAC
+  )
+endif()
+
 target_include_directories(
   nrf-wifi-osal
   PUBLIC

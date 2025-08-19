@@ -1174,6 +1174,22 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_conf_ltf_gi(struct nrf_wifi_fmac_dev_ctx 
 enum nrf_wifi_status nrf_wifi_sys_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 						 enum rpu_op_mode op_mode,
 						 struct rpu_sys_op_stats *stats);
+#ifdef NRF_WIFI_RX_BUFF_PROG_UMAC
+/**
+ * @brief Send  Rx buffer details to firmware.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param nrf_wifi_rx_buf RX buffer info.
+ * @param num_buffs Number of buffers.
+ *
+ * This function is used to send host Rx buffers to UMAC module
+ *
+ *@retval	NRF_WIFI_STATUS_SUCCESS On success
+ *@retval	NRF_WIFI_STATUS_FAIL On failure to execute command
+ */
+enum nrf_wifi_status nrf_wifi_fmac_prog_rx_buf_info(void *fmac_dev_ctx,
+					       struct nrf_wifi_rx_buf *rx_buf,
+					       unsigned int num_buffs);
+#endif /*NRF_WIFI_RX_BUFF_PROG_UMAC*/
 
 /**
  * @}

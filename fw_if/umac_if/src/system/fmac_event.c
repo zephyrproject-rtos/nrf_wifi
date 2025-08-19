@@ -315,7 +315,7 @@ nrf_wifi_fmac_data_event_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 #endif /* NRF_WIFI_CMD_EVENT_LOG */
 
 	switch (event) {
-	case NRF_WIFI_CMD_RX_BUFF:
+	case NRF_WIFI_NRF_WIFI_RX_BUFF_PROG_UMAC:
 #ifdef NRF70_RX_DONE_WQ_ENABLED
 		struct nrf_wifi_rx_buff *config = nrf_wifi_osal_mem_zalloc(
 			sizeof(struct nrf_wifi_rx_buff));

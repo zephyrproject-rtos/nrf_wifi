@@ -705,3 +705,24 @@ void nrf_wifi_sys_hal_unlock_rx(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 	nrf_wifi_osal_spinlock_irq_rel(hal_dev_ctx->lock_rx,
 				       &flags);
 }
+
+#ifdef NRF_WIFI_RX_BUFF_PROG_UMAC
+unsigned long nrf_wifi_hal_get_buf_map_rx(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
+					  unsigned int pool_id,
+					  unsigned int buf_id)
+{
+	struct nrf_wifi_hal_buf_map_info *rx_buf_info = NULL;
+	rx_buf_info = &hal_dev_ctx->rx_buf_info[pool_id][buf_id];
+
+	if (rx_buf_info->mapped) {
+		return rx_buf_info->phy_addr;
+	} else {
+		nrf_wifi_osal_log_err("%s: Rx buffer not mapped for pool_id = %d, buf_id=%d\n",
+				      __func__,
+				      pool_id,
+				      buf_id);
+	}
+
+	return -1;
+}
+#endif /*NRF_WIFI_RX_BUFF_PROG_UMAC */
