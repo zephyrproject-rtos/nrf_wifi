@@ -1,6 +1,6 @@
 name: Module Monitor
 on:
-  pull_request_target:
+  pull_request:
     paths:
       - 'zephyr/module.yml'
 
@@ -24,6 +24,12 @@ jobs:
       - name: Fetch PR head
         run: |
           git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-head
+
+      - name: Setup sdk-nrfxlib repository
+        run: |
+          git clone --depth=1000 https://github.com/nrfconnect/sdk-nrfxlib.git sdk-nrfxlib-repo
+          cd sdk-nrfxlib-repo
+          git fetch --depth=1000
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -54,6 +60,7 @@ jobs:
           git show $HEAD_REF:zephyr/module.yml > new_module.yml
           
           # Parse YAML and generate comparison table
+          echo "DEBUG: Starting Python script..." >&2
           python3 << 'EOF'
           import yaml
           import sys
@@ -73,6 +80,98 @@ jobs:
                           return commit_part[:7]
               return "Unknown"
 
+          def get_commit_info(commit_hash):
+              """Get additional commit information like branch and PR references"""
+              try:
+                  import subprocess
+                  import json
+                  import os
+                  
+                  # Use the cloned sdk-nrfxlib repository
+                  sdk_repo_dir = 'sdk-nrfxlib-repo'
+                  if not os.path.exists(sdk_repo_dir):
+                      return {'hash': commit_hash[:7] if commit_hash != "Unknown" else "Unknown"}
+                  
+                  # Get commit details from the sdk-nrfxlib repository
+                  result = subprocess.run(['git', 'log', '--format=%H|%s|%an|%ad', '--date=short', '-1', commit_hash], 
+                                        cwd=sdk_repo_dir, capture_output=True, text=True, timeout=10)
+                  if result.returncode == 0 and result.stdout.strip():
+                      parts = result.stdout.strip().split('|')
+                      if len(parts) >= 4:
+                          return {
+                              'hash': parts[0][:7],
+                              'subject': parts[1],
+                              'author': parts[2],
+                              'date': parts[3]
+                          }
+              except:
+                  pass
+              
+              # Fallback: return basic info
+              return {'hash': commit_hash[:7] if commit_hash != "Unknown" else "Unknown"}
+
+          def get_commit_status(commit_hash):
+              """Get commit status and branch information"""
+              try:
+                  import subprocess
+                  import os
+                  import re
+                  
+                  # First, check if we have PR metadata in the module.yml file
+                  try:
+                      with open('zephyr/module.yml', 'r') as f:
+                          content = f.read()
+                          # Look for PR metadata comment (more flexible pattern)
+                          pr_match = re.search(r'# Generated from PR #(\d+).*?commit: ([a-f0-9]+)', content, re.DOTALL)
+                          if pr_match and pr_match.group(2) == commit_hash:
+                              pr_number = pr_match.group(1)
+                              return {
+                                  'display': f"[{commit_hash[:7]}](PR #{pr_number})",
+                                  'is_pr': True,
+                                  'pr_number': pr_number,
+                                  'pr_url': f"https://github.com/nrfconnect/sdk-nrfxlib/pull/{pr_number}"
+                              }
+                  except:
+                      pass
+                  
+                  # Change to sdk-nrfxlib repository directory
+                  sdk_repo_dir = 'sdk-nrfxlib-repo'
+                  if not os.path.exists(sdk_repo_dir):
+                      return {'display': commit_hash[:7] if commit_hash != "Unknown" else "Unknown"}
+                  
+                  # Get all branches containing this commit
+                  result = subprocess.run(['git', 'branch', '-r', '--contains', commit_hash], 
+                                        cwd=sdk_repo_dir, capture_output=True, text=True, timeout=10)
+                  if result.returncode == 0:
+                      branches = result.stdout.strip().split('\n')
+                      branch_names = []
+                      is_on_main = False
+                      
+                      for branch in branches:
+                          branch = branch.strip()
+                          if branch:
+                              branch_name = branch.replace('origin/', '')
+                              branch_names.append(branch_name)
+                              if branch_name in ['main', 'master']:
+                                  is_on_main = True
+                      
+                      if is_on_main:
+                          return {
+                              'display': f"{commit_hash[:7]} (main)" if commit_hash != "Unknown" else "Unknown (main)"
+                          }
+                      elif branch_names:
+                          # Show the first branch found
+                          return {
+                              'display': f"{commit_hash[:7]} ({branch_names[0]})" if commit_hash != "Unknown" else f"Unknown ({branch_names[0]})"
+                          }
+              except:
+                  pass
+              
+              # Default: show short commit hash
+              return {
+                  'display': commit_hash[:7] if commit_hash != "Unknown" else "Unknown"
+              }
+
           def generate_diff_link(old_url, new_url):
               """Generate diff link for the source repository"""
               old_commit = extract_commit_from_url(old_url)
@@ -85,9 +184,11 @@ jobs:
               return "N/A"
 
           try:
+              print("DEBUG: Loading old_module.yml...", file=sys.stderr)
               # Load old and new module.yml
               with open('old_module.yml', 'r') as f:
                   old_data = yaml.safe_load(f)
+              print("DEBUG: Loading new_module.yml...", file=sys.stderr)
               with open('new_module.yml', 'r') as f:
                   new_data = yaml.safe_load(f)
               
@@ -96,8 +197,8 @@ jobs:
               
               # Generate comparison table
               table_rows = []
-              table_rows.append("| Variant | Old Version | New Version | Old SHA256 | New SHA256 | Old Commit | New Commit | Diff Link |")
-              table_rows.append("|---------|-------------|-------------|------------|------------|------------|------------|-----------|")
+              table_rows.append("| Variant | Old Version | New Version | Old Commit | New Commit | Diff Link |")
+              table_rows.append("|---------|-------------|-------------|------------|------------|-----------|")
               
               all_paths = set(old_blobs.keys()) | set(new_blobs.keys())
               
@@ -107,16 +208,27 @@ jobs:
                   
                   old_version = old_blob.get('version', 'N/A')
                   new_version = new_blob.get('version', 'N/A')
-                  old_sha = old_blob.get('sha256', 'N/A')[:16] + '...' if old_blob.get('sha256') else 'N/A'
-                  new_sha = new_blob.get('sha256', 'N/A')[:16] + '...' if new_blob.get('sha256') else 'N/A'
-                  old_commit = extract_commit_from_url(old_blob.get('url', ''))
-                  new_commit = extract_commit_from_url(new_blob.get('url', ''))
+                  old_commit_hash = extract_commit_from_url(old_blob.get('url', ''))
+                  new_commit_hash = extract_commit_from_url(new_blob.get('url', ''))
+                  
+                  # Get additional commit information
+                  old_commit_info = get_commit_info(old_commit_hash)
+                  new_commit_info = get_commit_info(new_commit_hash)
+                  
+                  # Check commit status (merged vs PR)
+                  old_commit_status = get_commit_status(old_commit_hash)
+                  new_commit_status = get_commit_status(new_commit_hash)
+                  
+                  # Format commit display
+                  old_commit_display = old_commit_status['display']
+                  new_commit_display = new_commit_status['display']
+                  
                   diff_link = generate_diff_link(old_blob.get('url', ''), new_blob.get('url', ''))
                   
                   # Extract variant name from path
                   variant = path.split('/')[-2] if '/' in path else path
                   
-                  table_rows.append(f"| {variant} | {old_version} | {new_version} | {old_sha} | {new_sha} | {old_commit} | {new_commit} | {diff_link} |")
+                  table_rows.append(f"| {variant} | {old_version} | {new_version} | {old_commit_display} | {new_commit_display} | {diff_link} |")
               
               # Check if there are any actual changes
               has_changes = False
@@ -135,6 +247,43 @@ jobs:
                   diff_content.append("## Firmware Blob Changes")
                   diff_content.append("")
                   diff_content.extend(table_rows)
+                  
+                  # Add commit details section
+                  diff_content.append("")
+                  diff_content.append("### Commit Details:")
+                  diff_content.append("")
+                  
+                  # Collect unique commits
+                  unique_commits = set()
+                  for path in sorted(all_paths):
+                      old_blob = old_blobs.get(path, {})
+                      new_blob = new_blobs.get(path, {})
+                      old_commit_hash = extract_commit_from_url(old_blob.get('url', ''))
+                      new_commit_hash = extract_commit_from_url(new_blob.get('url', ''))
+                      if old_commit_hash != "Unknown":
+                          unique_commits.add(old_commit_hash)
+                      if new_commit_hash != "Unknown":
+                          unique_commits.add(new_commit_hash)
+                  
+                  # Show commit details
+                  for commit_hash in sorted(unique_commits):
+                      commit_info = get_commit_info(commit_hash)
+                      commit_status = get_commit_status(commit_hash)
+                      
+                      if 'subject' in commit_info:
+                          commit_line = f"- **{commit_info['hash']}**: {commit_info['subject']} (by {commit_info['author']} on {commit_info['date']})"
+                          # Add branch information if available
+                          if 'display' in commit_status and '(' in commit_status['display']:
+                              branch_info = commit_status['display'].split('(')[1].rstrip(')')
+                              commit_line += f" - {branch_info}"
+                          diff_content.append(commit_line)
+                      else:
+                          commit_line = f"- **{commit_info['hash']}**: Commit details not available"
+                          # Add branch information if available
+                          if 'display' in commit_status and '(' in commit_status['display']:
+                              branch_info = commit_status['display'].split('(')[1].rstrip(')')
+                              commit_line += f" - {branch_info}"
+                          diff_content.append(commit_line)
               else:
                   diff_content.append("## No Changes Detected")
                   diff_content.append("")
@@ -144,8 +293,11 @@ jobs:
                   diff_content.extend(table_rows[2:])  # Skip header rows
               
               # Write to file for GitHub Actions output
+              print(f"DEBUG: Writing {len(diff_content)} lines to diff_output.txt", file=sys.stderr)
               with open('diff_output.txt', 'w') as f:
                   f.write('\n'.join(diff_content))
+              
+              print(f"DEBUG: Successfully wrote diff_output.txt", file=sys.stderr)
               
               print("diff_output<<EOF", file=sys.stdout)
               print('\n'.join(diff_content), file=sys.stdout)
@@ -164,8 +316,11 @@ jobs:
               blob_content = ["## Current Firmware Blobs:"] + blob_info
               
               # Write to file for GitHub Actions output
+              print(f"DEBUG: Writing {len(blob_content)} lines to blob_summary.txt", file=sys.stderr)
               with open('blob_summary.txt', 'w') as f:
                   f.write('\n'.join(blob_content))
+              
+              print(f"DEBUG: Successfully wrote blob_summary.txt", file=sys.stderr)
               
               print("blob_summary<<EOF", file=sys.stdout)
               print('\n'.join(blob_content), file=sys.stdout)
@@ -178,17 +333,38 @@ jobs:
               print("blob_summary<<EOF", file=sys.stdout)
               print(f"Error parsing module.yml: {e}", file=sys.stdout)
               print("EOF", file=sys.stdout)
+              print("DEBUG: Python script completed successfully", file=sys.stderr)
           EOF
 
       - name: Set output variables
+        id: set-output
         run: |
-          echo "diff_output<<EOF" >> $GITHUB_OUTPUT
-          cat diff_output.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "DEBUG: Checking if files exist..." >&2
+          ls -la *.txt >&2 || echo "No .txt files found" >&2
           
-          echo "blob_summary<<EOF" >> $GITHUB_OUTPUT
-          cat blob_summary.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          if [ -f diff_output.txt ]; then
+            echo "DEBUG: diff_output.txt exists, size: $(wc -c < diff_output.txt)" >&2
+            echo "diff_output<<EOF" >> $GITHUB_OUTPUT
+            cat diff_output.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "DEBUG: diff_output.txt not found" >&2
+            echo "diff_output<<EOF" >> $GITHUB_OUTPUT
+            echo "No changes detected" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ -f blob_summary.txt ]; then
+            echo "DEBUG: blob_summary.txt exists, size: $(wc -c < blob_summary.txt)" >&2
+            echo "blob_summary<<EOF" >> $GITHUB_OUTPUT
+            cat blob_summary.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "DEBUG: blob_summary.txt not found" >&2
+            echo "blob_summary<<EOF" >> $GITHUB_OUTPUT
+            echo "No blob summary available" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create or update comment
         uses: actions/github-script@v7
@@ -228,8 +404,8 @@ jobs:
               });
             }
         env:
-          diff_output: ${{ steps.changes.outputs.diff_output }}
-          blob_summary: ${{ steps.changes.outputs.blob_summary }}
+          diff_output: ${{ steps.set-output.outputs.diff_output }}
+          blob_summary: ${{ steps.set-output.outputs.blob_summary }}
 
 
 
@@ -239,7 +415,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Changes in zephyr/module.yml:" >> $GITHUB_STEP_SUMMARY
           echo '```diff' >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.changes.outputs.diff_output }}" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.set-output.outputs.diff_output }}" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.changes.outputs.blob_summary }}" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.set-output.outputs.blob_summary }}" >> $GITHUB_STEP_SUMMARY
