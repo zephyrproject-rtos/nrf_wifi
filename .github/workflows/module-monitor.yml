@@ -47,44 +47,109 @@ jobs:
           echo "DEBUG: Current HEAD is $(git rev-parse HEAD)" >&2
           echo "DEBUG: Available commits:" >&2
           git log --oneline -5 >&2
-          DIFF_OUTPUT=$(git diff $BASE_REF $HEAD_REF -- zephyr/module.yml || echo "No changes found")
-          echo "DEBUG: Diff result: $DIFF_OUTPUT" >&2
           
-          echo "diff_output<<EOF" >> $GITHUB_OUTPUT
-          echo "$DIFF_OUTPUT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Get old and new module.yml content
+          git show $BASE_REF:zephyr/module.yml > old_module.yml
+          cp zephyr/module.yml new_module.yml
           
-          # Parse YAML and extract blob information
+          # Parse YAML and generate comparison table
           python3 << 'EOF'
           import yaml
           import sys
           import os
+          import re
+          from urllib.parse import urlparse
+
+          def extract_commit_from_url(url):
+              """Extract commit hash from GitHub raw URL"""
+              if 'raw/' in url:
+                  parts = url.split('raw/')
+                  if len(parts) > 1:
+                      commit_part = parts[1].split('/')[0]
+                      if len(commit_part) == 40:  # Full SHA
+                          return commit_part
+                      elif len(commit_part) >= 7:  # Short SHA
+                          return commit_part[:7]
+              return "Unknown"
+
+          def generate_diff_link(url):
+              """Generate diff link for the source repository"""
+              if 'github.com' in url and 'raw/' in url:
+                  # Convert raw URL to repository URL
+                  repo_url = url.replace('/raw/', '/blob/')
+                  # Extract commit and path
+                  if '/raw/' in url:
+                      parts = url.split('/raw/')
+                      if len(parts) > 1:
+                          commit_path = parts[1]
+                          commit = commit_path.split('/')[0]
+                          path = '/'.join(commit_path.split('/')[1:])
+                          # Create diff link (this would need to be updated with actual previous commit)
+                          return f"https://github.com/nrfconnect/sdk-nrfxlib/compare/{commit}...{commit}"
+              return "N/A"
 
           try:
-              with open('zephyr/module.yml', 'r') as f:
-                  data = yaml.safe_load(f)
+              # Load old and new module.yml
+              with open('old_module.yml', 'r') as f:
+                  old_data = yaml.safe_load(f)
+              with open('new_module.yml', 'r') as f:
+                  new_data = yaml.safe_load(f)
               
-              if 'blobs' in data:
-                  blob_info = []
-                  for blob in data['blobs']:
-                      info = f"- **{blob.get('path', 'Unknown')}**\n"
-                      info += f"  - Version: {blob.get('version', 'Unknown')}\n"
-                      info += f"  - SHA256: {blob.get('sha256', 'Unknown')[:16]}...\n"
-                      info += f"  - Type: {blob.get('type', 'Unknown')}\n"
-                      info += f"  - Description: {blob.get('description', 'No description')}\n"
-                      blob_info.append(info)
+              old_blobs = {blob['path']: blob for blob in old_data.get('blobs', [])}
+              new_blobs = {blob['path']: blob for blob in new_data.get('blobs', [])}
+              
+              # Generate comparison table
+              table_rows = []
+              table_rows.append("| Variant | Old Version | New Version | Old SHA256 | New SHA256 | Old Commit | New Commit | Diff Link |")
+              table_rows.append("|---------|-------------|-------------|------------|------------|------------|------------|-----------|")
+              
+              all_paths = set(old_blobs.keys()) | set(new_blobs.keys())
+              
+              for path in sorted(all_paths):
+                  old_blob = old_blobs.get(path, {})
+                  new_blob = new_blobs.get(path, {})
                   
-                  print("blob_summary<<EOF", file=sys.stdout)
-                  print("## Current Firmware Blobs:", file=sys.stdout)
-                  for info in blob_info:
-                      print(info, file=sys.stdout)
-                  print("EOF", file=sys.stdout)
-              else:
-                  print("blob_summary<<EOF", file=sys.stdout)
-                  print("No blobs found in module.yml", file=sys.stdout)
-                  print("EOF", file=sys.stdout)
+                  old_version = old_blob.get('version', 'N/A')
+                  new_version = new_blob.get('version', 'N/A')
+                  old_sha = old_blob.get('sha256', 'N/A')[:16] + '...' if old_blob.get('sha256') else 'N/A'
+                  new_sha = new_blob.get('sha256', 'N/A')[:16] + '...' if new_blob.get('sha256') else 'N/A'
+                  old_commit = extract_commit_from_url(old_blob.get('url', ''))
+                  new_commit = extract_commit_from_url(new_blob.get('url', ''))
+                  diff_link = generate_diff_link(new_blob.get('url', ''))
+                  
+                  # Extract variant name from path
+                  variant = path.split('/')[-2] if '/' in path else path
+                  
+                  table_rows.append(f"| {variant} | {old_version} | {new_version} | {old_sha} | {new_sha} | {old_commit} | {new_commit} | {diff_link} |")
+              
+              # Output the table
+              print("diff_output<<EOF", file=sys.stdout)
+              print("## Firmware Blob Changes", file=sys.stdout)
+              print("", file=sys.stdout)
+              for row in table_rows:
+                  print(row, file=sys.stdout)
+              print("EOF", file=sys.stdout)
+              
+              # Also output current blob summary
+              blob_info = []
+              for blob in new_data.get('blobs', []):
+                  info = f"- **{blob.get('path', 'Unknown')}**\n"
+                  info += f"  - Version: {blob.get('version', 'Unknown')}\n"
+                  info += f"  - SHA256: {blob.get('sha256', 'Unknown')[:16]}...\n"
+                  info += f"  - Type: {blob.get('type', 'Unknown')}\n"
+                  info += f"  - Description: {blob.get('description', 'No description')}\n"
+                  blob_info.append(info)
+              
+              print("blob_summary<<EOF", file=sys.stdout)
+              print("## Current Firmware Blobs:", file=sys.stdout)
+              for info in blob_info:
+                  print(info, file=sys.stdout)
+              print("EOF", file=sys.stdout)
                   
           except Exception as e:
+              print("diff_output<<EOF", file=sys.stdout)
+              print(f"Error generating comparison: {e}", file=sys.stdout)
+              print("EOF", file=sys.stdout)
               print("blob_summary<<EOF", file=sys.stdout)
               print(f"Error parsing module.yml: {e}", file=sys.stdout)
               print("EOF", file=sys.stdout)
