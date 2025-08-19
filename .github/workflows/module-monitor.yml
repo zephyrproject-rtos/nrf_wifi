@@ -22,7 +22,7 @@ jobs:
 
       - name: Fetch PR head
         run: |
-          git fetch origin pull/${{ github.event.pull_request_target.number }}/head:pr-head
+          git fetch origin pull/${{ github.event.number }}/head:pr-head
 
       - name: Setup sdk-nrfxlib repository
         run: |
