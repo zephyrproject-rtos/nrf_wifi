@@ -19,6 +19,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Fetch PR head
         run: |
@@ -50,7 +51,7 @@ jobs:
           
           # Get old and new module.yml content
           git show $BASE_REF:zephyr/module.yml > old_module.yml
-          cp zephyr/module.yml new_module.yml
+          git show $HEAD_REF:zephyr/module.yml > new_module.yml
           
           # Parse YAML and generate comparison table
           python3 << 'EOF'
@@ -72,20 +73,15 @@ jobs:
                           return commit_part[:7]
               return "Unknown"
 
-          def generate_diff_link(url):
+          def generate_diff_link(old_url, new_url):
               """Generate diff link for the source repository"""
-              if 'github.com' in url and 'raw/' in url:
-                  # Convert raw URL to repository URL
-                  repo_url = url.replace('/raw/', '/blob/')
-                  # Extract commit and path
-                  if '/raw/' in url:
-                      parts = url.split('/raw/')
-                      if len(parts) > 1:
-                          commit_path = parts[1]
-                          commit = commit_path.split('/')[0]
-                          path = '/'.join(commit_path.split('/')[1:])
-                          # Create diff link (this would need to be updated with actual previous commit)
-                          return f"https://github.com/nrfconnect/sdk-nrfxlib/compare/{commit}...{commit}"
+              old_commit = extract_commit_from_url(old_url)
+              new_commit = extract_commit_from_url(new_url)
+              
+              if old_commit != "Unknown" and new_commit != "Unknown" and old_commit != new_commit:
+                  return f"https://github.com/nrfconnect/sdk-nrfxlib/compare/{old_commit}...{new_commit}"
+              elif new_commit != "Unknown":
+                  return f"https://github.com/nrfconnect/sdk-nrfxlib/commit/{new_commit}"
               return "N/A"
 
           try:
@@ -115,19 +111,39 @@ jobs:
                   new_sha = new_blob.get('sha256', 'N/A')[:16] + '...' if new_blob.get('sha256') else 'N/A'
                   old_commit = extract_commit_from_url(old_blob.get('url', ''))
                   new_commit = extract_commit_from_url(new_blob.get('url', ''))
-                  diff_link = generate_diff_link(new_blob.get('url', ''))
+                  diff_link = generate_diff_link(old_blob.get('url', ''), new_blob.get('url', ''))
                   
                   # Extract variant name from path
                   variant = path.split('/')[-2] if '/' in path else path
                   
                   table_rows.append(f"| {variant} | {old_version} | {new_version} | {old_sha} | {new_sha} | {old_commit} | {new_commit} | {diff_link} |")
               
+              # Check if there are any actual changes
+              has_changes = False
+              for path in sorted(all_paths):
+                  old_blob = old_blobs.get(path, {})
+                  new_blob = new_blobs.get(path, {})
+                  if (old_blob.get('version') != new_blob.get('version') or 
+                      old_blob.get('sha256') != new_blob.get('sha256') or
+                      old_blob.get('url') != new_blob.get('url')):
+                      has_changes = True
+                      break
+              
               # Output the table
               print("diff_output<<EOF", file=sys.stdout)
-              print("## Firmware Blob Changes", file=sys.stdout)
-              print("", file=sys.stdout)
-              for row in table_rows:
-                  print(row, file=sys.stdout)
+              if has_changes:
+                  print("## Firmware Blob Changes", file=sys.stdout)
+                  print("", file=sys.stdout)
+                  for row in table_rows:
+                      print(row, file=sys.stdout)
+              else:
+                  print("## No Changes Detected", file=sys.stdout)
+                  print("", file=sys.stdout)
+                  print("All firmware blobs remain unchanged in this PR.", file=sys.stdout)
+                  print("", file=sys.stdout)
+                  print("### Current Firmware Blob Summary:", file=sys.stdout)
+                  for row in table_rows[2:]:  # Skip header rows
+                      print(row, file=sys.stdout)
               print("EOF", file=sys.stdout)
               
               # Also output current blob summary
@@ -168,6 +184,9 @@ jobs:
             const existingComment = comments.find(comment => 
               comment.body.includes('Module Monitor')
             );
+            
+            console.log('DEBUG: diff_output length:', process.env.diff_output ? process.env.diff_output.length : 0);
+            console.log('DEBUG: blob_summary length:', process.env.blob_summary ? process.env.blob_summary.length : 0);
             
             const commentBody = 'Module Monitor\n\nChanges detected in module.yml\n\n' + 
               (process.env.diff_output || 'No changes detected') + '\n\n' +
