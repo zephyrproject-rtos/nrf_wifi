@@ -22,7 +22,7 @@ jobs:
 
       - name: Fetch PR head
         run: |
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-head
+          git fetch origin pull/${{ github.event.pull_request_target.number }}/head:pr-head
 
       - name: Setup sdk-nrfxlib repository
         run: |
@@ -55,8 +55,15 @@ jobs:
           git log --oneline -5 >&2
           
           # Get old and new module.yml content
+          echo "DEBUG: Getting old module.yml from $BASE_REF" >&2
           git show $BASE_REF:zephyr/module.yml > old_module.yml
-          git show $HEAD_REF:zephyr/module.yml > new_module.yml
+          echo "DEBUG: Getting new module.yml from pr-head" >&2
+          git show pr-head:zephyr/module.yml > new_module.yml
+          
+          echo "DEBUG: Old module.yml content:" >&2
+          head -5 old_module.yml >&2
+          echo "DEBUG: New module.yml content:" >&2
+          head -5 new_module.yml >&2
           
           # Parse YAML and generate comparison table
           echo "DEBUG: Starting Python script..." >&2
@@ -218,9 +225,9 @@ jobs:
                   old_commit_status = get_commit_status(old_commit_hash)
                   new_commit_status = get_commit_status(new_commit_hash)
                   
-                  # Format commit display
-                  old_commit_display = old_commit_status['display']
-                  new_commit_display = new_commit_status['display']
+                  # Format commit display - simplify for better table formatting
+                  old_commit_display = old_commit_hash[:7] if old_commit_hash != "Unknown" else "Unknown"
+                  new_commit_display = new_commit_hash[:7] if new_commit_hash != "Unknown" else "Unknown"
                   
                   diff_link = generate_diff_link(old_blob.get('url', ''), new_blob.get('url', ''))
                   
@@ -252,7 +259,23 @@ jobs:
                   diff_content.append("All firmware blobs remain unchanged in this PR.")
                   diff_content.append("")
                   diff_content.append("### Current Firmware Blob Summary:")
-                  diff_content.extend(table_rows[2:])  # Skip header rows
+                  # Create a simplified summary table without the comparison columns
+                  summary_rows = []
+                  summary_rows.append("| Variant | Version | Commit |")
+                  summary_rows.append("|---------|---------|--------|")
+                  
+                  for path in sorted(all_paths):
+                      new_blob = new_blobs.get(path, {})
+                      version = new_blob.get('version', 'N/A')
+                      commit_hash = extract_commit_from_url(new_blob.get('url', ''))
+                      commit_display = commit_hash[:7] if commit_hash != "Unknown" else "Unknown"
+                      
+                      # Extract variant name from path
+                      variant = path.split('/')[-2] if '/' in path else path
+                      
+                      summary_rows.append(f"| {variant} | {version} | {commit_display} |")
+                  
+                  diff_content.extend(summary_rows)
               
               # Write to file for GitHub Actions output
               print(f"DEBUG: Writing {len(diff_content)} lines to diff_output.txt", file=sys.stderr)
