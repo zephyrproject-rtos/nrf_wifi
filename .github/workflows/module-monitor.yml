@@ -1,6 +1,6 @@
 name: Module Monitor
 on:
-  pull_request:
+  pull_request_target:
     paths:
       - 'zephyr/module.yml'
 
@@ -19,7 +19,6 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Fetch PR head
         run: |
@@ -44,8 +43,8 @@ jobs:
         id: changes
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
-          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
+          GITHUB_BASE_SHA: ${{ github.event.pull_request_target.base.sha || '' }}
+          GITHUB_HEAD_SHA: ${{ github.event.pull_request_target.head.sha || '' }}
         run: |
           # Compare with base branch for pull requests
           BASE_REF="$GITHUB_BASE_SHA"
