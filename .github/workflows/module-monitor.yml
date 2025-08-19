@@ -116,16 +116,16 @@ jobs:
               # Fallback: return basic info
               return {'hash': commit_hash[:7] if commit_hash != "Unknown" else "Unknown"}
 
-          def get_commit_status(commit_hash):
+          def get_commit_status(commit_hash, new_module_file='new_module.yml'):
               """Get commit status and branch information"""
               try:
                   import subprocess
                   import os
                   import re
                   
-                  # First, check if we have PR metadata in the module.yml file
+                  # First, check if we have PR metadata in the new module.yml file
                   try:
-                      with open('zephyr/module.yml', 'r') as f:
+                      with open(new_module_file, 'r') as f:
                           content = f.read()
                           print(f"DEBUG: Looking for PR metadata in module.yml for commit {commit_hash}", file=sys.stderr)
                           print(f"DEBUG: Module.yml content starts with: {content[:200]}", file=sys.stderr)
@@ -238,8 +238,8 @@ jobs:
                   
                   # Format commit display with PR detection
                   print(f"DEBUG: Processing {path} - old_commit: {old_commit_hash}, new_commit: {new_commit_hash}", file=sys.stderr)
-                  old_commit_status = get_commit_status(old_commit_hash)
-                  new_commit_status = get_commit_status(new_commit_hash)
+                  old_commit_status = get_commit_status(old_commit_hash, 'old_module.yml')
+                  new_commit_status = get_commit_status(new_commit_hash, 'new_module.yml')
                   old_commit_display = old_commit_status['display']
                   new_commit_display = new_commit_status['display']
                   print(f"DEBUG: {path} - old_display: {old_commit_display}, new_display: {new_commit_display}", file=sys.stderr)
