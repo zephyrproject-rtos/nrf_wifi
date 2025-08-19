@@ -261,15 +261,9 @@ jobs:
                   f.write('\n'.join(diff_content))
               
               print(f"DEBUG: Successfully wrote diff_output.txt", file=sys.stderr)
-              
-              print("diff_output<<MODULE_MONITOR_DELIMITER", file=sys.stdout)
-              print('\n'.join(diff_content), file=sys.stdout)
-              print("MODULE_MONITOR_DELIMITER", file=sys.stdout)
                   
           except Exception as e:
-              print("diff_output<<MODULE_MONITOR_DELIMITER", file=sys.stdout)
-              print(f"Error generating comparison: {e}", file=sys.stdout)
-              print("MODULE_MONITOR_DELIMITER", file=sys.stdout)
+              print(f"Error generating comparison: {e}", file=sys.stderr)
               print("DEBUG: Python script completed successfully", file=sys.stderr)
           PYTHON_SCRIPT_EOF
 
@@ -281,14 +275,12 @@ jobs:
           
           if [ -f diff_output.txt ]; then
             echo "DEBUG: diff_output.txt exists, size: $(wc -c < diff_output.txt)" >&2
-            echo "diff_output<<MODULE_MONITOR_DELIMITER" >> $GITHUB_OUTPUT
-            cat diff_output.txt >> $GITHUB_OUTPUT
-            echo "MODULE_MONITOR_DELIMITER" >> $GITHUB_OUTPUT
+            # Use base64 encoding to avoid delimiter conflicts
+            DIFF_CONTENT=$(cat diff_output.txt | base64 -w 0)
+            echo "diff_output_encoded=$DIFF_CONTENT" >> $GITHUB_OUTPUT
           else
             echo "DEBUG: diff_output.txt not found" >&2
-            echo "diff_output<<MODULE_MONITOR_DELIMITER" >> $GITHUB_OUTPUT
-            echo "No changes detected" >> $GITHUB_OUTPUT
-            echo "MODULE_MONITOR_DELIMITER" >> $GITHUB_OUTPUT
+            echo "diff_output_encoded=" >> $GITHUB_OUTPUT
           fi
           
 
@@ -298,10 +290,21 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            console.log('DEBUG: diff_output length:', process.env.diff_output ? process.env.diff_output.length : 0);
+            // Decode the base64 content
+            let diffOutput = 'No changes detected';
+            if (process.env.diff_output_encoded) {
+              try {
+                diffOutput = Buffer.from(process.env.diff_output_encoded, 'base64').toString('utf8');
+              } catch (e) {
+                console.log('Error decoding diff_output:', e.message);
+                diffOutput = 'Error decoding output';
+              }
+            }
+            
+            console.log('DEBUG: diff_output length:', diffOutput.length);
             
             const commentBody = '## Module Monitor\n\nChanges detected in module.yml\n\n' + 
-              (process.env.diff_output || 'No changes detected') + '\n\n' +
+              diffOutput + '\n\n' +
               'This comment was automatically generated.';
 
             try {
@@ -344,7 +347,7 @@ jobs:
               console.log('Workflow completed successfully - PR detection and diff generation worked correctly.');
             }
         env:
-          diff_output: ${{ steps.set-output.outputs.diff_output }}
+          diff_output_encoded: ${{ steps.set-output.outputs.diff_output_encoded }}
 
 
 
@@ -354,5 +357,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Changes in zephyr/module.yml:" >> $GITHUB_STEP_SUMMARY
           echo '```diff' >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.set-output.outputs.diff_output }}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ steps.set-output.outputs.diff_output_encoded }}" ]; then
+            echo "${{ steps.set-output.outputs.diff_output_encoded }}" | base64 -d >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No changes detected" >> $GITHUB_STEP_SUMMARY
+          fi
           echo '```' >> $GITHUB_STEP_SUMMARY
