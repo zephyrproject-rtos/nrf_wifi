@@ -634,8 +634,8 @@ enum nrf_wifi_status nrf_wifi_fmac_set_reg(struct nrf_wifi_fmac_dev_ctx *fmac_de
 			      set_reg_cmd,
 			      sizeof(*set_reg_cmd));
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
-		nrf_wifi_osal_log_err("%s: Failed to set regulatory information",
-				      __func__);
+		nrf_wifi_osal_log_err("%s %u: Failed to set regulatory information",
+				      __func__, __LINE__);
 		goto out;
 	}
 
@@ -646,8 +646,8 @@ enum nrf_wifi_status nrf_wifi_fmac_set_reg(struct nrf_wifi_fmac_dev_ctx *fmac_de
 	}
 
 	if (!fmac_dev_ctx->reg_set_status) {
-		nrf_wifi_osal_log_err("%s: Failed to set regulatory information",
-				      __func__);
+		nrf_wifi_osal_log_err("%s %u: Failed to set regulatory information",
+				      __func__, __LINE__);
 		status = NRF_WIFI_STATUS_FAIL;
 		goto out;
 	}
