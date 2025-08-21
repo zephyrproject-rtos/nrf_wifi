@@ -30,18 +30,24 @@ BlobInfo = namedtuple(
 def parse_version_from_binary(binary_data: bytes) -> str:
     """
     Parse version from firmware binary.
-    Version is stored at bytes 8-12, e.g., 02 0e 02 01 -> 1.2.14.2
+    Version format: FAMILY.MAJOR.MINOR.PATCH
+    Based on patch_info.h: RPU_FAMILY, RPU_MAJOR_VERSION, RPU_MINOR_VERSION, RPU_PATCH_VERSION
     """
     if len(binary_data) < 12:
         logger.warning("Binary too short to extract version, using default")
         return "1.0.0"
 
-    # Extract version bytes (positions 8-12 reversed)
-    version_bytes = binary_data[12:8:-1]
+    # Extract version bytes (positions 8-11)
+    # Display format: FAMILY.MAJOR.MINOR.PATCH
+    # Bytes are stored in reverse order due to endianness: patch.min.maj.fam
+    # Example: 33 0d 02 01 -> 1.1.2.51 (FAMILY.MAJOR.MINOR.PATCH)
+    patch = binary_data[8]    # byte 8 = patch version (RPU_PATCH_VERSION) - 0x33 = 51
+    minor = binary_data[9]    # byte 9 = minor version (RPU_MINOR_VERSION) - 0x0d = 13
+    major = binary_data[10]   # byte 10 = major version (RPU_MAJOR_VERSION) - 0x02 = 2
+    family = binary_data[11]  # byte 11 = family (RPU_FAMILY) - 0x01 = 1
 
-    # Convert to version string: 01 02 0e 02 -> 1.2.14.2
-
-    version = ".".join(str(byte) for byte in version_bytes)
+    # Display as FAMILY.MAJOR.MINOR.PATCH
+    version = f"{family}.{major}.{minor}.{patch}"
     logger.debug(f"Extracted version from binary: {version}")
     return version
 
