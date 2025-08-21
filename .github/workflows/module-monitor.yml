@@ -53,18 +53,18 @@ jobs:
           echo "DEBUG: Current HEAD is $(git rev-parse HEAD)" >&2
           echo "DEBUG: Available commits:" >&2
           git log --oneline -5 >&2
-          
+
           # Get old and new module.yml content
           echo "DEBUG: Getting old module.yml from $BASE_REF" >&2
           git show $BASE_REF:zephyr/module.yml > old_module.yml
           echo "DEBUG: Getting new module.yml from pr-head" >&2
           git show pr-head:zephyr/module.yml > new_module.yml
-          
+
           echo "DEBUG: Old module.yml content:" >&2
           head -5 old_module.yml >&2
           echo "DEBUG: New module.yml content:" >&2
           head -5 new_module.yml >&2
-          
+
           # Parse YAML and generate comparison table
           echo "DEBUG: Starting Python script..." >&2
           python3 << 'PYTHON_SCRIPT_EOF'
@@ -90,7 +90,7 @@ jobs:
               """Parse and fix version string format"""
               if version_str == 'N/A':
                   return version_str
-              
+
               # Split by dots and reverse the order if it looks like it's reversed
               parts = version_str.split('.')
               if len(parts) >= 4:
@@ -106,7 +106,7 @@ jobs:
                   except ValueError:
                       # If we can't parse as integers, return as is
                       pass
-              
+
               return version_str
 
           def get_commit_info(commit_hash):
@@ -115,14 +115,14 @@ jobs:
                   import subprocess
                   import json
                   import os
-                  
+
                   # Use the cloned sdk-nrfxlib repository
                   sdk_repo_dir = 'sdk-nrfxlib-repo'
                   if not os.path.exists(sdk_repo_dir):
                       return {'hash': commit_hash[:7] if commit_hash != "Unknown" else "Unknown"}
-                  
+
                   # Get commit details from the sdk-nrfxlib repository
-                  result = subprocess.run(['git', 'log', '--format=%H|%s|%an|%ad', '--date=short', '-1', commit_hash], 
+                  result = subprocess.run(['git', 'log', '--format=%H|%s|%an|%ad', '--date=short', '-1', commit_hash],
                                         cwd=sdk_repo_dir, capture_output=True, text=True, timeout=10)
                   if result.returncode == 0 and result.stdout.strip():
                       parts = result.stdout.strip().split('|')
@@ -135,7 +135,7 @@ jobs:
                           }
               except:
                   pass
-              
+
               # Fallback: return basic info
               return {'hash': commit_hash[:7] if commit_hash != "Unknown" else "Unknown"}
 
@@ -145,14 +145,14 @@ jobs:
                   import subprocess
                   import os
                   import re
-                  
+
                   # First, check if we have PR metadata in the new module.yml file
                   try:
                       with open(new_module_file, 'r') as f:
                           content = f.read()
                           print(f"DEBUG: Looking for PR metadata in module.yml for commit {commit_hash}", file=sys.stderr)
                           print(f"DEBUG: Module.yml content starts with: {content[:200]}", file=sys.stderr)
-                          
+
                           # Look for PR metadata comment (more flexible pattern)
                           pr_match = re.search(r'# Generated from PR #(\d+) \(commit: ([a-f0-9]+)\)', content)
                           if pr_match:
@@ -173,20 +173,20 @@ jobs:
                   except Exception as e:
                       print(f"DEBUG: Error reading module.yml: {e}", file=sys.stderr)
                       pass
-                  
+
                   # Change to sdk-nrfxlib repository directory
                   sdk_repo_dir = 'sdk-nrfxlib-repo'
                   if not os.path.exists(sdk_repo_dir):
                       return {'display': commit_hash[:7] if commit_hash != "Unknown" else "Unknown"}
-                  
+
                   # Get all branches containing this commit
-                  result = subprocess.run(['git', 'branch', '-r', '--contains', commit_hash], 
+                  result = subprocess.run(['git', 'branch', '-r', '--contains', commit_hash],
                                         cwd=sdk_repo_dir, capture_output=True, text=True, timeout=10)
                   if result.returncode == 0:
                       branches = result.stdout.strip().split('\n')
                       branch_names = []
                       is_on_main = False
-                      
+
                       for branch in branches:
                           branch = branch.strip()
                           if branch:
@@ -194,7 +194,7 @@ jobs:
                               branch_names.append(branch_name)
                               if branch_name in ['main', 'master']:
                                   is_on_main = True
-                      
+
                       if is_on_main:
                           return {
                               'display': f"[{commit_hash[:7]} (main)](https://github.com/nrfconnect/sdk-nrfxlib/commit/{commit_hash})" if commit_hash != "Unknown" else "Unknown (main)"
@@ -206,7 +206,7 @@ jobs:
                           }
               except:
                   pass
-              
+
               # Default: show short commit hash with clickable link
               if commit_hash != "Unknown":
                   return {
@@ -221,7 +221,7 @@ jobs:
               """Generate diff link for the source repository"""
               old_commit = extract_commit_from_url(old_url)
               new_commit = extract_commit_from_url(new_url)
-              
+
               if old_commit != "Unknown" and new_commit != "Unknown" and old_commit != new_commit:
                   return f"https://github.com/nrfconnect/sdk-nrfxlib/compare/{old_commit}...{new_commit}"
               elif new_commit != "Unknown":
@@ -236,34 +236,34 @@ jobs:
               print("DEBUG: Loading new_module.yml...", file=sys.stderr)
               with open('new_module.yml', 'r') as f:
                   new_data = yaml.safe_load(f)
-              
+
               old_blobs = {blob['path']: blob for blob in old_data.get('blobs', [])}
               new_blobs = {blob['path']: blob for blob in new_data.get('blobs', [])}
-              
+
               # Generate comparison table
               table_rows = []
               table_rows.append("| Variant | Old Version | New Version | Old Commit | New Commit | Diff Link |")
               table_rows.append("|---------|-------------|-------------|------------|------------|-----------|")
-              
+
               all_paths = set(old_blobs.keys()) | set(new_blobs.keys())
-              
+
               for path in sorted(all_paths):
                   old_blob = old_blobs.get(path, {})
                   new_blob = new_blobs.get(path, {})
-                  
+
                   old_version = parse_version(old_blob.get('version', 'N/A'))
                   new_version = parse_version(new_blob.get('version', 'N/A'))
                   old_commit_hash = extract_commit_from_url(old_blob.get('url', ''))
                   new_commit_hash = extract_commit_from_url(new_blob.get('url', ''))
-                  
+
                   # Get additional commit information
                   old_commit_info = get_commit_info(old_commit_hash)
                   new_commit_info = get_commit_info(new_commit_hash)
-                  
+
                   # Check commit status (merged vs PR)
                   old_commit_status = get_commit_status(old_commit_hash)
                   new_commit_status = get_commit_status(new_commit_hash)
-                  
+
                   # Format commit display with PR detection
                   print(f"DEBUG: Processing {path} - old_commit: {old_commit_hash}, new_commit: {new_commit_hash}", file=sys.stderr)
                   old_commit_status = get_commit_status(old_commit_hash, 'old_module.yml')
@@ -271,25 +271,25 @@ jobs:
                   old_commit_display = old_commit_status['display']
                   new_commit_display = new_commit_status['display']
                   print(f"DEBUG: {path} - old_display: {old_commit_display}, new_display: {new_commit_display}", file=sys.stderr)
-                  
+
                   diff_link = generate_diff_link(old_blob.get('url', ''), new_blob.get('url', ''))
-                  
+
                   # Extract variant name from path
                   variant = path.split('/')[-2] if '/' in path else path
-                  
+
                   table_rows.append(f"| {variant} | {old_version} | {new_version} | {old_commit_display} | {new_commit_display} | {diff_link} |")
-              
+
               # Check if there are any actual changes
               has_changes = False
               for path in sorted(all_paths):
                   old_blob = old_blobs.get(path, {})
                   new_blob = new_blobs.get(path, {})
-                  if (old_blob.get('version') != new_blob.get('version') or 
+                  if (old_blob.get('version') != new_blob.get('version') or
                       old_blob.get('sha256') != new_blob.get('sha256') or
                       old_blob.get('url') != new_blob.get('url')):
                       has_changes = True
                       break
-              
+
               # Output the table
               diff_content = []
               if has_changes:
@@ -306,20 +306,20 @@ jobs:
                   summary_rows = []
                   summary_rows.append("| Variant | Version | Commit |")
                   summary_rows.append("|---------|---------|--------|")
-                  
+
                   for path in sorted(all_paths):
                       new_blob = new_blobs.get(path, {})
                       version = parse_version(new_blob.get('version', 'N/A'))
                       commit_hash = extract_commit_from_url(new_blob.get('url', ''))
                       commit_display = commit_hash[:7] if commit_hash != "Unknown" else "Unknown"
-                      
+
                       # Extract variant name from path
                       variant = path.split('/')[-2] if '/' in path else path
-                      
+
                       summary_rows.append(f"| {variant} | {version} | {commit_display} |")
-                  
+
                   diff_content.extend(summary_rows)
-              
+
               # Check for PR references to determine if DNM label should be added/removed
               has_pr_reference = False
               try:
@@ -332,18 +332,18 @@ jobs:
                           print(f"DEBUG: Found PR reference: PR #{pr_match.group(1)}", file=sys.stderr)
               except Exception as e:
                   print(f"DEBUG: Error checking for PR reference: {e}", file=sys.stderr)
-              
+
               # Write PR reference status to file for GitHub Actions
               with open('pr_reference_status.txt', 'w') as f:
                   f.write('true' if has_pr_reference else 'false')
-              
+
               # Write to file for GitHub Actions output
               print(f"DEBUG: Writing {len(diff_content)} lines to diff_output.txt", file=sys.stderr)
               with open('diff_output.txt', 'w') as f:
                   f.write('\n'.join(diff_content))
-              
+
               print(f"DEBUG: Successfully wrote diff_output.txt", file=sys.stderr)
-                  
+
           except Exception as e:
               print(f"Error generating comparison: {e}", file=sys.stderr)
               print("DEBUG: Python script completed successfully", file=sys.stderr)
@@ -354,7 +354,7 @@ jobs:
         run: |
           echo "DEBUG: Checking if files exist..." >&2
           ls -la *.txt >&2 || echo "No .txt files found" >&2
-          
+
           if [ -f diff_output.txt ]; then
             echo "DEBUG: diff_output.txt exists, size: $(wc -c < diff_output.txt)" >&2
             # Use base64 encoding to avoid delimiter conflicts
@@ -364,7 +364,7 @@ jobs:
             echo "DEBUG: diff_output.txt not found" >&2
             echo "diff_output_encoded=" >> $GITHUB_OUTPUT
           fi
-          
+
           if [ -f pr_reference_status.txt ]; then
             echo "DEBUG: pr_reference_status.txt exists" >&2
             PR_REFERENCE_STATUS=$(cat pr_reference_status.txt)
@@ -373,7 +373,7 @@ jobs:
             echo "DEBUG: pr_reference_status.txt not found" >&2
             echo "has_pr_reference=false" >> $GITHUB_OUTPUT
           fi
-          
+
 
 
       - name: Create or update comment
@@ -391,17 +391,17 @@ jobs:
                 diffOutput = 'Error decoding output';
               }
             }
-            
+
             console.log('DEBUG: diff_output length:', diffOutput.length);
-            
-            const commentBody = '## Module Monitor\n\nChanges detected in module.yml\n\n' + 
+
+            const commentBody = '## Module Monitor\n\nChanges detected in module.yml\n\n' +
               diffOutput + '\n\n' +
               'This comment was automatically generated.';
 
             // Handle DNM label management
             const hasPrReference = process.env.has_pr_reference === 'true';
             console.log('DEBUG: has_pr_reference:', hasPrReference);
-            
+
             try {
               // Get current labels
               const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
@@ -409,10 +409,10 @@ jobs:
                 repo: context.repo.repo,
                 issue_number: context.issue.number
               });
-              
+
               const hasDnmLabel = currentLabels.some(label => label.name === 'DNM');
               console.log('DEBUG: Current DNM label status:', hasDnmLabel);
-              
+
               // Add DNM label if PR reference is found and label doesn't exist
               if (hasPrReference && !hasDnmLabel) {
                 console.log('Adding DNM label due to PR reference');
@@ -447,11 +447,11 @@ jobs:
                 repo: context.repo.repo,
                 issue_number: context.issue.number
               });
-              
-              const existingComment = comments.find(comment => 
+
+              const existingComment = comments.find(comment =>
                 comment.body.includes('Module Monitor')
               );
-              
+
               if (existingComment) {
                 await github.rest.issues.updateComment({
                   owner: context.repo.owner,
@@ -476,7 +476,7 @@ jobs:
               console.log('---');
               console.log(commentBody);
               console.log('---');
-              
+
               // Don't fail the workflow - the PR detection worked correctly
               console.log('Workflow completed successfully - PR detection and diff generation worked correctly.');
             }
