@@ -91,12 +91,22 @@ jobs:
               if version_str == 'N/A':
                   return version_str
 
-              # Simply reverse the order of version components
+              # Version format should be FAMILY.MAJOR.MINOR.PATCH
+              # If the version appears reversed (PATCH.MINOR.MAJOR.FAMILY), fix it
               parts = version_str.split('.')
               if len(parts) >= 4:
-                  # Reverse the parts
-                  parts = parts[::-1]
-                  return '.'.join(parts)
+                  # Check if this looks like a reversed version (patch.min.maj.fam -> fam.maj.min.patch)
+                  # If the first part is larger than the last part, it's likely reversed
+                  try:
+                      first_part = int(parts[0])
+                      last_part = int(parts[-1])
+                      if first_part > last_part:
+                          # Reverse the parts to get FAMILY.MAJOR.MINOR.PATCH
+                          parts = parts[::-1]
+                          return '.'.join(parts)
+                  except ValueError:
+                      # If we can't parse as integers, return as is
+                      pass
 
               return version_str
 
