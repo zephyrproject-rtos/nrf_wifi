@@ -91,21 +91,12 @@ jobs:
               if version_str == 'N/A':
                   return version_str
 
-              # Split by dots and reverse the order if it looks like it's reversed
+              # Simply reverse the order of version components
               parts = version_str.split('.')
               if len(parts) >= 4:
-                  # Check if the version looks reversed (e.g., 2.14.2.1 should be 1.2.14.2)
-                  # If the first part is larger than the last part, it's likely reversed
-                  try:
-                      first_part = int(parts[0])
-                      last_part = int(parts[-1])
-                      if first_part > last_part and first_part > 10:
-                          # Reverse the parts
-                          parts = parts[::-1]
-                          return '.'.join(parts)
-                  except ValueError:
-                      # If we can't parse as integers, return as is
-                      pass
+                  # Reverse the parts
+                  parts = parts[::-1]
+                  return '.'.join(parts)
 
               return version_str
 
