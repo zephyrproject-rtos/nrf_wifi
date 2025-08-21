@@ -86,6 +86,29 @@ jobs:
                           return commit_part[:7]
               return "Unknown"
 
+          def parse_version(version_str):
+              """Parse and fix version string format"""
+              if version_str == 'N/A':
+                  return version_str
+              
+              # Split by dots and reverse the order if it looks like it's reversed
+              parts = version_str.split('.')
+              if len(parts) >= 4:
+                  # Check if the version looks reversed (e.g., 2.14.2.1 should be 1.2.14.2)
+                  # If the first part is larger than the last part, it's likely reversed
+                  try:
+                      first_part = int(parts[0])
+                      last_part = int(parts[-1])
+                      if first_part > last_part and first_part > 10:
+                          # Reverse the parts
+                          parts = parts[::-1]
+                          return '.'.join(parts)
+                  except ValueError:
+                      # If we can't parse as integers, return as is
+                      pass
+              
+              return version_str
+
           def get_commit_info(commit_hash):
               """Get additional commit information like branch and PR references"""
               try:
@@ -228,8 +251,8 @@ jobs:
                   old_blob = old_blobs.get(path, {})
                   new_blob = new_blobs.get(path, {})
                   
-                  old_version = old_blob.get('version', 'N/A')
-                  new_version = new_blob.get('version', 'N/A')
+                  old_version = parse_version(old_blob.get('version', 'N/A'))
+                  new_version = parse_version(new_blob.get('version', 'N/A'))
                   old_commit_hash = extract_commit_from_url(old_blob.get('url', ''))
                   new_commit_hash = extract_commit_from_url(new_blob.get('url', ''))
                   
@@ -286,7 +309,7 @@ jobs:
                   
                   for path in sorted(all_paths):
                       new_blob = new_blobs.get(path, {})
-                      version = new_blob.get('version', 'N/A')
+                      version = parse_version(new_blob.get('version', 'N/A'))
                       commit_hash = extract_commit_from_url(new_blob.get('url', ''))
                       commit_display = commit_hash[:7] if commit_hash != "Unknown" else "Unknown"
                       
@@ -296,6 +319,23 @@ jobs:
                       summary_rows.append(f"| {variant} | {version} | {commit_display} |")
                   
                   diff_content.extend(summary_rows)
+              
+              # Check for PR references to determine if DNM label should be added/removed
+              has_pr_reference = False
+              try:
+                  with open('new_module.yml', 'r') as f:
+                      content = f.read()
+                      # Look for PR metadata comment
+                      pr_match = re.search(r'# Generated from PR #(\d+) \(commit: ([a-f0-9]+)\)', content)
+                      if pr_match:
+                          has_pr_reference = True
+                          print(f"DEBUG: Found PR reference: PR #{pr_match.group(1)}", file=sys.stderr)
+              except Exception as e:
+                  print(f"DEBUG: Error checking for PR reference: {e}", file=sys.stderr)
+              
+              # Write PR reference status to file for GitHub Actions
+              with open('pr_reference_status.txt', 'w') as f:
+                  f.write('true' if has_pr_reference else 'false')
               
               # Write to file for GitHub Actions output
               print(f"DEBUG: Writing {len(diff_content)} lines to diff_output.txt", file=sys.stderr)
@@ -325,6 +365,15 @@ jobs:
             echo "diff_output_encoded=" >> $GITHUB_OUTPUT
           fi
           
+          if [ -f pr_reference_status.txt ]; then
+            echo "DEBUG: pr_reference_status.txt exists" >&2
+            PR_REFERENCE_STATUS=$(cat pr_reference_status.txt)
+            echo "has_pr_reference=$PR_REFERENCE_STATUS" >> $GITHUB_OUTPUT
+          else
+            echo "DEBUG: pr_reference_status.txt not found" >&2
+            echo "has_pr_reference=false" >> $GITHUB_OUTPUT
+          fi
+          
 
 
       - name: Create or update comment
@@ -348,6 +397,49 @@ jobs:
             const commentBody = '## Module Monitor\n\nChanges detected in module.yml\n\n' + 
               diffOutput + '\n\n' +
               'This comment was automatically generated.';
+
+            // Handle DNM label management
+            const hasPrReference = process.env.has_pr_reference === 'true';
+            console.log('DEBUG: has_pr_reference:', hasPrReference);
+            
+            try {
+              // Get current labels
+              const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number
+              });
+              
+              const hasDnmLabel = currentLabels.some(label => label.name === 'DNM');
+              console.log('DEBUG: Current DNM label status:', hasDnmLabel);
+              
+              // Add DNM label if PR reference is found and label doesn't exist
+              if (hasPrReference && !hasDnmLabel) {
+                console.log('Adding DNM label due to PR reference');
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  labels: ['DNM']
+                });
+              }
+              // Remove DNM label if PR reference is gone and label exists
+              else if (!hasPrReference && hasDnmLabel) {
+                console.log('Removing DNM label as PR reference is gone');
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name: 'DNM'
+                });
+              }
+              else {
+                console.log('No DNM label action needed');
+              }
+            } catch (error) {
+              console.log('Could not manage DNM label due to permissions or other error.');
+              console.log('Error:', error.message);
+            }
 
             try {
               const { data: comments } = await github.rest.issues.listComments({
@@ -390,6 +482,7 @@ jobs:
             }
         env:
           diff_output_encoded: ${{ steps.set-output.outputs.diff_output_encoded }}
+          has_pr_reference: ${{ steps.set-output.outputs.has_pr_reference }}
 
 
 
