@@ -36,15 +36,12 @@ def parse_version_from_binary(binary_data: bytes) -> str:
         logger.warning("Binary too short to extract version, using default")
         return "1.0.0"
 
-    # Extract version bytes (positions 8-12)
-    version_bytes = binary_data[8:12]
+    # Extract version bytes (positions 8-12 reversed)
+    version_bytes = binary_data[12:8:-1]
 
-    # Convert to version string: 02 0e 02 01 -> 1.2.14.2
-    version_parts = []
-    for byte in version_bytes:
-        version_parts.append(str(byte))
+    # Convert to version string: 01 02 0e 02 -> 1.2.14.2
 
-    version = ".".join(version_parts)
+    version = ".".join(str(byte) for byte in version_bytes)
     logger.debug(f"Extracted version from binary: {version}")
     return version
 
@@ -56,7 +53,7 @@ def get_wifi_blob_info(name: str) -> BlobInfo:
         "1.0.0",  # This will be overridden by actual binary parsing
         f"nrf_wifi/bin/zephyr/{name}/{WIFI_FW_BIN_NAME}",
         f"wifi_fw_bins/{name}/{WIFI_FW_BIN_NAME}",
-        f"https://docs.nordicsemi.com/bundle/ps_nrf7000/page/chapters/notice/doc/notice_on_sw.html",
+        "https://docs.nordicsemi.com/bundle/ps_nrf7000/page/chapters/notice/doc/notice_on_sw.html",
     )
 
 
