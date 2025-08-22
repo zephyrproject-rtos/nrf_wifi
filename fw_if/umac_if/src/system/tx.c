@@ -978,6 +978,7 @@ enum nrf_wifi_status rawtx_cmd_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	struct host_rpu_msg *umac_cmd = NULL;
 	unsigned int len = 0;
 	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
+	void *nwb = NULL;
 
 	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
@@ -1003,6 +1004,16 @@ enum nrf_wifi_status rawtx_cmd_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	status = nrf_wifi_hal_ctrl_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 					    umac_cmd,
 					    (sizeof(*umac_cmd) + len));
+
+	while (nrf_wifi_utils_q_len(txq)) {
+		nwb = nrf_wifi_utils_q_dequeue(txq);
+
+		if (!nwb) {
+			continue;
+		}
+
+		nrf_wifi_osal_nbuf_free(nwb);
+	}
 out:
 	return status;
 }
@@ -1381,7 +1392,6 @@ static enum nrf_wifi_status tx_done_process(struct nrf_wifi_fmac_dev_ctx *fmac_d
 
 	if (pkts_pending) {
 #ifdef NRF70_RAW_DATA_TX
-		unsigned char *data = NULL;
 		struct nrf_wifi_fmac_vif_ctx *vif_ctx;
 		unsigned char if_idx;
 		void *nwb = NULL;
@@ -1394,9 +1404,8 @@ static enum nrf_wifi_status tx_done_process(struct nrf_wifi_fmac_dev_ctx *fmac_d
 		 * packet is a raw packet or not
 		 */
 		nwb = nrf_wifi_utils_list_peek(txq);
-		data = nrf_wifi_osal_nbuf_data_get(nwb);
 
-		if (*(unsigned int *)data != NRF_WIFI_MAGIC_NUM_RAWTX) {
+		if (!nrf_wifi_osal_nbuf_is_raw_tx(nwb)) {
 #endif /* NRF70_RAW_DATA_TX */
 			if (sys_dev_ctx->twt_sleep_status ==
 			    NRF_WIFI_FMAC_TWT_STATE_AWAKE) {
