@@ -53,7 +53,7 @@ void nrf_wifi_bal_deinit(struct nrf_wifi_bal_priv *bpriv);
  * @return Pointer to the added device context.
  */
 struct nrf_wifi_bal_dev_ctx *nrf_wifi_bal_dev_add(struct nrf_wifi_bal_priv *bpriv,
-	void *hal_dev_ctx);
+						  void *hal_dev_ctx);
 
 /**
  * @brief Remove a device context from the BAL layer.
@@ -99,8 +99,8 @@ unsigned int nrf_wifi_bal_read_word(void *ctx, unsigned long addr_offset);
  * @param val Value to write.
  */
 void nrf_wifi_bal_write_word(void *ctx,
-		unsigned long addr_offset,
-		unsigned int val);
+			     unsigned long addr_offset,
+			     unsigned int val);
 
 /**
  * @brief Read a block of data from a specific address offset.
@@ -111,9 +111,9 @@ void nrf_wifi_bal_write_word(void *ctx,
  * @param len Length of the data to read.
  */
 void nrf_wifi_bal_read_block(void *ctx,
-		void *dest_addr,
-		unsigned long src_addr_offset,
-		size_t len);
+			     void *dest_addr,
+			     unsigned long src_addr_offset,
+			     size_t len);
 
 /**
  * @brief Write a block of data to a specific address offset.
@@ -124,9 +124,22 @@ void nrf_wifi_bal_read_block(void *ctx,
  * @param len Length of the data to write.
  */
 void nrf_wifi_bal_write_block(void *ctx,
-		unsigned long dest_addr_offset,
-		const void *src_addr,
-		size_t len);
+			      unsigned long dest_addr_offset,
+			      const void *src_addr,
+			      size_t len);
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+unsigned long nrf_wifi_bal_dma_map_inline_rx(void *ctx,
+				unsigned long virt_addr,
+				size_t len,
+				enum nrf_wifi_osal_dma_dir dma_dir);
+
+unsigned long nrf_wifi_bal_dma_unmap_inline_rx(void *ctx,
+				unsigned long phy_addr,
+				size_t len,
+				enum nrf_wifi_osal_dma_dir dma_dir);
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 
 /**
  * @brief Map a virtual address to a physical address for DMA transfer.
@@ -139,9 +152,9 @@ void nrf_wifi_bal_write_block(void *ctx,
  * @return The mapped physical address.
  */
 unsigned long nrf_wifi_bal_dma_map(void *ctx,
-		unsigned long virt_addr,
-		size_t len,
-		enum nrf_wifi_osal_dma_dir dma_dir);
+				   unsigned long virt_addr,
+				   size_t len,
+				   enum nrf_wifi_osal_dma_dir dma_dir);
 
 /**
  * @brief Unmap a physical address for DMA transfer.
@@ -152,9 +165,9 @@ unsigned long nrf_wifi_bal_dma_map(void *ctx,
  * @param dma_dir DMA direction.
  */
 unsigned long nrf_wifi_bal_dma_unmap(void *ctx,
-		unsigned long phy_addr,
-		size_t len,
-		enum nrf_wifi_osal_dma_dir dma_dir);
+				     unsigned long phy_addr,
+				     size_t len,
+				     enum nrf_wifi_osal_dma_dir dma_dir);
 
 /**
  * @brief Enable bus access recording.
