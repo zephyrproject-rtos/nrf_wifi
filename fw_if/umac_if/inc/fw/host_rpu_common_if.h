@@ -138,6 +138,30 @@ struct host_rpu_umac_info {
 	/** OTP params */
 	unsigned int calib[9];
 } __NRF_WIFI_PKD;
+
+#ifdef NRF71_SOFT_HPQM
+
+#define NRF_WIFI_HOST_RPU_CMD_BUFFERS 4
+#define NRF_WIFI_HOST_RPU_EVENT_BUFFERS 7
+#define NRF_WIFI_HOST_RPU_TX_DESC 12
+
+struct soft_hpqm_info {
+	volatile unsigned int host_cmd_free_index;
+	volatile unsigned int rpu_cmd_busy_index;
+	volatile unsigned int host_event_busy_index;
+	volatile unsigned int rpu_event_free_index;
+	volatile unsigned int host_tx_cmd_busy_index;
+	volatile unsigned int rpu_tx_cmd_busy_index;
+	volatile unsigned int host_tx_done_busy_index;
+	volatile unsigned int rpu_tx_done_busy_index;
+	volatile unsigned int cmd_free_buffs[NRF_WIFI_HOST_RPU_CMD_BUFFERS];
+	volatile unsigned int cmd_busy_buffs[NRF_WIFI_HOST_RPU_CMD_BUFFERS];
+	volatile unsigned int event_free_buffs[NRF_WIFI_HOST_RPU_EVENT_BUFFERS];
+	volatile unsigned int event_busy_buffs[NRF_WIFI_HOST_RPU_EVENT_BUFFERS];
+	volatile unsigned int tx_cmd_buffs[NRF_WIFI_HOST_RPU_TX_DESC];
+	volatile unsigned int tx_done_buffs[NRF_WIFI_HOST_RPU_TX_DESC];
+} __NRF_WIFI_PKD;
+#endif /* NRF71_SOFT_HPQM */
 /**
  * @}
  */

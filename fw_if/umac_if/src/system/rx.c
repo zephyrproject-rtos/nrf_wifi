@@ -13,6 +13,9 @@
 #include "system/fmac_rx.h"
 #include "common/fmac_util.h"
 #include "system/fmac_promisc.h"
+#ifdef NRF71_HOST_RX_BUF_CMD
+#include "system/fmac_api.h"
+#endif /* NRF71_HOST_RX_BUF_CMD */
 
 static enum nrf_wifi_status
 nrf_wifi_fmac_map_desc_to_pool(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
@@ -165,6 +168,47 @@ static void nrf_wifi_convert_to_eth(void *nwb,
 }
 #endif /* NRF70_STA_MODE */
 
+#ifdef NRF71_HOST_RX_BUF_CMD
+unsigned long nrf_wifi_fmac_get_rx_buf_map_addr(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						unsigned int desc_id)
+{
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
+	struct nrf_wifi_sys_fmac_priv *sys_fpriv = NULL;
+	struct nrf_wifi_fmac_buf_map_info *rx_buf_info = NULL;
+	struct nrf_wifi_fmac_rx_pool_map_info pool_info;
+	unsigned long phy_addr = 0;
+
+	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+	sys_fpriv = wifi_fmac_priv(fmac_dev_ctx->fpriv);
+
+	status = nrf_wifi_fmac_map_desc_to_pool(fmac_dev_ctx,
+						desc_id,
+						&pool_info);
+
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: nrf_wifi_fmac_map_desc_to_pool failed\n",
+				      __func__);
+		goto out;
+	}
+
+	rx_buf_info = &sys_dev_ctx->rx_buf_info[desc_id];
+
+	if (rx_buf_info->mapped) {
+		phy_addr = nrf_wifi_sys_hal_get_buf_map_rx(fmac_dev_ctx->hal_dev_ctx,
+							   pool_info.pool_id,
+							   pool_info.buf_id);
+		return phy_addr;
+	} else {
+		nrf_wifi_osal_log_err("%s: rx buffer not mapped  for desc_id= %d\n",
+				      __func__,
+				      desc_id);
+	}
+out:
+	return 0;
+}
+#endif /* NRF71_HOST_RX_BUF_CMD */
+
 enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 					       enum nrf_wifi_fmac_rx_cmd_type cmd_type,
 					       unsigned int desc_id)
@@ -245,12 +289,14 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 #else
 		rx_cmd.addr = (unsigned int)nwb_data;
 #endif /* NRF71_ON_IPC */
+#ifndef NRF71_HOST_RX_BUF_CMD
 		status = nrf_wifi_sys_hal_data_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 							NRF_WIFI_HAL_MSG_TYPE_CMD_DATA_RX,
 							&rx_cmd,
 							sizeof(rx_cmd),
 							desc_id,
 							pool_info.pool_id);
+#endif /* NRF71_HOST_RX_BUF_CMD */
 	} else if (cmd_type == NRF_WIFI_FMAC_RX_CMD_TYPE_DEINIT) {
 #ifndef NRF71_ON_IPC
 		/* TODO: Need to initialize a command and send it to LMAC
@@ -359,6 +405,10 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 #endif /* NRF70_STA_MODE */
 	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
 	struct nrf_wifi_sys_fmac_priv *sys_fpriv = NULL;
+#ifdef NRF71_HOST_RX_BUF_CMD
+	unsigned int buf_addr = 0;
+	struct nrf_wifi_rx_buf *rx_buf_ipc = NULL, *rx_buf_info_iter = NULL;
+#endif /* NRF71_HOST_RX_BUF_CMD */
 
 	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 	sys_fpriv = wifi_fmac_priv(fmac_dev_ctx->fpriv);
@@ -372,6 +422,12 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 	}
 #endif /* NRF70_STA_MODE */
 	num_pkts = config->rx_pkt_cnt;
+
+#ifdef NRF71_HOST_RX_BUF_CMD
+        rx_buf_ipc = nrf_wifi_osal_mem_zalloc(num_pkts *
+					      sizeof(struct nrf_wifi_rx_buf));
+        rx_buf_info_iter = rx_buf_ipc;
+#endif /* NRF71_HOST_RX_BUF_CMD */
 
 	for (i = 0; i < num_pkts; i++) {
 		desc_id = config->rx_buff_info[i].descriptor_id;
@@ -548,8 +604,38 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 					      __func__);
 			continue;
 		}
+#ifdef NRF71_HOST_RX_BUF_CMD
+                buf_addr = (unsigned int) nrf_wifi_fmac_get_rx_buf_map_addr(fmac_dev_ctx,
+									    desc_id);
+                if (buf_addr) {
+                        rx_buf_info_iter->skb_pointer = buf_addr;
+                        rx_buf_info_iter->skb_desc_no = desc_id;
+                        rx_buf_info_iter++;
+                } else {
+                        nrf_wifi_osal_log_err("%s: UMAC rx buff not mapped\
+                                               for desc_id = %d\n",
+					       __func__,
+					       desc_id);
+			continue;
+                }
+#endif /* NRF71_HOST_RX_BUF_CMD */
 	}
-
+#ifdef NRF71_HOST_RX_BUF_CMD
+        status = nrf_wifi_sys_fmac_prog_rx_buf_info(fmac_dev_ctx,
+						    rx_buf_ipc,
+						    num_pkts);
+        if (status != NRF_WIFI_STATUS_SUCCESS) {
+                nrf_wifi_osal_log_err("%s: UMAC rx buff\
+                                      programming failed \n",
+                                      __func__);
+                status = NRF_WIFI_STATUS_FAIL;
+        } else {
+                nrf_wifi_osal_log_dbg("%s: UMAC rx buff refill\
+                                      programmed for num_buffs= %d \n",
+                                      __func__, num_pkts);
+                nrf_wifi_osal_mem_free(rx_buf_ipc);
+        }
+#endif /* NRF71_HOST_RX_BUF_CMD */
 	/* A single failure returns failure for the entire event */
 	return status;
 }

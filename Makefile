@@ -97,6 +97,7 @@ ccflags-y += -DNRF_WIFI_RPU_RECOVERY_PS_ACTIVE_TIMEOUT_MS=50000
 ccflags-y += -DNRF_WIFI_DISPLAY_SCAN_BSS_LIMIT=150
 ccflags-y += -DNRF_WIFI_RPU_MIN_TIME_TO_ENTER_SLEEP_MS=1000
 ccflags-y += -DWIFI_NRF70_LOG_LEVEL=1
+#ccflags-y += -DNRF71_HOST_RX_BUF_CMD
 
 # Source files
 SRCS = os_if/src/osal.c \
