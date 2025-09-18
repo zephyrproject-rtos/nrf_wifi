@@ -24,7 +24,6 @@
 #include "system/fmac_bb.h"
 #include "util.h"
 
-
 static unsigned char nrf_wifi_fmac_vif_idx_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
 {
 	unsigned char i = 0;
@@ -371,7 +370,6 @@ out:
 	return fmac_dev_ctx;
 }
 
-
 enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 #ifdef NRF_WIFI_LOW_POWER
 					    int sleep_type,
@@ -386,9 +384,14 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 #ifndef NRF71_ON_IPC
+#ifdef WIFI_NRF71
+	struct nrf_wifi_phy_rf_params phy_rf_params = { 0};
+	int ret = -1;
+#else /* WIFI_NRF71 */
         struct nrf_wifi_fmac_otp_info otp_info;
-#endif /* !NRF71_ON_IPC */
 	struct nrf_wifi_phy_rf_params phy_rf_params;
+#endif /* !WIFI_NRF71 */
+#endif /* !NRF71_ON_IPC */
 
 	if (!fmac_dev_ctx) {
 		nrf_wifi_osal_log_err("%s: Invalid device context",
@@ -416,6 +419,21 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 	}
 
 #ifndef NRF71_ON_IPC
+#ifdef WIFI_NRF71
+	nrf_wifi_osal_mem_set(&phy_rf_params,
+			      0x0,
+			      sizeof(phy_rf_params));
+
+	ret = nrf_wifi_utils_hex_str_to_val(
+			(unsigned char *)&phy_rf_params.phy_params,
+			sizeof(phy_rf_params.phy_params),
+			NRF_WIFI_SYS_DEF_RF_PARAMS);
+	if (ret == -1) {
+		nrf_wifi_osal_log_err("%s: Initialization of RF params with default values failed", __func__);
+		status = NRF_WIFI_STATUS_FAIL;
+		goto out;
+	}
+#else /* WIFI_NRF71 */
 	nrf_wifi_osal_mem_set(&otp_info,
 			      0xFF,
 			      sizeof(otp_info));
@@ -437,6 +455,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 				      __func__);
 		goto out;
 	}
+#endif  /* !WIFI_NRF71 */
 #endif /* !NRF71_ON_IPC */
 
 	status = nrf_wifi_sys_fmac_fw_init(fmac_dev_ctx,
@@ -1045,6 +1064,255 @@ out:
 	return status;
 }
 
+#ifdef WIFI_NRF71
+static void secure_crypto_reg_write(void *dev_ctx,
+				    unsigned char *key,
+				    unsigned int key_len,
+				    unsigned int register_len,
+				    unsigned long address_offset)
+{
+	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+
+	fmac_dev_ctx = dev_ctx;
+
+	status = hal_rpu_mem_write(fmac_dev_ctx->hal_dev_ctx,
+				   RPU_ADDR_SECURERAM_REGION + address_offset,
+				   key,
+				   key_len);
+}
+
+static void revMemCopy(unsigned char *dest,
+		       unsigned char *src,
+		       unsigned int size)
+{
+	unsigned int byteCnt = size;
+
+	for (byteCnt = 0; byteCnt < size; byteCnt++) {
+		*(dest+byteCnt) = *(src+size-byteCnt - 1);
+	}
+}
+
+static bool findValidPeerDBIndex(struct nrf_wifi_fmac_dev_ctx *dev_ctx,
+				 struct nrf_wifi_umac_key_info *peer_key,
+				 const char *mac_addr,
+				 unsigned char if_idx,
+				 unsigned char *peerDBIndex)
+{
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
+	struct nrf_wifi_fmac_vif_ctx *vif_ctx = NULL;
+	bool peerKeyDbFound = 0;
+	unsigned char i, freeDB = 0xff;
+	struct peerKeydataBase *peerKeyDB = NULL;
+
+	sys_dev_ctx = wifi_dev_priv(dev_ctx);
+	vif_ctx = sys_dev_ctx->vif_ctx[if_idx];
+
+	peerKeyDB = &sys_dev_ctx->peerKeyDB[0];
+
+	if (peer_key->key_type == NRF_WIFI_KEYTYPE_PAIRWISE) {
+		for (i = 0; i < MAX_PEERS; i++) {
+			if (nrf_wifi_util_ether_addr_equal(vif_ctx->mac_addr,
+					   (peerKeyDB + i)->vifMacAddr) &&
+			    nrf_wifi_util_ether_addr_equal(mac_addr,
+					   (peerKeyDB + i)->peerMacAddr) &&
+			    ((peerKeyDB + i)->keyValid == KEY_VALID)) {
+				peerKeyDbFound = 1;
+				*peerDBIndex = i;
+				break;
+			}
+			if ((peerKeyDB + i)->keyValid == KEY_INVALID &&
+			    (freeDB == 0xff)) {
+				freeDB = i;
+			}
+		}
+		if ((peerKeyDbFound == 0) && (freeDB < MAX_PEERS)) {
+			peerKeyDbFound = 1;
+			*peerDBIndex = freeDB;
+			nrf_wifi_osal_mem_cpy((peerKeyDB + freeDB)->peerMacAddr,
+					      mac_addr,
+					      NRF_WIFI_ETH_ADDR_LEN);
+			nrf_wifi_osal_mem_cpy((peerKeyDB + freeDB)->vifMacAddr,
+					      vif_ctx->mac_addr,
+					      NRF_WIFI_ETH_ADDR_LEN);
+			(peerKeyDB + freeDB)->keyValid = KEY_VALID;
+		}
+
+		if (peerKeyDbFound) {
+			return 1;
+		}
+	} else {
+		if (vif_ctx->if_type == NRF_WIFI_IFTYPE_STATION) {
+			for (i = 0; i < MAX_PEERS; i++) {
+				if (nrf_wifi_util_ether_addr_equal(
+					vif_ctx->mac_addr,
+					(peerKeyDB + i)->vifMacAddr) &&
+				    nrf_wifi_util_ether_addr_equal(
+					vif_ctx->bssid,
+					(peerKeyDB + i)->peerMacAddr) &&
+				    ((peerKeyDB + i)->keyValid == KEY_VALID)) {
+					peerKeyDbFound = 1;
+					*peerDBIndex = i;
+					break;
+				}
+				if ((peerKeyDB + i)->keyValid == KEY_INVALID &&
+				    (freeDB == 0xff)) {
+					freeDB = i;
+				}
+			}
+			if ((peerKeyDbFound == 0) && (freeDB < MAX_PEERS)) {
+				peerKeyDbFound = 1;
+				*peerDBIndex = freeDB;
+				nrf_wifi_osal_mem_cpy(
+					(peerKeyDB + freeDB)->peerMacAddr,
+					vif_ctx->bssid,
+					NRF_WIFI_ETH_ADDR_LEN);
+				nrf_wifi_osal_mem_cpy(
+					(peerKeyDB + freeDB)->vifMacAddr,
+					vif_ctx->mac_addr,
+					NRF_WIFI_ETH_ADDR_LEN);
+				(peerKeyDB + freeDB)->keyValid = KEY_VALID;
+			}
+			if (peerKeyDbFound) {
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+static bool program_peer_key(struct nrf_wifi_fmac_dev_ctx *dev_ctx,
+			     struct nrf_wifi_umac_key_info *peer_key,
+			     unsigned char if_idx,
+			     const char *mac_addr,
+			     unsigned char *peerDBIndex)
+{
+	unsigned char micKeyLen = 0, index = 0;
+	unsigned int validDB = 0;
+	unsigned char *ptr, *micptr;
+	unsigned long address_offset;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
+	struct nrf_wifi_fmac_vif_ctx *vif_ctx = NULL;
+	struct peerKeydataBase *peerKeyDB = NULL;
+
+	sys_dev_ctx = wifi_dev_priv(dev_ctx);
+	vif_ctx = sys_dev_ctx->vif_ctx[if_idx];
+
+	validDB = findValidPeerDBIndex(dev_ctx,
+			peer_key, mac_addr, if_idx, peerDBIndex);
+
+	if (validDB) {
+		index = *peerDBIndex;
+		peerKeyDB = &sys_dev_ctx->peerKeyDB[index];
+		/* UNICAST */
+		if (peer_key->key_type == NRF_WIFI_KEYTYPE_PAIRWISE) {
+			switch (peer_key->cipher_suite) {
+			case NRF_WIFI_FMAC_CIPHER_SUITE_SMS4:
+				micKeyLen = PEER_MIC_KEY_LEN_16;
+				revMemCopy(peerKeyDB->ucstWapiMicKey,
+					   peer_key->key.nrf_wifi_key,
+					   PEER_MIC_KEY_LEN_16);
+				micptr = peerKeyDB->ucstWapiMicKey;
+			break;
+			case NRF_WIFI_FMAC_CIPHER_SUITE_TKIP:
+				micKeyLen = PEER_MIC_KEY_LEN_8;
+				revMemCopy(peerKeyDB->ucst.TxMicKey,
+					   peer_key->key.nrf_wifi_key,
+					   PEER_MIC_KEY_LEN_8);
+				revMemCopy(peerKeyDB->ucst.RxMicKey,
+					   peer_key->key.nrf_wifi_key,
+					   PEER_MIC_KEY_LEN_8);
+				micptr = peerKeyDB->ucst.TxMicKey;
+			break;
+			default:
+				micKeyLen = 0;
+			}
+			if ((peer_key->cipher_suite ==
+				NRF_WIFI_FMAC_CIPHER_SUITE_CCMP_256) ||
+			    (peer_key->cipher_suite ==
+				NRF_WIFI_FMAC_CIPHER_SUITE_GCMP_256)) {
+				revMemCopy(peerKeyDB->ucstKey,
+					   peer_key->key.nrf_wifi_key,
+					   PEER_ENC_KEY_LEN_32);
+			} else {
+				revMemCopy(peerKeyDB->ucstKey,
+					   peer_key->key.nrf_wifi_key,
+					   PEER_ENC_KEY_LEN_16);
+			}
+			if (micKeyLen) {
+				address_offset = index * (PEER_KEY_TOTAL_LEN);
+				 secure_crypto_reg_write(dev_ctx,
+							 micptr,
+							 micKeyLen,
+							 4,
+							 address_offset);
+			} else {
+				address_offset = index * (PEER_KEY_TOTAL_LEN) +
+					PEER_MIC_KEY_LEN_16;
+				ptr = peerKeyDB->ucstKey;
+				secure_crypto_reg_write(dev_ctx,
+							ptr,
+							32,
+							4,
+							address_offset);
+			}
+		} else if (peer_key->key_type == NRF_WIFI_KEYTYPE_GROUP) {
+			switch (peer_key->cipher_suite) {
+			case NRF_WIFI_FMAC_CIPHER_SUITE_SMS4:
+				micKeyLen = PEER_MIC_KEY_LEN_16;
+				revMemCopy(peerKeyDB->bcstWapiMicKey,
+					   peer_key->key.nrf_wifi_key,
+					   PEER_ENC_KEY_LEN_16);
+				micptr = peerKeyDB->bcstWapiMicKey;
+			break;
+			case NRF_WIFI_FMAC_CIPHER_SUITE_TKIP:
+				micKeyLen = PEER_MIC_KEY_LEN_8;
+				revMemCopy(peerKeyDB->bcst.RxMicKey,
+					   peer_key->key.nrf_wifi_key,
+					   PEER_MIC_KEY_LEN_8);
+				micptr = peerKeyDB->bcst.RxMicKey;
+			break;
+			default:
+				micKeyLen = 0;
+			break;
+			}
+			if ((peer_key->cipher_suite ==
+					NRF_WIFI_FMAC_CIPHER_SUITE_CCMP_256) ||
+			    (peer_key->cipher_suite ==
+					NRF_WIFI_FMAC_CIPHER_SUITE_GCMP_256)) {
+				revMemCopy(peerKeyDB->bcstKey,
+					   peer_key->key.nrf_wifi_key,
+					   PEER_ENC_KEY_LEN_32);
+			} else {
+				revMemCopy(peerKeyDB->bcstKey,
+					   peer_key->key.nrf_wifi_key,
+					   PEER_ENC_KEY_LEN_16);
+			}
+			if (micKeyLen) {
+				address_offset = index * (PEER_KEY_TOTAL_LEN) +
+				PEER_MIC_KEY_LEN_16 + PEER_UNICAST_KEY_LEN +
+				(peer_key->key_idx * PEER_MIC_KEY_LEN_16);
+
+				secure_crypto_reg_write(dev_ctx,
+							micptr,
+							micKeyLen,
+							4,
+							address_offset);
+			} else {
+				ptr = peerKeyDB->bcstKey;
+				address_offset = index * (PEER_KEY_TOTAL_LEN) +
+				PEER_MIC_KEY_LEN_16 + PEER_UNICAST_KEY_LEN +
+				(4 * PEER_MIC_KEY_LEN_16) +
+				(peer_key->key_idx * PEER_BCST_KEY_LEN);
+
+				secure_crypto_reg_write(dev_ctx,
+						ptr, 32, 4, address_offset);
+			}
+		}
+	}
+	return validDB;
+}
+#endif /* WIFI_NRF71 */
 
 enum nrf_wifi_status nrf_wifi_sys_fmac_add_key(void *dev_ctx,
 					       unsigned char if_idx,
@@ -1057,7 +1325,9 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_add_key(void *dev_ctx,
 	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
 	struct nrf_wifi_fmac_vif_ctx *vif_ctx = NULL;
 	int peer_id = -1;
-
+#ifdef WIFI_NRF71
+	bool validDB = 0;
+#endif /* WIFI_NRF71 */
 	fmac_dev_ctx = dev_ctx;
 
 	if (fmac_dev_ctx->op_mode != NRF_WIFI_OP_MODE_SYS) {
@@ -1124,6 +1394,18 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_add_key(void *dev_ctx,
 	key_cmd->key_info.valid_fields |= NRF_WIFI_CIPHER_SUITE_VALID;
 	key_cmd->key_info.valid_fields |= NRF_WIFI_KEY_TYPE_VALID;
 
+#ifdef WIFI_NRF71
+	validDB = program_peer_key(fmac_dev_ctx,
+			key_info, if_idx, mac_addr, &key_cmd->peerDBIndex);
+
+	if (!validDB) {
+		nrf_wifi_osal_log_err("%s: Not able to store program key %d",
+				      __func__,
+				      key_info->key_type);
+		goto out;
+	}
+#endif /* WIFI_NRF71 */
+
 	status = umac_cmd_cfg(fmac_dev_ctx,
 			      key_cmd,
 			      sizeof(*key_cmd));
@@ -1146,6 +1428,10 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_del_key(void *dev_ctx,
 	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
 	struct nrf_wifi_fmac_vif_ctx *vif_ctx = NULL;
 	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
+#ifdef WIFI_NRF71
+	struct peerKeydataBase *peerKeyDB = NULL;
+	unsigned int i, peerKeyDbFound = 0, peerDBIndex;
+#endif /* WIFI_NRF71 */
 
 	fmac_dev_ctx = dev_ctx;
 
@@ -1190,6 +1476,48 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_del_key(void *dev_ctx,
 		vif_ctx->groupwise_cipher = 0;
 	}
 
+#ifdef WIFI_NRF71
+	peerKeyDB = &sys_dev_ctx->peerKeyDB[0];
+
+	for (i = 0; i < MAX_PEERS; i++) {
+		/* If Peer mac address is available(Mostly in AP case) */
+		if (mac_addr) {
+			if (nrf_wifi_util_ether_addr_equal(
+				vif_ctx->mac_addr,
+				(peerKeyDB + i)->vifMacAddr) &&
+			    nrf_wifi_util_ether_addr_equal(mac_addr,
+				(peerKeyDB + i)->peerMacAddr) &&
+			    ((peerKeyDB + i)->keyValid == KEY_VALID)) {
+				peerKeyDbFound = 1;
+			}
+		} else {
+			if (nrf_wifi_util_ether_addr_equal(vif_ctx->mac_addr,
+				(peerKeyDB + i)->vifMacAddr) &&
+			    ((peerKeyDB + i)->keyValid == KEY_VALID)) {
+				peerKeyDbFound = 1;
+			}
+		}
+		if (peerKeyDbFound) {
+			peerDBIndex = i;
+			break;
+		}
+	}
+
+	if (peerKeyDbFound) {
+		peerKeyDB = &sys_dev_ctx->peerKeyDB[peerDBIndex];
+		if (key_info->key_type == NRF_WIFI_KEYTYPE_PAIRWISE) {
+			peerKeyDB->ucstCipherType =  WLAN_OPER_INVALID;
+		} else {
+			peerKeyDB->bcstCipherType =  WLAN_OPER_INVALID;
+		}
+	}
+
+	if ((peerKeyDB->ucstCipherType == WLAN_OPER_INVALID) &&
+	    (peerKeyDB->bcstCipherType == WLAN_OPER_INVALID)) {
+		peerKeyDB->keyValid = KEY_INVALID;
+	}
+#endif /* WIFI_NRF71 */
+
 	status = umac_cmd_cfg(fmac_dev_ctx,
 			      key_cmd,
 			      sizeof(*key_cmd));
@@ -1210,6 +1538,9 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_set_key(void *dev_ctx,
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_umac_cmd_set_key *set_key_cmd = NULL;
 	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+#ifdef WIFI_NRF71
+	unsigned long  address_offset;
+#endif /* WIFI_NRF71 */
 
 	fmac_dev_ctx = dev_ctx;
 
@@ -1236,6 +1567,18 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_set_key(void *dev_ctx,
 			      sizeof(set_key_cmd->key_info));
 
 	set_key_cmd->key_info.valid_fields |= NRF_WIFI_KEY_IDX_VALID;
+#ifdef WIFI_NRF71
+	address_offset = (VIF_KEY_DB_OFFSET +  (if_idx *
+			  (VIF_MIC_KEY_LEN_PER_VIF + VIF_KEY_LEN_PER_VIF)) +
+			  VIF_MIC_KEY_LEN_PER_VIF +
+			  key_info->key_idx * (VIF_KEY_LEN_PER_KEYID));
+
+	secure_crypto_reg_write(fmac_dev_ctx,
+				key_info->key.nrf_wifi_key,
+				key_info->key.nrf_wifi_key_len,
+				4,
+				address_offset);
+#endif /* WIFI_NRF71 */
 
 	status = umac_cmd_cfg(fmac_dev_ctx,
 			      set_key_cmd,
@@ -3405,11 +3748,14 @@ static int nrf_wifi_sys_fmac_phy_rf_params_init(struct nrf_wifi_phy_rf_params *p
 						unsigned char *str)
 {
 	int ret = -1;
+#ifndef WIFI_NRF71
 	unsigned int rf_param_offset = BAND_2G_LW_ED_BKF_DSSS_OFST - NRF_WIFI_RF_PARAMS_CONF_SIZE;
+#endif /* !WIFI_NRF71 */
 	/* Initilaize reserved bytes */
 	nrf_wifi_osal_mem_set(prf,
 			      0x0,
 			      sizeof(prf));
+#ifndef WIFI_NRF71
 	/* Initialize PD adjust values for MCS7. Currently these 4 bytes are not being used */
 	prf->pd_adjust_val.pd_adjt_lb_chan = PD_ADJUST_VAL;
 	prf->pd_adjust_val.pd_adjt_hb_low_chan = PD_ADJUST_VAL;
@@ -3530,7 +3876,7 @@ static int nrf_wifi_sys_fmac_phy_rf_params_init(struct nrf_wifi_phy_rf_params *p
 	prf->phy_params[rf_param_offset + 31]  = NRF70_PCB_LOSS_5G_BAND1;
 	prf->phy_params[rf_param_offset + 32]  = NRF70_PCB_LOSS_5G_BAND2;
 	prf->phy_params[rf_param_offset + 33]  = NRF70_PCB_LOSS_5G_BAND3;
-
+#endif /* !WIFI_NRF71 */
 	return(ret);
 }
 
@@ -3545,9 +3891,10 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 	/* If package_info is not written to OTP then the default value will be 0xFF. */
 	unsigned int package_info = 0xFFFFFFFF;
 	struct nrf_wifi_tx_pwr_ceil_params *tx_pwr_ceil_params;
+#ifndef WIFI_NRF71
 	unsigned char backoff_2g_dsss = 0, backoff_2g_ofdm = 0;
 	unsigned char backoff_5g_lowband = 0, backoff_5g_midband = 0, backoff_5g_highband = 0;
-
+#endif /* !WIFI_NRF71 */
 	if (!fmac_dev_ctx || !phy_rf_params) {
 		nrf_wifi_osal_log_err("%s: Invalid parameters",
 				      __func__);
@@ -3595,18 +3942,17 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 	ret = nrf_wifi_sys_fmac_phy_rf_params_init(phy_rf_params,
 					      package_info,
 					      NRF_WIFI_SYS_DEF_RF_PARAMS);
-
 	if (ret == -1) {
 		nrf_wifi_osal_log_err("%s: Initialization of RF params with default values failed",
 				      __func__);
 		status = NRF_WIFI_STATUS_FAIL;
 		goto out;
 	}
+#ifndef WIFI_NRF71
 	if (!(otp_info.flags & (~CALIB_XO_FLAG_MASK))) {
 		nrf_wifi_osal_mem_cpy(&phy_rf_params->xo_offset.xo_freq_offset,
 				      (char *)otp_info.info.calib + OTP_OFF_CALIB_XO,
 				      OTP_SZ_CALIB_XO);
-
 	}
 
 	ft_prog_ver = (ft_prog_ver & FT_PROG_VER_MASK) >> 16;
@@ -3659,7 +4005,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 	MIN(tx_pwr_ceil_params->max_pwr_5g_high_mcs0,
 	        phy_rf_params->max_pwr_ceil.max_hb_high_chan_mcs0_pwr) - backoff_5g_highband;
 #endif /* NRF70_2_4G_ONLY */
-
+#endif /* !WIFI_NRF71 */
 	status = NRF_WIFI_STATUS_SUCCESS;
 out:
 	return status;

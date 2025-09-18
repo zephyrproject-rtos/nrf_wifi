@@ -27,7 +27,12 @@ nrf_wifi_sys_hal_rpu_pktram_buf_map_init(struct nrf_wifi_hal_dev_ctx *hal_dev_ct
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	unsigned int pool_idx = 0;
 
-	status = pal_rpu_addr_offset_get(RPU_MEM_PKT_BASE,
+	status = pal_rpu_addr_offset_get(
+#ifdef WIFI_NRF71
+					 RPU_MEM_DATA_RAM_BASE,
+#else /* WIFI_NRF71 */
+					 RPU_MEM_PKT_BASE,
+#endif /* !WIFI_NRF71 */
 					 &hal_dev_ctx->addr_rpu_pktram_base,
 					 hal_dev_ctx->curr_proc);
 
@@ -39,9 +44,15 @@ nrf_wifi_sys_hal_rpu_pktram_buf_map_init(struct nrf_wifi_hal_dev_ctx *hal_dev_ct
 
 	hal_dev_ctx->addr_rpu_pktram_base_tx = hal_dev_ctx->addr_rpu_pktram_base;
 
+#ifdef WIFI_NRF71
+	hal_dev_ctx->addr_rpu_pktram_base_rx_pool[0] =
+		 (hal_dev_ctx->addr_rpu_pktram_base + RPU_DATA_RAM_SIZE) -
+		 (CONFIG_NRF70_RX_NUM_BUFS * CONFIG_NRF70_RX_MAX_DATA_SIZE);
+#else /* WIFI_NRF71 */
 	hal_dev_ctx->addr_rpu_pktram_base_rx_pool[0] =
 		 (hal_dev_ctx->addr_rpu_pktram_base + RPU_PKTRAM_SIZE) -
 		 (NRF70_RX_NUM_BUFS * NRF70_RX_MAX_DATA_SIZE);
+#endif /* !WIFI_NRF71 */
 
 	for (pool_idx = 1; pool_idx < MAX_NUM_OF_RX_QUEUES; pool_idx++) {
 		hal_dev_ctx->addr_rpu_pktram_base_rx_pool[pool_idx] =
@@ -134,20 +145,51 @@ unsigned long nrf_wifi_sys_hal_buf_map_rx(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 
 	bounce_buf_addr = hal_dev_ctx->addr_rpu_pktram_base_rx_pool[pool_id] +
 		(buf_id * buf_len);
-
-	rpu_addr = RPU_MEM_PKT_BASE + (bounce_buf_addr - hal_dev_ctx->addr_rpu_pktram_base);
+#ifdef WIFI_NRF71
+	rpu_addr = RPU_MEM_DATA_RAM_BASE +
+			(bounce_buf_addr - hal_dev_ctx->addr_rpu_pktram_base);
+#ifdef INLINE_RX
+	nrf_wifi_osal_mem_cpy((void *)bounce_buf_addr,
+		      (void *)buf,
+		      hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz);
+#else /* INLINE_RX */
+	rpu_addr = RPU_MEM_DATA_RAM_BASE +
+		(bounce_buf_addr - hal_dev_ctx->addr_rpu_pktram_base);
+	hal_rpu_mem_write(hal_dev_ctx,
+			  (unsigned int)rpu_addr,
+			  (void *)buf,
+			  hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz);
+#endif /* !INLINE_RX */
+#else /* WIFI_NRF71 */
+	rpu_addr = RPU_MEM_PKT_BASE +
+			(bounce_buf_addr - hal_dev_ctx->addr_rpu_pktram_base);
 
 	hal_rpu_mem_write(hal_dev_ctx,
 			  (unsigned int)rpu_addr,
 			  (void *)buf,
 			  hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz);
-
+#endif /* !WIFI_NRF71 */
 	addr_to_map = bounce_buf_addr + hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz;
 
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	rx_buf_info->phy_addr = nrf_wifi_bal_dma_map_inline_rx(
+						hal_dev_ctx->bal_dev_ctx,
+						addr_to_map,
+						buf_len,
+						NRF_WIFI_OSAL_DMA_DIR_FROM_DEV);
+#else /* INLINE_RX */
 	rx_buf_info->phy_addr = nrf_wifi_bal_dma_map(hal_dev_ctx->bal_dev_ctx,
-						     addr_to_map,
-						     buf_len,
-						     NRF_WIFI_OSAL_DMA_DIR_FROM_DEV);
+					     addr_to_map,
+					     buf_len,
+					     NRF_WIFI_OSAL_DMA_DIR_FROM_DEV);
+#endif /* !INLINE_RX */
+#else /* WIFI_NRF71 */
+	rx_buf_info->phy_addr = nrf_wifi_bal_dma_map(hal_dev_ctx->bal_dev_ctx,
+					     addr_to_map,
+					     buf_len,
+					     NRF_WIFI_OSAL_DMA_DIR_FROM_DEV);
+#endif /* !WIFI_NRF71 */
 
 	if (!rx_buf_info->phy_addr) {
 		nrf_wifi_osal_log_err("%s: DMA map failed",
@@ -182,25 +224,52 @@ unsigned long nrf_wifi_sys_hal_buf_unmap_rx(struct nrf_wifi_hal_dev_ctx *hal_dev
 		goto out;
 	}
 
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	unmapped_addr = nrf_wifi_bal_dma_unmap_inline_rx(
+				hal_dev_ctx->bal_dev_ctx,
+				rx_buf_info->phy_addr,
+				rx_buf_info->buf_len,
+				NRF_WIFI_OSAL_DMA_DIR_FROM_DEV);
+#else /* INLINE_RX */
 	unmapped_addr = nrf_wifi_bal_dma_unmap(hal_dev_ctx->bal_dev_ctx,
 					       rx_buf_info->phy_addr,
 					       rx_buf_info->buf_len,
 					       NRF_WIFI_OSAL_DMA_DIR_FROM_DEV);
 
-	rpu_addr = RPU_MEM_PKT_BASE + (unmapped_addr - hal_dev_ctx->addr_rpu_pktram_base);
-
+	rpu_addr = RPU_MEM_DATA_RAM_BASE +
+			(unmapped_addr - hal_dev_ctx->addr_rpu_pktram_base);
+#endif /* !INLINE_RX */
+#else /* WIFI_NRF71 */
+	rpu_addr = RPU_MEM_PKT_BASE +
+			(unmapped_addr - hal_dev_ctx->addr_rpu_pktram_base);
+#endif /* !WIFI_NRF71 */
 	if (data_len) {
 		if (!unmapped_addr) {
 			nrf_wifi_osal_log_err("%s: DMA unmap failed",
 					      __func__);
 			goto out;
 		}
-
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+		nrf_wifi_osal_mem_cpy((void *)(rx_buf_info->virt_addr +
+			hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz),
+			(void *)unmapped_addr,
+			data_len);
+#else /* INLINE_RX */
 		hal_rpu_mem_read(hal_dev_ctx,
-				 (void *)(rx_buf_info->virt_addr +
-					  hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz),
-				 (unsigned int)rpu_addr,
-				 data_len);
+			 (void *)(rx_buf_info->virt_addr +
+			  hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz),
+			 (unsigned int)rpu_addr,
+			 data_len);
+#endif /* !INLINE_RX */
+#else /* WIFI_NRF71 */
+		hal_rpu_mem_read(hal_dev_ctx,
+			 (void *)(rx_buf_info->virt_addr +
+			  hal_dev_ctx->hpriv->cfg_params.rx_buf_headroom_sz),
+			 (unsigned int)rpu_addr,
+			 data_len);
+#endif /* !WIFI_NRF71 */
 	}
 
 	virt_addr = rx_buf_info->virt_addr;
@@ -258,15 +327,19 @@ unsigned long nrf_wifi_sys_hal_buf_map_tx(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 
 	hal_dev_ctx->tx_frame_offset += (bounce_buf_addr - hal_dev_ctx->tx_frame_offset) +
 		buf_len + hal_dev_ctx->hpriv->cfg_params.tx_buf_headroom_sz;
-
-	rpu_addr = RPU_MEM_PKT_BASE + (bounce_buf_addr - hal_dev_ctx->addr_rpu_pktram_base);
-
+#ifdef WIFI_NRF71
+	rpu_addr = RPU_MEM_DATA_RAM_BASE +
+			(bounce_buf_addr - hal_dev_ctx->addr_rpu_pktram_base);
+#else /* WIFI_NRF71 */
+	rpu_addr = RPU_MEM_PKT_BASE +
+		(bounce_buf_addr - hal_dev_ctx->addr_rpu_pktram_base);
+#endif /* !WIFI_NRF71 */
 	nrf_wifi_osal_log_dbg("%s: bounce_buf_addr: 0x%lx, rpu_addr: 0x%lx, buf_len: %d off:%d",
-	       __func__,
-	       bounce_buf_addr,
-	       rpu_addr,
-	       buf_len,
-	       hal_dev_ctx->tx_frame_offset);
+			       __func__,
+			       bounce_buf_addr,
+			       rpu_addr,
+			       buf_len,
+			       hal_dev_ctx->tx_frame_offset);
 
 	hal_rpu_mem_write(hal_dev_ctx,
 			  (unsigned int)rpu_addr,
@@ -364,12 +437,13 @@ enum nrf_wifi_status nrf_wifi_sys_hal_data_cmd_send(struct nrf_wifi_hal_dev_ctx 
 	addr = addr_base + (max_cmd_size * desc_id);
 	host_addr = addr;
 
+#ifndef WIFI_NRF71
 	/* This is a indrect write to core memory */
 	if (cmd_type == NRF_WIFI_HAL_MSG_TYPE_CMD_DATA_RX) {
 		host_addr &= RPU_ADDR_MASK_OFFSET;
 		host_addr |= RPU_MCU_CORE_INDIRECT_BASE;
 	}
-
+#endif /* !WIFI_NRF71 */
 	/* Copy the information to the suggested address */
 	status = hal_rpu_mem_write(hal_dev_ctx,
 				   host_addr,
