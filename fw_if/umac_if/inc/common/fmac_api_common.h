@@ -23,7 +23,9 @@
 
 #include <patch_info.h>
 
+#ifndef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#endif
 
 /**
  * @brief De-initialize the UMAC IF layer.
