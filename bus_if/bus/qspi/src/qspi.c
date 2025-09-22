@@ -252,6 +252,10 @@ static unsigned long nrf_wifi_bus_qspi_dma_map(void *dev_ctx,
 
 	phy_addr = qspi_dev_ctx->host_addr_base + (virt_addr - qspi_dev_ctx->addr_pktram_base);
 
+#ifdef WIFI_NRF71
+	phy_addr |= RPU_ADDR_DATA_RAM_START;
+#endif /* WIFI_NRF71 */
+
 	return phy_addr;
 }
 
@@ -265,6 +269,10 @@ static unsigned long nrf_wifi_bus_qspi_dma_unmap(void *dev_ctx,
 	unsigned long virt_addr = 0;
 
 	qspi_dev_ctx = (struct nrf_wifi_bus_qspi_dev_ctx *)dev_ctx;
+
+#ifdef WIFI_NRF71
+	phy_addr &= ~RPU_ADDR_DATA_RAM_START;
+#endif /* WIFI_NRF71 */
 
 	virt_addr = qspi_dev_ctx->addr_pktram_base + (phy_addr - qspi_dev_ctx->host_addr_base);
 
