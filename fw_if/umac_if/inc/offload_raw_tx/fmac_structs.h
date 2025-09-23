@@ -18,9 +18,12 @@
 #ifndef __FMAC_STRUCTS_H__
 #define __FMAC_STRUCTS_H__
 
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_sys_if.h"
+#endif
 #include "common/fmac_structs_common.h"
-
 #define NRF_WIFI_FMAC_PARAMS_RECV_TIMEOUT 100 /* ms */
 
 /**

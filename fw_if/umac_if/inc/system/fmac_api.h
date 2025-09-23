@@ -17,9 +17,15 @@
 #define __FMAC_API_H__
 
 #include "osal_api.h"
+
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_umac_if.h"
 #include "host_rpu_data_if.h"
 #include "host_rpu_sys_if.h"
+#endif
+
 
 #include "system/fmac_structs.h"
 #include "system/fmac_cmd.h"
@@ -1050,6 +1056,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rpu_recovery_callback(void *mac_dev_ctx,
 /** @endcond */
 #endif /* CONFIG_NRF_RPU_RECOVERY */
 
+#ifndef NRF71_ON_IPC
 /**
  * @brief Get the RF parameters to be programmed to the RPU.
  * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
@@ -1063,7 +1070,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rpu_recovery_callback(void *mac_dev_ctx,
  */
 enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 						     struct nrf_wifi_phy_rf_params *rf_params);
-
+#endif /* !NRF71_ON_IPC */
 #ifdef NRF70_SYSTEM_WITH_RAW_MODES
 /**
  * @brief Set the current mode of operation

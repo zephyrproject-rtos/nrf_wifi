@@ -17,9 +17,13 @@
 #define __FMAC_API_RT_H__
 
 #include "osal_api.h"
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_umac_if.h"
 #include "host_rpu_data_if.h"
 #include "host_rpu_sys_if.h"
+#endif
 
 #include "fmac_structs.h"
 #include "fmac_cmd.h"
@@ -269,6 +273,7 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fma
  */
 void nrf_wifi_rt_fmac_dev_deinit(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
 
+#ifndef NRF71_ON_IPC
 /**
  * @brief Get the RF parameters to be programmed to the RPU.
  * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
@@ -282,7 +287,7 @@ void nrf_wifi_rt_fmac_dev_deinit(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
  */
 enum nrf_wifi_status nrf_wifi_rt_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 						    struct nrf_wifi_phy_rf_params *rf_params);
-
+#endif
 /**
  * @brief Issue a request to get stats from the RPU.
  * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.

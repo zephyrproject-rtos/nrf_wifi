@@ -17,7 +17,11 @@
 #define __FMAC_STRUCTS_COMMON_H__
 
 #include "osal_api.h"
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_umac_if.h"
+#endif
 
 #define NRF_WIFI_FW_CHUNK_ID_STR_LEN 16
 
@@ -97,7 +101,7 @@ struct nrf_wifi_fmac_fw_chunk_info {
 	unsigned int dest_addr;
 };
 
-
+#if (!defined(NRF71_ON_IPC) || defined(__DOXYGEN__))
 /**
  * @brief Structure to hold OTP region information.
  *
@@ -108,6 +112,7 @@ struct nrf_wifi_fmac_otp_info {
 	/** Flags indicating which OTP regions are valid. */
 	unsigned int flags;
 };
+#endif
 
 /* Maximum number of channels supported in a regulatory
  * currently set to 42 as hardware supports 2.4GHz and 5GHz.

@@ -210,7 +210,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_fmac_buf_map_info *rx_buf_info = NULL;
-	struct host_rpu_rx_buf_info rx_cmd;
+	unsigned int rx_addr;
 	struct nrf_wifi_fmac_rx_pool_map_info pool_info;
 	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
 	struct nrf_wifi_sys_fmac_priv *sys_fpriv = NULL;
@@ -276,13 +276,11 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 		rx_buf_info->nwb = nwb;
 		rx_buf_info->mapped = true;
 #endif /* NRF71_ON_IPC */
-		nrf_wifi_osal_mem_set(&rx_cmd,
-					  0x0,
-					  sizeof(rx_cmd));
+
 #ifndef NRF71_ON_IPC
-		rx_cmd.addr = (unsigned int)phy_addr;
+		rx_addr = (unsigned int)phy_addr;
 #else
-		rx_cmd.addr = (unsigned int)nwb_data;
+		rx_addr = (unsigned int)nwb_data;
 #endif /* NRF71_ON_IPC */
 #ifdef NRF_WIFI_RX_BUFF_PROG_UMAC
 		/**
@@ -301,8 +299,8 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 #else
 		status = nrf_wifi_sys_hal_data_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 							NRF_WIFI_HAL_MSG_TYPE_CMD_DATA_RX,
-							&rx_cmd,
-							sizeof(rx_cmd),
+							&rx_addr,
+							sizeof(rx_addr),
 							desc_id,
 							pool_info.pool_id);
 #endif /*NRF_WIFI_RX_BUFF_PROG_UMAC */
