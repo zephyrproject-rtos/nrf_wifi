@@ -11,7 +11,12 @@
  */
 
 #include "queue.h"
+
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_umac_if.h"
+#endif
 #include "common/hal_mem.h"
 #include "system/fmac_rx.h"
 #include "system/fmac_tx.h"
@@ -254,8 +259,13 @@ static enum nrf_wifi_status umac_event_sys_proc_events(struct nrf_wifi_fmac_dev_
 
 		channel_event = (struct nrf_wifi_event_set_channel *)sys_head;
 		if (!channel_event->status) {
+#ifdef NRF71_ON_IPC
+			sys_dev_ctx->vif_ctx[channel_event->if_index]->channel =
+			channel_event->chan.primary_num;
+#else
 			sys_dev_ctx->vif_ctx[channel_event->if_index]->channel =
 								channel_event->chan_num;
+#endif
 		}
 		status = NRF_WIFI_STATUS_SUCCESS;
 		break;
@@ -315,7 +325,7 @@ nrf_wifi_fmac_data_event_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 #endif /* NRF_WIFI_CMD_EVENT_LOG */
 
 	switch (event) {
-	case NRF_WIFI_NRF_WIFI_RX_BUFF_PROG_UMAC:
+	case NRF_WIFI_CMD_RX_BUFF:
 #ifdef NRF70_RX_DONE_WQ_ENABLED
 		struct nrf_wifi_rx_buff *config = nrf_wifi_osal_mem_zalloc(
 			sizeof(struct nrf_wifi_rx_buff));

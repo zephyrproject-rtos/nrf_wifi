@@ -19,8 +19,14 @@
 #define __FMAC_STRUCTS_H__
 
 #include "osal_api.h"
+
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_umac_if.h"
 #include "radio_test/phy_rf_params.h"
+#endif
+
 #include "common/fmac_structs_common.h"
 
 /**

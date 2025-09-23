@@ -11,7 +11,9 @@
 
 #include "bal_structs.h"
 #include "qspi.h"
+#ifndef NRF71_ON_IPC
 #include "common/pal.h"
+#endif
 
 
 static int nrf_wifi_bus_qspi_irq_handler(void *data)

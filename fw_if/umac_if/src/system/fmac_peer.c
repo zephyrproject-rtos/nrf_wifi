@@ -11,7 +11,12 @@
 
 #include "common/hal_mem.h"
 #include "system/fmac_peer.h"
+
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_umac_if.h"
+#endif
 #include "common/fmac_util.h"
 
 int nrf_wifi_fmac_peer_get_id(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
@@ -138,6 +143,7 @@ void nrf_wifi_fmac_peer_remove(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 void nrf_wifi_fmac_peers_flush(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 			       unsigned char if_idx)
 {
+#ifndef NRF71_ON_IPC
 	struct nrf_wifi_fmac_vif_ctx *vif_ctx = NULL;
 	unsigned int i = 0;
 	struct peers_info *peer = NULL;
@@ -170,4 +176,5 @@ void nrf_wifi_fmac_peers_flush(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 			}
 		}
 	}
+#endif /* !NRF71_ON_IPC */
 }

@@ -15,7 +15,9 @@
 #include "common/hal_reg.h"
 #include "common/hal_mem.h"
 #include "common/hal_interrupt.h"
+#ifndef NRF71_ON_IPC
 #include "common/pal.h"
+#endif
 #include "radio_test/hal_api.h"
 
 static void event_tasklet_fn(unsigned long data)

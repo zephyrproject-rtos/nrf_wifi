@@ -9,7 +9,11 @@
  * FMAC IF Layer of the Wi-Fi driver.
  */
 
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_umac_if.h"
+#endif
 #include "offload_raw_tx/phy_rf_params.h"
 #include "offload_raw_tx/hal_api.h"
 #include "offload_raw_tx/fmac_api.h"

@@ -15,8 +15,12 @@
 #ifndef __HOST_RPU_UMAC_IF_H
 #define __HOST_RPU_UMAC_IF_H
 
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_data_if.h"
 #include "host_rpu_sys_if.h"
+#endif
 
 #include "common/pack_def.h"
 

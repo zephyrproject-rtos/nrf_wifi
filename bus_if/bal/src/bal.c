@@ -14,7 +14,9 @@
 
 #ifdef NRF_WIFI_LOW_POWER
 #ifdef NRF_WIFI_LOW_POWER_DBG
+#ifndef NRF71_ON_IPC
 #include "pal.h"
+#endif
 
 static void nrf_wifi_rpu_bal_sleep_chk(struct nrf_wifi_bal_dev_ctx *bal_ctx,
 				       unsigned long addr)

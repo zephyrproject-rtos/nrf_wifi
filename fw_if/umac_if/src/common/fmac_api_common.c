@@ -9,12 +9,33 @@
  * FMAC IF Layer of the Wi-Fi driver.
  */
 
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_umac_if.h"
+#endif
 #include "common/fmac_api_common.h"
 #include "common/fmac_util.h"
 #include "common/fmac_cmd_common.h"
 #include "util.h"
 
+
+void nrf_wifi_fmac_deinit(struct nrf_wifi_fmac_priv *fpriv)
+{
+	nrf_wifi_hal_deinit(fpriv->hpriv);
+
+	nrf_wifi_osal_mem_free(fpriv);
+}
+
+
+void nrf_wifi_fmac_dev_rem(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
+{
+	nrf_wifi_hal_dev_rem(fmac_dev_ctx->hal_dev_ctx);
+
+	nrf_wifi_osal_mem_free(fmac_dev_ctx);
+}
+
+#ifndef NRF71_ON_IPC
 struct nrf_wifi_proc {
 	const enum RPU_PROC_TYPE type;
 	const char *name;
@@ -109,23 +130,6 @@ static int nrf_wifi_patch_feature_flags_compat(struct nrf_wifi_fmac_dev_ctx *fma
 
 	return 0;
 }
-
-
-void nrf_wifi_fmac_deinit(struct nrf_wifi_fmac_priv *fpriv)
-{
-	nrf_wifi_hal_deinit(fpriv->hpriv);
-
-	nrf_wifi_osal_mem_free(fpriv);
-}
-
-
-void nrf_wifi_fmac_dev_rem(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
-{
-	nrf_wifi_hal_dev_rem(fmac_dev_ctx->hal_dev_ctx);
-
-	nrf_wifi_osal_mem_free(fmac_dev_ctx);
-}
-
 
 enum nrf_wifi_status nrf_wifi_validate_fw_header(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 						 struct nrf70_fw_image_info *info)
@@ -293,7 +297,7 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_chunk_load(struct nrf_wifi_fmac_dev_ctx *f
 				       fw_chunk->size);
 }
 
-#ifndef NRF71_ON_IPC
+
 enum nrf_wifi_status nrf_wifi_fmac_fw_load(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 					   struct nrf_wifi_fmac_fw_info *fmac_fw)
 {
