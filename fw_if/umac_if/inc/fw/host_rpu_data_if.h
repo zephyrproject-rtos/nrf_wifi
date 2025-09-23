@@ -16,9 +16,12 @@
 #ifndef __HOST_RPU_DATA_IF_H__
 #define __HOST_RPU_DATA_IF_H__
 
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_common_if.h"
 #include "host_rpu_sys_if.h"
-
+#endif
 #include "common/pack_def.h"
 
 #define TX_BUF_HEADROOM 52

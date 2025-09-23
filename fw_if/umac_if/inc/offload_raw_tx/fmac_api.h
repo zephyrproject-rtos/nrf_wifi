@@ -15,7 +15,11 @@
 #ifndef __FMAC_API_H__
 #define __FMAC_API_H__
 
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_sys_if.h"
+#endif
 #include "common/fmac_api_common.h"
 #include "offload_raw_tx/fmac_structs.h"
 #include "util.h"

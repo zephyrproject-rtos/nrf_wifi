@@ -10,7 +10,11 @@
  */
 
 #include <util.h>
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_data_if.h"
+#endif
 
 int nrf_wifi_utils_hex_str_to_val(unsigned char *hex_arr,
 				  unsigned int hex_arr_sz,

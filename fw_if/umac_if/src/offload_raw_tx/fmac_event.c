@@ -10,7 +10,14 @@
  */
 
 #include "queue.h"
+#include "#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_umac_if.h"
+#endif"
 #include "common/hal_mem.h"
 #include "offload_raw_tx/fmac_structs.h"
 #include "common/fmac_util.h"

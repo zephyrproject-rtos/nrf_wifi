@@ -842,7 +842,7 @@ out:
 				       &flags);
 	return status;
 }
-#endif /* !NRF71_ON_IPC */
+
 
 static int nrf_wifi_hal_poll_reg(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 				 unsigned int reg_addr,
@@ -965,7 +965,7 @@ out:
 	return status;
 }
 
-#ifndef NRF71_ON_IPC
+
 #define MCU_FW_BOOT_TIMEOUT_MS 1000
 enum nrf_wifi_status nrf_wifi_hal_fw_chk_boot(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 					      enum RPU_PROC_TYPE rpu_proc)

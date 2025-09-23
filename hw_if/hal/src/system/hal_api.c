@@ -11,10 +11,10 @@
 
 #include "queue.h"
 #include "common/hal_structs_common.h"
-#include "common/hal_common.h"
 #include "common/hal_reg.h"
 #include "common/hal_mem.h"
 #ifndef NRF71_ON_IPC
+#include "common/hal_common.h"
 #include "common/hal_interrupt.h"
 #include "common/pal.h"
 #endif /* NRF71_ON_IPC */
@@ -396,7 +396,7 @@ enum nrf_wifi_status nrf_wifi_sys_hal_data_cmd_send(struct nrf_wifi_hal_dev_ctx 
 	}
 #else
 	if (cmd_type == NRF_WIFI_HAL_MSG_TYPE_CMD_DATA_TX) {
-		addr  = 0x2FC12000 + (RPU_DATA_CMD_SIZE_MAX_TX * desc_id);
+		addr  = 0x200C5000 + (RPU_DATA_CMD_SIZE_MAX_TX * desc_id);
 		nrf_wifi_osal_mem_cpy((void *)addr, cmd, cmd_size);
 
 		status = nrf_wifi_osal_ipc_send_msg(
@@ -474,8 +474,9 @@ struct nrf_wifi_hal_dev_ctx *nrf_wifi_sys_hal_dev_add(struct nrf_wifi_hal_priv *
 	hal_dev_ctx->hpriv = hpriv;
 	hal_dev_ctx->mac_dev_ctx = mac_dev_ctx;
 	hal_dev_ctx->idx = hpriv->num_devs++;
-
+#ifndef NRF71_ON_IPC
 	hal_dev_ctx->num_cmds = RPU_CMD_START_MAGIC;
+#endif
 
 	hal_dev_ctx->cmd_q = nrf_wifi_utils_ctrl_q_alloc();
 
