@@ -117,7 +117,6 @@ target_include_directories(
   ${NRF_WIFI_DIR}/bus_if/bus/qspi/inc
   ${NRF_WIFI_DIR}/bus_if/bal/inc
   ${NRF_WIFI_DIR}/fw_if/umac_if/inc
-  ${NRF_WIFI_DIR}/fw_load/mips/fw/inc
   ${NRF_WIFI_DIR}/hw_if/hal/inc
   ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw
   ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats
