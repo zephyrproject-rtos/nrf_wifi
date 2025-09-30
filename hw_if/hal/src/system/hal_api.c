@@ -95,6 +95,26 @@ static void recovery_tasklet_fn(unsigned long data)
 				       &flags);
 }
 
+#ifdef NRF71_HOST_RX_BUF_CMD
+unsigned long nrf_wifi_sys_hal_get_buf_map_rx(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
+					      unsigned int pool_id,
+					      unsigned int buf_id)
+{
+	struct nrf_wifi_hal_buf_map_info *rx_buf_info = NULL;
+
+	rx_buf_info = &hal_dev_ctx->rx_buf_info[pool_id][buf_id];
+
+	if (rx_buf_info->mapped) {
+		return rx_buf_info->phy_addr;
+	} else {
+		nrf_wifi_osal_log_err("%s: Rx buffer not mapped for pool_id = %d, buf_id=%d\n",
+				      __func__,
+				      pool_id,
+				      buf_id);
+	}
+	return 0;
+}
+#endif /* NRF71_HOST_RX_BUF_CMD */
 
 unsigned long nrf_wifi_sys_hal_buf_map_rx(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 					  unsigned long buf,

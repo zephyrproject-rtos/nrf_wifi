@@ -116,6 +116,10 @@ enum NRF_WIFI_HAL_STATUS {
  * @brief Structure to hold RPU information.
  */
 struct nrf_wifi_hal_info {
+#ifdef NRF71_SOFT_HPQM
+	/** Host RPU soft_hpqm information */
+	struct soft_hpqm_info *soft_hpq;
+#endif /* NRF71_SOFT_HPQM */
 	/** Host RPU HPQM information */
 	struct host_rpu_hpqm_info hpqm_info;
 	/** RX command base */

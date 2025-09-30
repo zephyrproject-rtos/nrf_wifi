@@ -39,6 +39,7 @@
 
 #define MAX_TX_AGG_SIZE 16
 #define MAX_RX_BUFS_PER_EVNT 64
+#define MAX_RX_BUFS_PER_CMD 32
 #define MAX_MGMT_BUFS 16
 
 /*#define ETH_ADDR_LEN		6*/

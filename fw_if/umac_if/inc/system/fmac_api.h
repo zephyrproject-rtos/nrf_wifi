@@ -1175,6 +1175,21 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *f
 						 enum rpu_op_mode op_mode,
 						 struct rpu_sys_op_stats *stats);
 
+#ifdef NRF71_HOST_RX_BUF_CMD
+/**
+ * @brief Configure Rx buffer to firmware.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param nrf_wifi_rx_buf RX buffer info.
+ * @param num_buffs Number of buffers.
+ *
+ * This function is used to send host Rx buffers to UMAC module
+ *
+ * @return Command execution status
+ */
+enum nrf_wifi_status nrf_wifi_sys_fmac_prog_rx_buf_info(void *fmac_dev_ctx,
+							struct nrf_wifi_rx_buf *rx_buf,
+							unsigned int num_buffs);
+#endif /* NRF71_HOST_RX_BUF_CMD*/
 /**
  * @}
  */

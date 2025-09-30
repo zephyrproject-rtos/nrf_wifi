@@ -215,9 +215,13 @@ struct rpu_mcu_boot_vectors {
 
 /* Address which has information about the host port queue manager (HPQM) */
 #define RPU_MEM_HPQ_INFO 0xB0000024
+#ifdef NRF71_SOFT_HPQM
+#define RPU_MEM_TX_CMD_BASE 0x200800B8
+#define NRF_WIFI_SOFTHPQM_INFO_START_ADDR 0x20084548
+#else
 /* Address which has information about the TX command base */
 #define RPU_MEM_TX_CMD_BASE 0xB00000B8
-
+#endif /* NRF71_SOFT_HPQM */
 /* Address which has OTP location containing the factory test program version */
 #define RPU_MEM_OTP_FT_PROG_VERSION 0xB0004FD8
 /* Address which has the OTP flags */
