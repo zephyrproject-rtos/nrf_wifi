@@ -13,8 +13,12 @@
 #ifndef __HAL_STRUCTS_COMMON_H__
 #define __HAL_STRUCTS_COMMON_H__
 
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "lmac_if_common.h"
 #include "host_rpu_common_if.h"
+#endif
 #include "osal_api.h"
 #include "bal_api.h"
 

@@ -107,6 +107,14 @@ target_compile_definitions(
   WIFI_NRF70_LOG_LEVEL=${CONFIG_WIFI_NRF70_LOG_LEVEL}
 )
 
+if (CONFIG_NRF71_ON_IPC)
+  target_compile_definitions(
+    nrf-wifi-osal
+    PUBLIC
+    NRF_WIFI_RX_BUFF_PROG_UMAC
+  )
+endif()
+
 target_include_directories(
   nrf-wifi-osal
   PUBLIC
@@ -117,41 +125,47 @@ target_include_directories(
   ${NRF_WIFI_DIR}/bus_if/bus/qspi/inc
   ${NRF_WIFI_DIR}/bus_if/bal/inc
   ${NRF_WIFI_DIR}/fw_if/umac_if/inc
-  ${NRF_WIFI_DIR}/fw_load/mips/fw/inc
   ${NRF_WIFI_DIR}/hw_if/hal/inc
-  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw
-  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats
 )
 
-target_include_directories_ifdef(CONFIG_NRF70_SYSTEM_MODE
-  nrf-wifi-osal
-  PUBLIC
-  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/system
-)
+if(NOT CONFIG_NRF71_ON_IPC)
+  target_include_directories(
+    nrf-wifi-osal
+    PUBLIC
+    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw
+    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats
+  )
 
-target_include_directories_ifdef(CONFIG_NRF70_RADIO_TEST
-  nrf-wifi-osal
-  PUBLIC
-  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/radio_test
-)
+  target_include_directories_ifdef(CONFIG_NRF70_SYSTEM_MODE
+    nrf-wifi-osal
+    PUBLIC
+    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/system
+  )
 
-target_include_directories_ifdef(CONFIG_NRF70_OFFLOADED_RAW_TX
-  nrf-wifi-osal
-  PUBLIC
-  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/offload_raw_tx
-)
+  target_include_directories_ifdef(CONFIG_NRF70_RADIO_TEST
+    nrf-wifi-osal
+    PUBLIC
+    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/radio_test
+  )
 
-target_include_directories_ifdef(CONFIG_NRF70_SCAN_ONLY
-  nrf-wifi-osal
-  PUBLIC
-  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/scan_only
-)
+  target_include_directories_ifdef(CONFIG_NRF70_OFFLOADED_RAW_TX
+    nrf-wifi-osal
+    PUBLIC
+    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/offload_raw_tx
+  )
 
-target_include_directories_ifdef(CONFIG_NRF70_SYSTEM_MODE
-  nrf-wifi-osal
-  PUBLIC
-  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/system
-)
+  target_include_directories_ifdef(CONFIG_NRF70_SCAN_ONLY
+    nrf-wifi-osal
+    PUBLIC
+    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/scan_only
+  )
+
+  target_include_directories_ifdef(CONFIG_NRF70_SYSTEM_MODE
+    nrf-wifi-osal
+    PUBLIC
+    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats/system
+  )
+endif()
 
 target_sources(nrf-wifi-osal PRIVATE
   ${NRF_WIFI_DIR}/os_if/src/osal.c
@@ -159,9 +173,7 @@ target_sources(nrf-wifi-osal PRIVATE
   ${NRF_WIFI_DIR}/utils/src/queue.c
   ${NRF_WIFI_DIR}/utils/src/util.c
   ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_api_common.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_fw_patch_loader.c
   ${NRF_WIFI_DIR}/bus_if/bal/src/bal.c
-  ${NRF_WIFI_DIR}/bus_if/bus/qspi/src/qspi.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_cmd_common.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_api_common.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_util.c
@@ -174,6 +186,8 @@ if(NOT CONFIG_NRF71_ON_IPC)
     ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_reg.c
     ${NRF_WIFI_DIR}/hw_if/hal/src/common/hpqm.c
     ${NRF_WIFI_DIR}/hw_if/hal/src/common/pal.c
+    ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_fw_patch_loader.c
+    ${NRF_WIFI_DIR}/bus_if/bus/qspi/src/qspi.c
   )
 endif()
 

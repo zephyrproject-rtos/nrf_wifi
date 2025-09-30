@@ -17,11 +17,15 @@
 
 #include "osal_api.h"
 #include "common/hal_api_common.h"
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_sys_if.h"
+#include <patch_info.h>
+#endif
 #include "fmac_cmd_common.h"
 #include "fmac_structs_common.h"
 
-#include <patch_info.h>
 
 #ifndef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -49,6 +53,7 @@ void nrf_wifi_fmac_deinit(struct nrf_wifi_fmac_priv *fpriv);
 void nrf_wifi_fmac_dev_rem(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
 
 
+#if (!defined(NRF71_ON_IPC) || defined(__DOXYGEN__))
 /**
  * @brief Validate the firmware header.
  * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
@@ -129,7 +134,7 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_chunk_load(struct nrf_wifi_fmac_dev_ctx *f
 enum nrf_wifi_status nrf_wifi_fmac_fw_load(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 					   struct nrf_wifi_fmac_fw_info *fmac_fw);
 
-
+#endif /* !NRF71_ON_IPC */
 /**
  * @brief Get FW versions from the RPU.
  * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.

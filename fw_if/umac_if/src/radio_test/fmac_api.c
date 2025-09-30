@@ -9,7 +9,14 @@
  * FMAC IF Layer of the Wi-Fi driver.
  */
 
+#include "#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "host_rpu_umac_if.h"
+#endif"
 #include "radio_test/fmac_api.h"
 #include "radio_test/hal_api.h"
 #include "radio_test/fmac_structs.h"
@@ -955,6 +962,7 @@ out:
 	return status;
 }
 
+#ifndef NRF71_ON_IPC
 static int nrf_wifi_rt_fmac_phy_rf_params_init(struct nrf_wifi_phy_rf_params *prf,
 					       unsigned int package_info,
 					       unsigned char *str)
@@ -1195,3 +1203,4 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ctx
 out:
 	return status;
 }
+#endif

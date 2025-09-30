@@ -14,7 +14,12 @@
 #define __HAL_API_COMMON_H__
 
 #include "osal_api.h"
+#ifdef NRF71_ON_IPC
+#include <nrf71_wifi_ctrl.h>
+#else
 #include "rpu_if.h"
+#endif
+
 #include "bal_api.h"
 #include "hal_structs_common.h"
 #include "hal_mem.h"
