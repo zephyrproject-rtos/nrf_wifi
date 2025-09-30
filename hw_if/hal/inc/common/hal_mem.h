@@ -20,6 +20,14 @@
  * Enum defining the types of RPU memory.
  */
 enum HAL_RPU_MEM_TYPE {
+#ifdef WIFI_NRF71
+	HAL_RPU_MEM_TYPE_RAM_0,
+	HAL_RPU_MEM_TYPE_RAM_1,
+	HAL_RPU_MEM_TYPE_ROM_0,
+	HAL_RPU_MEM_TYPE_ROM_1,
+	HAL_RPU_MEM_TYPE_DATA_RAM,
+	HAL_RPU_MEM_TYPE_CODE_RAM,
+#else /* WIFI_NRF71 */
 	/** GRAM memory type */
 	HAL_RPU_MEM_TYPE_GRAM,
 	/** PKTRAM memory type */
@@ -31,6 +39,7 @@ enum HAL_RPU_MEM_TYPE {
 	/** Core SCRATCH memory type */
 	HAL_RPU_MEM_TYPE_CORE_SCRATCH,
 	/** Maximum number of memory types */
+#endif /* !WIFI_NRF71 */
 	HAL_RPU_MEM_TYPE_MAX
 };
 
@@ -79,6 +88,31 @@ enum nrf_wifi_status hal_rpu_mem_write(struct nrf_wifi_hal_dev_ctx *hal_ctx,
 		unsigned int rpu_mem_addr,
 		void *host_addr,
 		unsigned int len);
+#ifdef WIFI_NRF71
+/**
+ * @brief Write to the RPU Code memory.
+ *
+ * This function writes a specified number of bytes to the RPU code memory
+ * from the host memory.
+ *
+ * @param hal_ctx       Pointer to HAL context.
+ * @param rpu_mem_addr  Absolute value of the RPU code memory address where the
+ *                      contents are to be written.
+ * @param host_addr     Pointer to the host memory from where the contents are
+ *                      to be copied to the RPU memory.
+ * @param len           The length (in bytes) of the contents to be copied to
+ *                      the RPU memory.
+ *
+ * @return Status
+ *         - Pass: NRF_WIFI_STATUS_SUCCESS
+ *         - Error: NRF_WIFI_STATUS_FAIL
+ */
+enum nrf_wifi_status hal_rpu_mem_code_write(
+		struct nrf_wifi_hal_dev_ctx *hal_ctx,
+		unsigned int rpu_mem_addr,
+		void *host_addr,
+		unsigned int len);
+#endif /* WIFI_NRF71 */
 
 /**
  * @brief Clear contents of RPU memory.

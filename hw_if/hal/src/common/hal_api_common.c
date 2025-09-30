@@ -19,6 +19,109 @@
 #include "common/pal.h"
 #endif /* !NRF71_ON_IPC */
 
+#ifdef WIFI_NRF71
+#ifdef RPU_HARD_RESET_SUPPORT
+static enum nrf_wifi_status hal_rpu_hard_rst(
+			struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
+			enum RPU_PROC_TYPE proc)
+{
+	unsigned long hard_rst_reg_offset = 0;
+	unsigned int hard_rst_val = 0;
+	enum HAL_RPU_MEM_TYPE mem_type = HAL_RPU_MEM_TYPE_MAX;
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+
+	hal_dev_ctx->curr_proc = proc;
+
+	if (proc == RPU_PROC_TYPE_MCU_LMAC) {
+		hard_rst_reg_offset = pal_rpu_hard_rst_reg_offset_get();
+		hard_rst_val = (1 << RPU_REG_BIT_HARDRST_CTRL);
+
+		nrf_wifi_bal_write_word(hal_dev_ctx->bal_dev_ctx,
+					hard_rst_reg_offset,
+					hard_rst_val);
+
+		nrf_wifi_osal_sleep_ms(500);
+		status = NRF_WIFI_STATUS_SUCCESS;
+
+		status = hal_rpu_mem_clr(hal_dev_ctx,
+					 proc,
+					 HAL_RPU_MEM_TYPE_RAM_0);
+
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_info("%s: Clearing of RAM_0 failed",
+					       __func__);
+			goto out;
+		}
+
+		status = hal_rpu_mem_clr(hal_dev_ctx,
+					 proc,
+					 HAL_RPU_MEM_TYPE_DATA_RAM);
+
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_info("%s: Clearing of DATA_RAM failed",
+						__func__);
+			goto out;
+		}
+
+		status = hal_rpu_mem_clr(hal_dev_ctx,
+					 proc,
+					 HAL_RPU_MEM_TYPE_ROM_0);
+
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_info("%s: Clearing of ROM_O failed",
+					       __func__);
+			goto out;
+		}
+	} else if (proc == RPU_PROC_TYPE_MCU_UMAC) {
+
+		status = hal_rpu_mem_clr(hal_dev_ctx,
+					 proc,
+					 HAL_RPU_MEM_TYPE_RAM_1);
+
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_info("%s: Clearing of RAM_1 failed",
+					       __func__);
+			goto out;
+		}
+
+		status = hal_rpu_mem_clr(hal_dev_ctx,
+					 proc,
+					 HAL_RPU_MEM_TYPE_CODE_RAM);
+
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_info("%s: Clearing of CODE_RAM failed",
+					       __func__);
+			goto out;
+		}
+
+		status = hal_rpu_mem_clr(hal_dev_ctx,
+					 proc,
+					 HAL_RPU_MEM_TYPE_ROM_1);
+
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_info("%s: Clearing of ROM_1 failed",
+					       __func__);
+			goto out;
+		}
+
+		status = NRF_WIFI_STATUS_SUCCESS;
+	}
+out:
+	if (status == NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_info("%s: Hard reset done for MCU %d",
+				       __func__,
+				       proc);
+	} else {
+		nrf_wifi_osal_log_err("%s: Hard reset failed for MCU%d",
+				      __func__,
+				      proc);
+	}
+
+	return status;
+}
+#endif /* RPU_HARD_RESET_SUPPORT */
+#endif /* WIFI_NRF71 */
+
 #ifndef NRF71_ON_IPC
 #ifdef NRF_WIFI_LOW_POWER
 #ifdef NRF_WIFI_RPU_RECOVERY
@@ -300,10 +403,15 @@ static enum nrf_wifi_status hal_rpu_msg_trigger(struct nrf_wifi_hal_dev_ctx *hal
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 
+#ifdef WIFI_NRF71
+	status = hal_rpu_reg_write(hal_dev_ctx,
+			WEZEN_RPU_REG_INT_TO_WIFICORE_BELLBOARD_TASKS_TRIGGER,
+			1);
+#else /* WIFI_NRF71 */
 	status = hal_rpu_reg_write(hal_dev_ctx,
 				   RPU_REG_INT_TO_MCU_CTRL,
 				   (hal_dev_ctx->num_cmds | 0x7fff0000));
-
+#endif /* !WIFI_NRF71 */
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		nrf_wifi_osal_log_err("%s: Writing to MCU cmd register failed",
 				      __func__);
@@ -1058,7 +1166,12 @@ nrf_wifi_hal_init(struct nrf_wifi_hal_cfg_params *cfg_params,
 	hpriv->rpu_recovery_callbk_fn = rpu_recovery_callbk_fn;
 
 #ifndef NRF71_ON_IPC
-	status = pal_rpu_addr_offset_get(RPU_ADDR_PKTRAM_START,
+	status = pal_rpu_addr_offset_get(
+#ifdef WIFI_NRF71
+					 RPU_ADDR_DATA_RAM_START,
+#else /* WIFI_NRF71 */
+					 RPU_ADDR_PKTRAM_START,
+#endif /* !WIFI_NRF71 */
 					 &hpriv->addr_pktram_base,
 					 RPU_PROC_TYPE_MAX);
 
@@ -1069,7 +1182,16 @@ nrf_wifi_hal_init(struct nrf_wifi_hal_cfg_params *cfg_params,
 	}
 
 	bal_cfg_params.addr_pktram_base = hpriv->addr_pktram_base;
-
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	hpriv->hostram_addr_base_inline_rx =
+		(unsigned long)nrf_wifi_osal_iomem_mmap_inline_rx(
+				SOC_HOST_DATA_RAM_BASE,
+				SOC_HOST_DATA_RAM_LEN);
+	bal_cfg_params.addr_hostram_base_inline_rx =
+		hpriv->hostram_addr_base_inline_rx;
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 	hpriv->bpriv = nrf_wifi_bal_init(&bal_cfg_params,
 					 &nrf_wifi_hal_irq_handler);
 
@@ -1093,7 +1215,11 @@ out:
 void nrf_wifi_hal_deinit(struct nrf_wifi_hal_priv *hpriv)
 {
 	nrf_wifi_bal_deinit(hpriv->bpriv);
-
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	nrf_wifi_osal_iomem_unmap_inline_rx(hpriv->hostram_addr_base_inline_rx);
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 	nrf_wifi_osal_mem_free(hpriv);
 }
 
@@ -1160,7 +1286,7 @@ enum nrf_wifi_status nrf_wifi_hal_otp_ft_prog_ver_get(struct nrf_wifi_hal_dev_ct
 out:
 	return status;
 }
-
+#ifndef WIFI_NRF71
 enum nrf_wifi_status nrf_wifi_hal_otp_pack_info_get(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 						    unsigned int *package_info)
 {
@@ -1185,6 +1311,7 @@ enum nrf_wifi_status nrf_wifi_hal_otp_pack_info_get(struct nrf_wifi_hal_dev_ctx 
 out:
 	return status;
 }
+#endif /* !WIFI_NRF71 */
 #endif /* !NRF71_ON_IPC */
 
 void nrf_wifi_hal_enable(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)

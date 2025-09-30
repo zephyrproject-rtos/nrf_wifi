@@ -62,7 +62,6 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 				      NRF_WIFI_RF_PARAMS_SIZE);
 	}
 
-
 	umac_cmd_data->sys_params.phy_calib = phy_calib;
 	umac_cmd_data->sys_params.hw_bringup_time = HW_DELAY;
 	umac_cmd_data->sys_params.sw_bringup_time = SW_DELAY;
@@ -116,7 +115,7 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 	umac_cmd_data->temp_vbat_config_params.vth_very_low = NRF_WIFI_VBAT_VERYLOW;
 
 	umac_cmd_data->op_band = op_band;
-
+#ifndef CONFIG_NRF71
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[PCB_LOSS_BYTE_2G_OFST],
 			      &board_params->pcb_loss_2g,
 			      NUM_PCB_LOSS_OFFSET);
@@ -128,7 +127,7 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[BAND_2G_LW_ED_BKF_DSSS_OFST],
 			      &tx_pwr_ctrl_params->band_edge_2g_lo_dss,
 			      NUM_EDGE_BACKOFF);
-
+#endif /* !CONFIG_NRF71 */
 	nrf_wifi_osal_mem_cpy(umac_cmd_data->country_code,
 			      country_code,
 			      NRF_WIFI_COUNTRY_CODE_LEN);
@@ -158,12 +157,12 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 	umac_cmd_data->coex_disable_ptiwin_for_wifi_scan = 0;
 #endif /* NRF_WIFI_COEX_DISABLE_PRIORITY_WINDOW_FOR_SCAN */
 
+#ifndef WIFI_NRF71
 #ifdef WIFI_MGMT_RAW_SCAN_RESULTS
 	umac_cmd_data->raw_scan_enable = 1;
 #else
 	umac_cmd_data->raw_scan_enable = 0;
 #endif /* WIFI_MGMT_RAW_SCAN_RESULTS */
-
 	umac_cmd_data->max_ps_poll_fail_cnt = NRF_WIFI_MAX_PS_POLL_FAIL_CNT;
 
 	#ifdef NRF_WIFI_RX_STBC_HT
@@ -178,6 +177,7 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 		umac_cmd_data->dynamic_ed = 1;
 	#endif /* NRF_WIFI_DYNAMIC_ED */
 
+#endif /* !WIFI_NRF71 */
 	status = nrf_wifi_hal_ctrl_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 					    umac_cmd,
 					    (sizeof(*umac_cmd) + len));

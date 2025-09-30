@@ -60,6 +60,7 @@ target_compile_definitions(
   $<$<BOOL:${CONFIG_NRF71_ON_IPC}>:NRF71_ON_IPC>
   $<$<BOOL:${CONFIG_NRF_WIFI_DYNAMIC_BANDWIDTH_SIGNALLING}>:NRF_WIFI_DYNAMIC_BANDWIDTH_SIGNALLING>
   $<$<BOOL:${CONFIG_NRF_WIFI_DYNAMIC_ED}>:NRF_WIFI_DYNAMIC_ED>
+  $<$<BOOL:${CONFIG_WIFI_NRF71}>:WIFI_NRF71>
   NRF_WIFI_MAX_PS_POLL_FAIL_CNT=${CONFIG_NRF_WIFI_MAX_PS_POLL_FAIL_CNT}
   NRF70_RX_NUM_BUFS=${CONFIG_NRF70_RX_NUM_BUFS}
   NRF70_MAX_TX_TOKENS=${CONFIG_NRF70_MAX_TX_TOKENS}
@@ -159,14 +160,17 @@ target_sources(nrf-wifi-osal PRIVATE
   ${NRF_WIFI_DIR}/utils/src/queue.c
   ${NRF_WIFI_DIR}/utils/src/util.c
   ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_api_common.c
-  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_fw_patch_loader.c
   ${NRF_WIFI_DIR}/bus_if/bal/src/bal.c
   ${NRF_WIFI_DIR}/bus_if/bus/qspi/src/qspi.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_cmd_common.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_api_common.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_util.c
 )
-
+if(NOT CONFIG_WIFI_NRF71)
+  target_sources(nrf-wifi-osal PRIVATE
+  ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_fw_patch_loader.c
+  )
+endif()
 if(NOT CONFIG_NRF71_ON_IPC)
   target_sources(nrf-wifi-osal PRIVATE
     ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_interrupt.c

@@ -142,6 +142,19 @@ struct nrf_wifi_bal_ops {
 				   unsigned long phy_addr,
 				   size_t len,
 				   enum nrf_wifi_osal_dma_dir dma_dir);
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	unsigned long (*dma_map_inline_rx)(void *bus_dev_ctx,
+				   unsigned long virt_addr,
+				   size_t len,
+				   enum nrf_wifi_osal_dma_dir dma_dir);
+
+	unsigned long (*dma_unmap_inline_rx)(void *bus_dev_ctx,
+				     unsigned long phy_addr,
+				     size_t len,
+				     enum nrf_wifi_osal_dma_dir dma_dir);
+#endif /* INLINE_RX */
+#endif /* WIFI_NRF71 */
 
 #if defined(NRF_WIFI_LOW_POWER) || defined(__DOXYGEN__)
 	/**
