@@ -174,6 +174,7 @@ target_sources(nrf-wifi-osal PRIVATE
   ${NRF_WIFI_DIR}/utils/src/util.c
   ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_api_common.c
   ${NRF_WIFI_DIR}/bus_if/bal/src/bal.c
+  ${NRF_WIFI_DIR}/bus_if/bus/qspi/src/qspi.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_cmd_common.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_api_common.c
   ${NRF_WIFI_DIR}/fw_if/umac_if/src/common/fmac_util.c
@@ -187,7 +188,6 @@ if(NOT CONFIG_NRF71_ON_IPC)
     ${NRF_WIFI_DIR}/hw_if/hal/src/common/hpqm.c
     ${NRF_WIFI_DIR}/hw_if/hal/src/common/pal.c
     ${NRF_WIFI_DIR}/hw_if/hal/src/common/hal_fw_patch_loader.c
-    ${NRF_WIFI_DIR}/bus_if/bus/qspi/src/qspi.c
   )
 endif()
 
