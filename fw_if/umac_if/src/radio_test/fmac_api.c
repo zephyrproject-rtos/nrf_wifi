@@ -255,7 +255,9 @@ struct nrf_wifi_fmac_priv *nrf_wifi_rt_fmac_init(void)
 
 
 	hal_cfg_params.max_cmd_size = MAX_NRF_WIFI_UMAC_CMD_SIZE;
+#ifndef NRF71_ON_IPC
 	hal_cfg_params.max_event_size = MAX_EVENT_POOL_LEN;
+#endif /* !NRF71_ON_IPC */
 
 	fpriv->hpriv = nrf_wifi_hal_init(&hal_cfg_params,
 					 &nrf_wifi_rt_fmac_event_callback,
