@@ -658,10 +658,11 @@ struct nrf_wifi_fmac_priv *nrf_wifi_sys_fmac_init(struct nrf_wifi_data_config_pa
 	hal_cfg_params.max_tx_frm_sz = NRF_WIFI_IFACE_MTU + NRF_WIFI_FMAC_ETH_HDR_LEN +
 					TX_BUF_HEADROOM;
 
-#ifndef NRF71_ON_IPC
 	hal_cfg_params.max_cmd_size = MAX_NRF_WIFI_UMAC_CMD_SIZE;
-	hal_cfg_params.max_event_size = MAX_EVENT_POOL_LEN;
+#ifndef NRF71_ON_IPC
+	hal_cfg_params.max_event_size = MAX_EVENT_POOL_LEN;;
 #endif /* !NRF71_ON_IPC */
+
 
 	fpriv->hpriv = nrf_wifi_hal_init(&hal_cfg_params,
 					 &nrf_wifi_sys_fmac_event_callback,
