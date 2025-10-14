@@ -10,11 +10,12 @@
  */
 
 #include "queue.h"
-#include "common/hal_structs_common.h"
+
+#include "common/hal_api_common.h"
+#ifndef NRF71_ON_IPC
 #include "common/hal_common.h"
 #include "common/hal_reg.h"
 #include "common/hal_mem.h"
-#ifndef NRF71_ON_IPC
 #include "common/hal_interrupt.h"
 #include "common/pal.h"
 #endif /* !NRF71_ON_IPC */

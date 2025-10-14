@@ -22,9 +22,11 @@
 
 #include "bal_api.h"
 #include "hal_structs_common.h"
+#ifndef NRF71_ON_IPC
 #include "hal_mem.h"
 #include "hal_reg.h"
 #include "hal_fw_patch_loader.h"
+#endif /* !NRF71_ON_IPC */
 
 #define NRF_WIFI_ADDR_REG_NAME_LEN		16
 

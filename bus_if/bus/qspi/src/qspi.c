@@ -11,6 +11,7 @@
 
 #include "bal_structs.h"
 #include "qspi.h"
+#include "osal_api.h"
 #ifndef NRF71_ON_IPC
 #include "common/pal.h"
 #endif
