@@ -12,6 +12,7 @@
 #define _PHY_RF_PARAMS_COMMON_H_
 #include "pack_def.h"
 
+#ifndef WIFI_NRF71
 #define NRF_WIFI_RF_PARAMS_SIZE 200
 #define NRF_WIFI_RF_PARAMS_CONF_SIZE 42
 #define NUM_PCB_LOSS_OFFSET 4
@@ -24,19 +25,10 @@
 	#define NRF_WIFI_PHY_CALIB_FLAG_TXDC 2
 #endif
 
-#ifdef WIFI_NRF71
-#define NRF_WIFI_PHY_CALIB_FLAG_RXDC 1
-#define NRF_WIFI_PHY_CALIB_FLAG_TXDC 2
-#define NRF_WIFI_PHY_CALIB_FLAG_TXPOW 0
-#define NRF_WIFI_PHY_CALIB_FLAG_TXIQ 8//8
-#define NRF_WIFI_PHY_CALIB_FLAG_RXIQ 16//16
-#define NRF_WIFI_PHY_CALIB_FLAG_DPD  0
-#else /* WIFI_NRF71 */
 #define NRF_WIFI_PHY_CALIB_FLAG_TXPOW 0
 #define NRF_WIFI_PHY_CALIB_FLAG_TXIQ 8
 #define NRF_WIFI_PHY_CALIB_FLAG_RXIQ 16
 #define NRF_WIFI_PHY_CALIB_FLAG_DPD 32
-#endif /* !WIFI_NRF71 */
 
 #define NRF_WIFI_PHY_CALIB_FLAG_ENHANCED_TXDC 64
 #define NRF_WIFI_PHY_SCAN_CALIB_FLAG_RXDC (1<<16)
@@ -328,9 +320,7 @@ struct nrf_wifi_temp_volt_depend_params {
  * first 42 bytes of RF parameters.
  */
 struct nrf_wifi_phy_rf_params {
-#ifdef WIFI_NRF71
 	unsigned char phy_params[NRF_WIFI_RF_PARAMS_SIZE];
-#else /* WIFI_NRF71 */
 	unsigned char reserved[6];
 	struct nrf_wifi_xo_freq_offset xo_offset;
 	struct nrf_wifi_pd_adst_val pd_adjust_val;
@@ -339,7 +329,6 @@ struct nrf_wifi_phy_rf_params {
 	struct nrf_wifi_rx_gain_offset rx_gain_offset;
 	struct nrf_wifi_temp_volt_depend_params temp_volt_backoff;
 	unsigned char phy_params[NRF_WIFI_RF_PARAMS_SIZE - NRF_WIFI_RF_PARAMS_CONF_SIZE];
-#endif /* !WIFI_NRF71 */
 } __NRF_WIFI_PKD;
 
 /** The byte offsets of RF parameters indicate the start offset
@@ -503,5 +492,5 @@ enum ft_prog_ver {
 #define FT_PROG_VER3_5G_LOW_OFDM_TXCEIL_BKOFF 0
 #define FT_PROG_VER3_5G_MID_OFDM_TXCEIL_BKOFF 0
 #define FT_PROG_VER3_5G_HIGH_OFDM_TXCEIL_BKOFF 0
-
+#endif /* WIFI_NRF71 */
 #endif /* _PHY_RF_PARAMS_COMMON_H_ */
