@@ -11,7 +11,7 @@
  */
 
 #include "queue.h"
-#include "host_rpu_umac_if.h"
+#include "nrf71_wifi_ctrl.h"
 #include "common/hal_mem.h"
 #include "system/fmac_rx.h"
 #include "system/fmac_tx.h"

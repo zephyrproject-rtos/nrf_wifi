@@ -8,8 +8,9 @@
  * @brief File containing API definitions for the
  * FMAC IF Layer of the Wi-Fi driver.
  */
-
-#include "host_rpu_umac_if.h"
+#ifdef WIFI_NRF71
+#include "nrf71_wifi_ctrl.h"
+#endif
 #include "common/fmac_api_common.h"
 #include "common/fmac_util.h"
 #include "common/fmac_cmd_common.h"
@@ -25,7 +26,7 @@ struct nrf_wifi_proc wifi_proc[] = {
 	{RPU_PROC_TYPE_MCU_LMAC, "LMAC", true},
 	{RPU_PROC_TYPE_MCU_UMAC, "UMAC", true},
 };
-
+#ifndef WIFI_NRF71
 static int nrf_wifi_patch_version_compat(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 				const unsigned int version)
 {
@@ -109,7 +110,7 @@ static int nrf_wifi_patch_feature_flags_compat(struct nrf_wifi_fmac_dev_ctx *fma
 
 	return 0;
 }
-
+#endif /* WIFI_NRF71 */
 
 void nrf_wifi_fmac_deinit(struct nrf_wifi_fmac_priv *fpriv)
 {
@@ -126,7 +127,7 @@ void nrf_wifi_fmac_dev_rem(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
 	nrf_wifi_osal_mem_free(fmac_dev_ctx);
 }
 
-
+#ifndef WIFI_NRF71
 enum nrf_wifi_status nrf_wifi_validate_fw_header(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 						 struct nrf70_fw_image_info *info)
 {
@@ -232,7 +233,7 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_parse(struct nrf_wifi_fmac_dev_ctx *fmac_d
 
 	return NRF_WIFI_STATUS_SUCCESS;
 }
-
+#endif /* !WIFI_NRF71 */
 enum nrf_wifi_status nrf_wifi_fmac_fw_reset(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;

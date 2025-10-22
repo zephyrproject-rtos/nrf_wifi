@@ -9,7 +9,7 @@
  * FMAC IF Layer of the Wi-Fi driver.
  */
 
-#include "host_rpu_umac_if.h"
+#include "nrf71_wifi_ctrl.h"
 #include "common/hal_api_common.h"
 #include "common/fmac_structs_common.h"
 #include "common/fmac_util.h"

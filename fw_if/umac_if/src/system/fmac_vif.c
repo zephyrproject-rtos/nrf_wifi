@@ -10,7 +10,7 @@
  */
 
 #include "system/fmac_vif.h"
-#include "host_rpu_umac_if.h"
+#include "nrf71_wifi_ctrl.h"
 #include "common/fmac_util.h"
 
 

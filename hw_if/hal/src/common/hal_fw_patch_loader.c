@@ -9,11 +9,9 @@
  * HAL Layer of the Wi-Fi driver.
  */
 
-#include "host_rpu_common_if.h"
+#include "nrf71_wifi_common.h"
 #include "common/hal_fw_patch_loader.h"
 #include "common/hal_mem.h"
-#include "lmac_if_common.h"
-#include "host_rpu_common_if.h"
 
 /* To reduce HEAP maximum usage */
 #define MAX_PATCH_CHUNK_SIZE 8192

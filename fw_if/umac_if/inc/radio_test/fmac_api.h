@@ -17,9 +17,7 @@
 #define __FMAC_API_RT_H__
 
 #include "osal_api.h"
-#include "host_rpu_umac_if.h"
-#include "host_rpu_data_if.h"
-#include "host_rpu_sys_if.h"
+#include "nrf71_wifi_ctrl.h"
 
 #include "fmac_structs.h"
 #include "fmac_cmd.h"

@@ -10,7 +10,7 @@
  */
 
 #include "queue.h"
-#include "host_rpu_umac_if.h"
+#include "nrf71_wifi_ctrl.h"
 #include "common/hal_mem.h"
 #include "offload_raw_tx/fmac_structs.h"
 #include "common/fmac_util.h"

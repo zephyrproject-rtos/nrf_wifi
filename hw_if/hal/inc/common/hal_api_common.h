@@ -236,4 +236,11 @@ enum nrf_wifi_status hal_rpu_msg_post(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 				      enum NRF_WIFI_HAL_MSG_TYPE msg_type,
 				      unsigned int queue_id,
 				      unsigned int msg_addr);
+#ifdef WIFI_NRF71
+#ifdef CMD_RX_BUFF
+unsigned long nrf_wifi_hal_get_buf_map_rx(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
+                                          unsigned int pool_id,
+                                          unsigned int buf_id);
+#endif /* CMD_RX_BUFF */
+#endif /* WIFI_NRF71 */
 #endif /* __HAL_API_COMMON_H__ */

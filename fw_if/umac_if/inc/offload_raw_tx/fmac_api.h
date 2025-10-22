@@ -15,7 +15,6 @@
 #ifndef __FMAC_API_H__
 #define __FMAC_API_H__
 
-#include "host_rpu_sys_if.h"
 #include "common/fmac_api_common.h"
 #include "offload_raw_tx/fmac_structs.h"
 #include "util.h"

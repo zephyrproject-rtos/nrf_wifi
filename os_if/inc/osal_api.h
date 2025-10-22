@@ -1343,4 +1343,13 @@ int nrf_wifi_osal_ipc_send_msg(unsigned int msg_type,
 	unsigned int msg_len);
 #endif /* NRF71_ON_IPC */
 
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+void *nrf_wifi_osal_iomem_mmap_inline_rx(struct nrf_wifi_osal_priv *opriv,
+                               unsigned long addr,
+                               unsigned long size);
+void nrf_wifi_osal_iomem_unmap_inline_rx(struct nrf_wifi_osal_priv *opriv,
+                               volatile void *addr);
+#endif
+#endif
 #endif /* __OSAL_API_H__ */

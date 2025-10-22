@@ -83,7 +83,9 @@ void *nrf_wifi_bus_pcie_dev_add(void *bus_priv,
 		((unsigned long)pcie_dev_ctx->iomem_addr_base +
 		pcie_priv->cfg_params.addr_pktram_base);
 #endif /* OFFLINE_MODE */
-
+#ifdef INLINE_RX
+	pcie_dev_ctx->addr_hostram_base_inline_rx = pcie_priv->cfg_params.addr_hostram_base_inline_rx;
+#endif
 	status = nrf_wifi_osal_bus_pcie_dev_intr_reg(
 		pcie_dev_ctx->os_pcie_dev_ctx,
 		pcie_dev_ctx,
@@ -293,6 +295,9 @@ unsigned long nrf_wifi_bus_pcie_dma_map_inline_rx(void *dev_ctx,
 
 	phy_addr = SOC_HOST_DATA_RAM_BASE +
 		(virt_addr - pcie_dev_ctx->addr_hostram_base_inline_rx);
+#ifdef DDR_32_BIT_ADDR
+       phy_addr |= MEMORY_HOLE_BASE_ADDR;
+#endif /* DDR_32_BIT_ADDR */
 	return phy_addr;
 }
 
@@ -305,7 +310,9 @@ unsigned long nrf_wifi_bus_pcie_dma_unmap_inline_rx(void *dev_ctx,
 	unsigned long virt_addr = 0;
 
 	pcie_dev_ctx = (struct nrf_wifi_bus_pcie_dev_ctx *)dev_ctx;
-
+#ifdef DDR_32_BIT_ADDR
+       phy_addr &= ~MEMORY_HOLE_BASE_ADDR;
+#endif /* DDR_32_BIT_ADDR */
 	virt_addr = pcie_dev_ctx->addr_hostram_base_inline_rx +
 			(phy_addr - SOC_HOST_DATA_RAM_BASE);
 
@@ -330,6 +337,9 @@ unsigned long nrf_wifi_bus_pcie_dma_map(void *dev_ctx,
 						(void *)virt_addr,
 						len,
 						dma_dir);
+#ifdef DDR_32_BIT_ADDR
+       phy_addr |= MEMORY_HOLE_BASE_ADDR;
+#endif /* DDR_32_BIT_ADDR */
 #endif /* INLINE_MODE */
 #ifdef INLINE_BB_MODE
 	phy_addr = SOC_HOST_PKTRAM_BASE + (virt_addr - pcie_dev_ctx->addr_pktram_base);
@@ -337,6 +347,9 @@ unsigned long nrf_wifi_bus_pcie_dma_map(void *dev_ctx,
 #ifdef OFFLINE_MODE
 	phy_addr = (unsigned long)pcie_dev_ctx->iomem_addr_base +
 			(virt_addr - pcie_dev_ctx->addr_pktram_base);
+#ifdef DDR_32_BIT_ADDR
+       phy_addr |= RPU_ADDR_DATA_RAM_START;
+#endif /* DDR_32_BIT_ADDR */
 #endif /* OFFLINE_MODE */
 
 	return phy_addr;
@@ -356,6 +369,9 @@ unsigned long nrf_wifi_bus_pcie_dma_unmap(void *dev_ctx,
 	pcie_dev_ctx = (struct nrf_wifi_bus_pcie_dev_ctx *)dev_ctx;
 
 #ifdef INLINE_MODE
+#ifdef DDR_32_BIT_ADDR
+       phy_addr &= ~MEMORY_HOLE_BASE_ADDR;
+#endif /* DDR_32_BIT_ADDR */
 	nrf_wifi_osal_bus_pcie_dev_dma_unmap(pcie_dev_ctx->os_pcie_dev_ctx,
 					     (void *)phy_addr,
 					     len,
@@ -366,6 +382,9 @@ unsigned long nrf_wifi_bus_pcie_dma_unmap(void *dev_ctx,
 #endif /* INLINE_BB_MODE */
 #ifdef OFFLINE_MODE
 #ifdef WIFI_NRF71
+#ifdef DDR_32_BIT_ADDR
+       phy_addr &= ~RPU_ADDR_DATA_RAM_START;
+#endif /* DDR_32_BIT_ADDR */
 	status = pal_rpu_addr_offset_get(RPU_ADDR_DATA_RAM_START + phy_addr,
 					 &virt_addr,
 					 RPU_ADDR_DATA_RAM_START);
@@ -433,6 +452,12 @@ struct nrf_wifi_bal_ops nrf_wifi_bus_pcie_ops = {
 	.write_block = &nrf_wifi_bus_pcie_write_block,
 	.dma_map = &nrf_wifi_bus_pcie_dma_map,
 	.dma_unmap = &nrf_wifi_bus_pcie_dma_unmap,
+#ifdef WEZEN
+#ifdef INLINE_RX
+	.dma_map_inline_rx = &nrf_wifi_bus_pcie_dma_map_inline_rx,
+	.dma_unmap_inline_rx = &nrf_wifi_bus_pcie_dma_unmap_inline_rx,
+#endif
+#endif
 #ifdef NRF_WIFI_LOW_POWER
 	.rpu_ps_sleep = &nrf_wifi_bus_pcie_rpu_ps_sleep,
 	.rpu_ps_wake = &nrf_wifi_bus_pcie_rpu_ps_wake,

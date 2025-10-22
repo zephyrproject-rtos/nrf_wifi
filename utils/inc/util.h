@@ -13,7 +13,7 @@
 #define __UTIL_H__
 
 #include "osal_api.h"
-#include "host_rpu_umac_if.h"
+#include "nrf71_wifi_ctrl.h"
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))

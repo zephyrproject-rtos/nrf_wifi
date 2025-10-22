@@ -11,7 +11,7 @@
 
 #include "common/hal_mem.h"
 #include "system/fmac_peer.h"
-#include "host_rpu_umac_if.h"
+#include "nrf71_wifi_ctrl.h"
 #include "common/fmac_util.h"
 
 int nrf_wifi_fmac_peer_get_id(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
@@ -82,7 +82,11 @@ int nrf_wifi_fmac_peer_add(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 			if (vif_ctx->if_type == NRF_WIFI_IFTYPE_AP) {
 				hal_rpu_mem_write(fmac_dev_ctx->hal_dev_ctx,
 						  (RPU_MEM_UMAC_PEND_Q_BMP +
+#ifndef WIFI_NRF71
 						  sizeof(struct sap_client_pend_frames_bitmap) * i),
+#else
+						  sizeof(struct sap_pend_frames_bitmap) * i),
+#endif
 						  peer->ra_addr,
 						  NRF_WIFI_FMAC_ETH_ADDR_LEN);
 			}
@@ -123,7 +127,11 @@ void nrf_wifi_fmac_peer_remove(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	if (vif_ctx->if_type == NRF_WIFI_IFTYPE_AP) {
 		hal_rpu_mem_write(fmac_dev_ctx->hal_dev_ctx,
 				  (RPU_MEM_UMAC_PEND_Q_BMP +
+#ifdef WIFI_NRF71
+				   (sizeof(struct sap_pend_frames_bitmap) * peer_id)),
+#else
 				   (sizeof(struct sap_client_pend_frames_bitmap) * peer_id)),
+#endif
 				  peer->ra_addr,
 				  NRF_WIFI_FMAC_ETH_ADDR_LEN);
 	}
@@ -164,7 +172,11 @@ void nrf_wifi_fmac_peers_flush(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 			if (vif_ctx->if_type == NRF_WIFI_IFTYPE_AP) {
 				hal_rpu_mem_write(fmac_dev_ctx->hal_dev_ctx,
 						  (RPU_MEM_UMAC_PEND_Q_BMP +
+#ifdef WIFI_NRF71
+						  sizeof(struct sap_pend_frames_bitmap) * i),
+#else
 						  sizeof(struct sap_client_pend_frames_bitmap) * i),
+#endif
 						  peer->ra_addr,
 						  NRF_WIFI_FMAC_ETH_ADDR_LEN);
 			}

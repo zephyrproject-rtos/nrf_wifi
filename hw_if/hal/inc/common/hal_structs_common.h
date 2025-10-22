@@ -13,8 +13,16 @@
 #ifndef __HAL_STRUCTS_COMMON_H__
 #define __HAL_STRUCTS_COMMON_H__
 
+#ifdef WIFI_NRF71
+#include "nrf71_wifi_ctrl.h"
+#ifndef CMD_RX_BUFF
+#include "common/rpu_if.h"
+#endif /* !CMD_RX_BUF */
+#else
 #include "lmac_if_common.h"
 #include "host_rpu_common_if.h"
+#endif /* WIFI_NRF71 */
+
 #include "osal_api.h"
 #include "bal_api.h"
 
@@ -116,8 +124,18 @@ enum NRF_WIFI_HAL_STATUS {
  * @brief Structure to hold RPU information.
  */
 struct nrf_wifi_hal_info {
+#ifdef WIFI_NRF71
+#ifdef SOFT_HPQM
+        struct soft_hpqm_info *soft_hpq;
+#ifndef CMD_RX_BUFF
+		/** Host RPU HPQM information */
+	struct host_rpu_hpqm_info hpqm_info;
+#endif /* CMD_RX_BUFF */
+#endif /* SOFT_HPQM */
+#else
 	/** Host RPU HPQM information */
 	struct host_rpu_hpqm_info hpqm_info;
+#endif /* WIFI_NRF71 */
 	/** RX command base */
 	unsigned int rx_cmd_base;
 	/** TX command base */

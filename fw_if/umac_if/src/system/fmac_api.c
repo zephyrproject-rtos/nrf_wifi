@@ -9,8 +9,8 @@
  * FMAC IF Layer of the Wi-Fi driver.
  */
 
-#include "host_rpu_umac_if.h"
-#include "system/phy_rf_params.h"
+#include "nrf71_wifi_ctrl.h"
+#include "nrf71_wifi_rf.h"
 #include "system/fmac_api.h"
 #include "system/hal_api.h"
 #include "system/fmac_structs.h"
@@ -205,6 +205,13 @@ static enum nrf_wifi_status nrf_wifi_sys_fmac_fw_init(struct nrf_wifi_fmac_dev_c
 	unsigned long start_time_us = 0;
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_sys_fmac_priv *sys_fpriv = NULL;
+#ifdef WIFI_NRF71
+#ifdef CMD_RX_BUFF
+        struct nrf_wifi_rx_buf *rx_buf_ipc = NULL, *rx_buf_info_iter = NULL;
+        unsigned int desc_id = 0;
+        unsigned int buf_addr = 0;
+#endif /* CMD_RX_BUFF */
+#endif /* WIFI_NRF71 */
 
 	sys_fpriv = wifi_fmac_priv(fmac_dev_ctx->fpriv);
 
@@ -271,6 +278,40 @@ static enum nrf_wifi_status nrf_wifi_sys_fmac_fw_init(struct nrf_wifi_fmac_dev_c
 		status = NRF_WIFI_STATUS_FAIL;
 		goto out;
 	}
+#ifdef WIFI_NRF71
+#ifdef CMD_RX_BUFF
+        rx_buf_ipc = nrf_wifi_osal_mem_zalloc(sys_fpriv->num_rx_bufs * sizeof(struct nrf_wifi_rx_buf));
+        rx_buf_info_iter = rx_buf_ipc;
+        for (desc_id = 0; desc_id < sys_fpriv->num_rx_bufs; desc_id++) {
+                buf_addr = (unsigned int) nrf_wifi_fmac_get_rx_buf_map_addr(fmac_dev_ctx, desc_id);
+                if (buf_addr) {
+                        rx_buf_info_iter->skb_pointer = buf_addr;
+                        rx_buf_info_iter->skb_desc_no = desc_id;
+                        rx_buf_info_iter++;
+                } else {
+                        nrf_wifi_osal_log_err("%s: UMAC rx buff not mapped\
+                                               for desc_id = %d\n", desc_id,
+                                              __func__);
+                        status = NRF_WIFI_STATUS_FAIL;
+                        goto out;
+                }
+        }
+	        status = nrf_wifi_fmac_prog_rx_buf_info(fmac_dev_ctx,
+                                                rx_buf_ipc,
+                                                sys_fpriv->num_rx_bufs);
+        if (status != NRF_WIFI_STATUS_SUCCESS) {
+                nrf_wifi_osal_log_err("%s: UMAC rx buff \
+                                      programming failed \n",
+                                      __func__);
+                status = NRF_WIFI_STATUS_FAIL;
+                goto out;
+         } else {
+                nrf_wifi_osal_log_dbg("%s Init rx buffs=%d programmed" \,
+				       __func__, sys_fpriv->num_rx_bufs);
+                nrf_wifi_osal_mem_free(rx_buf_ipc);
+        }
+#endif /* CMD_RX_BUFF */
+#endif /* WIFI_NRF71 */
 
 	status = NRF_WIFI_STATUS_SUCCESS;
 
@@ -427,7 +468,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 	ret = nrf_wifi_utils_hex_str_to_val(
 			(unsigned char *)&phy_rf_params.phy_params,
 			sizeof(phy_rf_params.phy_params),
-			NRF_WIFI_SYS_DEF_RF_PARAMS);
+			NRF_WIFI_DEF_RF_PARAMS);
 	if (ret == -1) {
 		nrf_wifi_osal_log_err("%s: Initialization of RF params with default values failed", __func__);
 		status = NRF_WIFI_STATUS_FAIL;
@@ -3941,7 +3982,12 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 
 	ret = nrf_wifi_sys_fmac_phy_rf_params_init(phy_rf_params,
 					      package_info,
-					      NRF_WIFI_SYS_DEF_RF_PARAMS);
+#ifndef WIFI_NRF71
+					      NRF_WIFI_SYS_DEF_RF_PARAMS
+#else
+					      NRF_WIFI_DEF_RF_PARAMS
+#endif /*! WIFI_NRF71 */
+					      );
 	if (ret == -1) {
 		nrf_wifi_osal_log_err("%s: Initialization of RF params with default values failed",
 				      __func__);
@@ -4253,3 +4299,79 @@ out:
 }
 #endif /* NRF_WIFI_LOW_POWER */
 #endif /* NRF70_UTIL */
+
+#ifdef WIFI_NRF71
+#ifdef CMD_RX_BUFF
+#define MAX_BUFS_PER_CMD 32
+enum nrf_wifi_status nrf_wifi_fmac_prog_rx_buf_info(void *dev_ctx,
+                                                struct nrf_wifi_rx_buf *rx_buf,
+                                                unsigned int rx_buf_nums)
+{
+        enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+        struct nrf_wifi_cmd_rx_buf_info *rx_buf_cmd = NULL;
+        struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+        struct nrf_wifi_fmac_dev_ctx_def *def_dev_ctx = NULL;
+        struct nrf_wifi_rx_buf *remained_buf = NULL, *rx_buf_iter = NULL;
+        int i = 0, remained_buf_cnt = 0, counter = 0,  rx_buff_prog_cnt = 0;
+        fmac_dev_ctx = dev_ctx;
+        def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+        if (rx_buf_nums > MAX_BUFS_PER_CMD) {
+                rx_buff_prog_cnt = MAX_BUFS_PER_CMD;
+                remained_buf_cnt = rx_buf_nums % MAX_BUFS_PER_CMD;
+                counter = rx_buf_nums / MAX_BUFS_PER_CMD;
+        } else {
+                rx_buff_prog_cnt = rx_buf_nums;
+                counter = 1;
+        }
+        rx_buf_iter = rx_buf;
+	for (i = 0; i < counter; i++) {
+                rx_buf_cmd = nrf_wifi_osal_mem_zalloc(sizeof(*rx_buf_cmd) +
+				rx_buff_prog_cnt * sizeof(struct nrf_wifi_rx_buf));
+                if (!rx_buf_cmd) {
+                        nrf_wifi_osal_log_err("%s: Unable to allocate memory\n",
+                                      __func__);
+                        goto out;
+                }
+
+                rx_buf_cmd->umac_hdr.cmd_evnt = NRF_WIFI_UMAC_CMD_CONFIG_RX_BUF;
+                nrf_wifi_osal_mem_cpy(&rx_buf_cmd->info,
+                                      rx_buf,
+                                      rx_buff_prog_cnt * sizeof(struct nrf_wifi_rx_buf));
+
+                rx_buf_cmd->rx_buf_num = rx_buff_prog_cnt;
+
+                status = umac_cmd_cfg(fmac_dev_ctx,
+                                      rx_buf_cmd,
+                                      sizeof(*rx_buf_cmd) + rx_buff_prog_cnt * sizeof(struct nrf_wifi_rx_buf));
+                if (rx_buf_cmd) {
+                        nrf_wifi_osal_mem_free(rx_buf_cmd);
+                }
+        }
+	if (remained_buf_cnt > 0) {
+                rx_buf_cmd = nrf_wifi_osal_mem_zalloc(sizeof(*rx_buf_cmd) +
+				remained_buf_cnt * sizeof(struct nrf_wifi_rx_buf));
+                if (!rx_buf_cmd) {
+                        nrf_wifi_osal_log_err("%s: Unable to allocate memory\n",
+                                      __func__);
+                        goto out;
+                }
+
+                rx_buf_cmd->umac_hdr.cmd_evnt = NRF_WIFI_UMAC_CMD_CONFIG_RX_BUF;
+                nrf_wifi_osal_mem_cpy(&rx_buf_cmd->info,
+                                      rx_buf + (MAX_BUFS_PER_CMD),
+                                      remained_buf_cnt * sizeof(struct nrf_wifi_rx_buf));
+
+                rx_buf_cmd->rx_buf_num = remained_buf_cnt;
+
+                status = umac_cmd_cfg(fmac_dev_ctx,
+                                      rx_buf_cmd,
+                                      sizeof(*rx_buf_cmd) + remained_buf_cnt * sizeof(struct nrf_wifi_rx_buf));
+                if (rx_buf_cmd) {
+                        nrf_wifi_osal_mem_free(rx_buf_cmd);
+                }
+        }
+out:
+        return status;
+}
+#endif /* CMD_RX_BUFF */
+#endif /* WIFI_NRF71 */

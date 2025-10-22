@@ -66,6 +66,26 @@ out:
 	return status;
 }
 
+#ifdef WIFI_NRF71
+#ifdef CMD_RX_BUFF
+unsigned long nrf_wifi_hal_get_buf_map_rx(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
+                                          unsigned int pool_id,
+                                          unsigned int buf_id)
+{
+        struct nrf_wifi_hal_buf_map_info *rx_buf_info = NULL;
+        rx_buf_info = &hal_dev_ctx->rx_buf_info[pool_id][buf_id];
+        if (rx_buf_info->mapped) {
+                return rx_buf_info->phy_addr;
+        } else {
+                nrf_wifi_osal_log_err("%s: Rx buffer not mapped for pool_id = %d, buf_id=%d\n",
+                                      __func__,
+                                      pool_id,
+                                      buf_id);
+        }
+}
+#endif /* CMD_RX_BUFF */
+#endif /* WIFI_NRF71 */
+
 static enum nrf_wifi_status hal_rpu_recovery(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;

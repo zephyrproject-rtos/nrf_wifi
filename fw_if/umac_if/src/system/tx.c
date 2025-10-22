@@ -241,11 +241,19 @@ static enum nrf_wifi_status update_pend_q_bmp(struct nrf_wifi_fmac_dev_ctx *fmac
 
 	if (vif_ctx->if_type == NRF_WIFI_IFTYPE_AP &&
 	    peer_id < MAX_PEERS) {
+#ifdef WIFI_NRF71
+		const unsigned int bitmap_offset = offsetof(struct sap_pend_frames_bitmap,
+						      pend_frames_bitmap);
+		const unsigned char *rpu_addr = (unsigned char *)RPU_MEM_UMAC_PEND_Q_BMP +
+			(sizeof(struct sap_pend_frames_bitmap) * peer_id) +
+			bitmap_offset;
+#else
 		const unsigned int bitmap_offset = offsetof(struct sap_client_pend_frames_bitmap,
 						      pend_frames_bitmap);
 		const unsigned char *rpu_addr = (unsigned char *)RPU_MEM_UMAC_PEND_Q_BMP +
 			(sizeof(struct sap_client_pend_frames_bitmap) * peer_id) +
 			bitmap_offset;
+#endif
 
 		bmp = &sys_dev_ctx->tx_config.peers[peer_id].pend_q_bmp;
 		pend_pkt_q = sys_dev_ctx->tx_config.data_pending_txq[peer_id][ac];

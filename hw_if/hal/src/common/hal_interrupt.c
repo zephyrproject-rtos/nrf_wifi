@@ -223,6 +223,54 @@ static enum nrf_wifi_status hal_rpu_event_free(struct nrf_wifi_hal_dev_ctx *hal_
 					       unsigned int event_addr)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+#ifdef SOFT_HPQM
+	unsigned int current_index = 0;
+
+	status = hal_rpu_mem_read(hal_dev_ctx,
+                                  &current_index,
+                                  &hal_dev_ctx->rpu_info.soft_hpq->host_event_busy_index,
+				  sizeof(unsigned int));
+
+        if (status != NRF_WIFI_STATUS_SUCCESS) {
+                nrf_wifi_osal_log_err("%s: Read from the host_event_busy_index = %x address failed, val (0x%X)\n",
+                                       __func__,
+                                       &hal_dev_ctx->rpu_info.soft_hpq->host_event_busy_index,
+                                       current_index);
+                goto out;
+        }
+	status = hal_rpu_mem_write(hal_dev_ctx,
+                                   &hal_dev_ctx->rpu_info.soft_hpq->event_free_buffs[current_index],
+				   event_addr,
+				   sizeof(unsigned int));
+
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: Writing to event_freebuffs[index=%d] address = %x failed for event_addr= %x\n",
+				      __func__,
+				      current_index,
+				      &hal_dev_ctx->rpu_info.soft_hpq->event_free_buffs[current_index],
+				      event_addr);
+		goto out;
+	}
+
+	current_index++;
+
+	if (current_index == HOST_RPU_EVENT_BUFFERS)
+		current_index = 0;
+
+	status = hal_rpu_mem_write(hal_dev_ctx,
+                                   &hal_dev_ctx->rpu_info.soft_hpq->host_event_busy_index,
+				   current_index,
+				   sizeof(unsigned int));
+
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: Writing to host_event_busy_index address = %x failed for val =%d\n",
+				      __func__,
+				      &hal_dev_ctx->rpu_info.soft_hpq->host_event_busy_index,
+				      current_index);
+		goto out;
+	}
+
+#else
 
 	status = hal_rpu_hpq_enqueue(hal_dev_ctx,
 				     &hal_dev_ctx->rpu_info.hpqm_info.event_avl_queue,
@@ -233,7 +281,7 @@ static enum nrf_wifi_status hal_rpu_event_free(struct nrf_wifi_hal_dev_ctx *hal_
 				      __func__);
 		goto out;
 	}
-
+#endif /* SOFT_HPQM */
 out:
 	return status;
 }
@@ -457,7 +505,120 @@ static unsigned int hal_rpu_event_get_all(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 
 	while (1) {
 		event_addr = 0;
+#ifdef SOFT_HPQM
+		unsigned int desc_no = 0;
+		unsigned int current_index = 0;
 
+		status = hal_rpu_mem_read(hal_dev_ctx,
+                                         &current_index,
+                                         &hal_dev_ctx->rpu_info.soft_hpq->host_event_busy_index,
+					 sizeof(unsigned int));
+
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_err("%s: Read from the host_event_busy_index = %x address failed, val (0x%X)\n",
+					      __func__,
+					      &hal_dev_ctx->rpu_info.soft_hpq->host_event_busy_index,
+					      current_index);
+			goto out;
+		}
+
+		status = hal_rpu_mem_read(hal_dev_ctx,
+					  &event_addr,
+					  &hal_dev_ctx->rpu_info.soft_hpq->event_busy_buffs[current_index],
+					  sizeof(unsigned int));
+
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_err("%s: Read from event_busy_buffs[%d]= %x address failed, val (0x%X)\n",
+					      __func__,
+					      current_index,
+					      hal_dev_ctx->rpu_info.soft_hpq->event_busy_buffs[current_index],
+					      event_addr);
+			goto out;
+		}
+
+		if (!event_addr) {
+			for (desc_no = 0; desc_no < HOST_RPU_TX_DESC; desc_no++) {
+				/* There is no control events pending. Now check tx_done event */
+				status = hal_rpu_mem_read(hal_dev_ctx,
+							  &current_index,
+							  &hal_dev_ctx->rpu_info.soft_hpq->host_tx_done_busy_index,
+							  sizeof (unsigned int));
+
+				if (status != NRF_WIFI_STATUS_SUCCESS) {
+					nrf_wifi_osal_log_err("%s: Read from the host_tx_done_busy_index = %x address failed, val (0x%X)\n",
+							      __func__,
+							      &hal_dev_ctx->rpu_info.soft_hpq->host_tx_done_busy_index,
+							      current_index);
+					goto out;
+				}
+
+				status = hal_rpu_mem_read(hal_dev_ctx,
+							  &event_addr,
+							  &hal_dev_ctx->rpu_info.soft_hpq->tx_done_buffs[current_index],
+							  sizeof(unsigned int));
+
+				if (status != NRF_WIFI_STATUS_SUCCESS) {
+					nrf_wifi_osal_log_err("%s: Read from tx_done_buffs[%d] = %x address failed, val (0x%X)\n",
+							      __func__,
+							      current_index,
+							      &hal_dev_ctx->rpu_info.soft_hpq->tx_done_buffs[current_index],
+							      event_addr);
+					goto out;
+				}
+
+				if (!event_addr) {
+					continue;
+				} else {
+					/* Set the content to 0 */
+					status = hal_rpu_mem_write(hal_dev_ctx,
+								   &hal_dev_ctx->rpu_info.soft_hpq->tx_done_buffs[current_index],
+								   0x0,
+								   sizeof(unsigned int));
+
+					if (status != NRF_WIFI_STATUS_SUCCESS) {
+						nrf_wifi_osal_log_err("%s: Writing to tx_done_buffs[%d] = %x address failed \n",
+								      __func__,
+								      current_index,
+								      &hal_dev_ctx->rpu_info.soft_hpq->tx_done_buffs[current_index]);
+			                        goto out;
+					}
+
+					current_index++;
+
+					if (current_index == HOST_RPU_TX_DESC)
+						current_index = 0;
+
+					status = hal_rpu_mem_write(hal_dev_ctx,
+								   &hal_dev_ctx->rpu_info.soft_hpq->host_tx_done_busy_index,
+								   current_index,
+								   sizeof(unsigned int));
+
+					if (status != NRF_WIFI_STATUS_SUCCESS) {
+						nrf_wifi_osal_log_err("%s: Writing %d to host_tx_done_busy_index = %x address failed \n",
+								      __func__,
+								      current_index,
+								      &hal_dev_ctx->rpu_info.soft_hpq->host_tx_done_busy_index);
+			                        goto out;
+					}
+					break;
+				}
+			}
+		} else {
+			/* Set the content to 0 */
+			status = hal_rpu_mem_write(hal_dev_ctx,
+						   &hal_dev_ctx->rpu_info.soft_hpq->event_busy_buffs[current_index],
+						   0x0,
+						   sizeof(unsigned int));
+
+			if (status != NRF_WIFI_STATUS_SUCCESS) {
+				nrf_wifi_osal_log_err("%s: Writing to event_busy_buffs[%d] = %x address failed \n",
+						      __func__,
+						      current_index,
+						      &hal_dev_ctx->rpu_info.soft_hpq->event_busy_buffs[current_index]);
+				goto out;
+			}
+		}
+#else
 		/* First get the event address */
 		status = hal_rpu_hpq_dequeue(hal_dev_ctx,
 					     &hal_dev_ctx->rpu_info.hpqm_info.event_busy_queue,
@@ -469,6 +630,7 @@ static unsigned int hal_rpu_event_get_all(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 			goto out;
 		}
 
+#endif /* SOFT_HPQM */
 		/* No more events to read. Sometimes when low power mode is enabled
 		 * we see a wrong address, but it work after a while, so, add a
 		 * check for that.
@@ -581,7 +743,17 @@ enum nrf_wifi_status hal_rpu_irq_process(struct nrf_wifi_hal_dev_ctx *hal_dev_ct
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	unsigned int num_events = 0;
 
+ /* We had an issue in fpga setup where even before host completes
+  * reading of the all the events firmware was pushing an event.
+  * So handle this acking the irq first and then processing teh events.
+ */
+       status = hal_rpu_irq_ack(hal_dev_ctx);
 
+       if (status == NRF_WIFI_STATUS_FAIL) {
+               nrf_wifi_osal_log_err("%s: hal_rpu_irq_ack failed\n",
+                                     __func__);
+               goto out;
+       }
 	/* Get all the events in the queue. It is possible that there are no
 	 * events in the queue. This is a valid scenario as per our present
 	 * design (as discussed with LMAC team), since the RPU will raise

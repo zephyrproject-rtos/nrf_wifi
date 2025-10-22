@@ -51,9 +51,9 @@ struct nrf_wifi_bus_pcie_dev_ctx {
 
 	void *iomem_addr_base;
 	unsigned long addr_pktram_base;
-#ifdef SOC_WEZEN
+#ifdef WIFI_NRF71
 #ifdef INLINE_RX
-	unsigned long addr_hostram_base_inline_rx;
+        unsigned long addr_hostram_base_inline_rx;
 #endif
 #endif
 #ifdef DEBUG_MODE_SUPPORT

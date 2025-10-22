@@ -61,6 +61,8 @@ target_compile_definitions(
   $<$<BOOL:${CONFIG_NRF_WIFI_DYNAMIC_BANDWIDTH_SIGNALLING}>:NRF_WIFI_DYNAMIC_BANDWIDTH_SIGNALLING>
   $<$<BOOL:${CONFIG_NRF_WIFI_DYNAMIC_ED}>:NRF_WIFI_DYNAMIC_ED>
   $<$<BOOL:${CONFIG_WIFI_NRF71}>:WIFI_NRF71>
+  $<$<BOOL:${CONFIG_NRF71_SOFT_HPQM}>:SOFT_HPQM>
+  $<$<BOOL:${CONFIG_NRF71_CMD_RX_BUFF}>:CMD_RX_BUFF>
   NRF_WIFI_MAX_PS_POLL_FAIL_CNT=${CONFIG_NRF_WIFI_MAX_PS_POLL_FAIL_CNT}
   NRF70_RX_NUM_BUFS=${CONFIG_NRF70_RX_NUM_BUFS}
   NRF70_MAX_TX_TOKENS=${CONFIG_NRF70_MAX_TX_TOKENS}
@@ -120,9 +122,14 @@ target_include_directories(
   ${NRF_WIFI_DIR}/fw_if/umac_if/inc
   ${NRF_WIFI_DIR}/fw_load/mips/fw/inc
   ${NRF_WIFI_DIR}/hw_if/hal/inc
-  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw
   ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw/stats
 )
+
+if(NOT CONFIG_WIFI_NRF71)
+target_include_directories(
+    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw
+)
+endif()
 
 target_include_directories_ifdef(CONFIG_NRF70_SYSTEM_MODE
   nrf-wifi-osal

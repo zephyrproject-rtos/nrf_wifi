@@ -12,7 +12,7 @@
 #ifndef __FMAC_RX_H__
 #define __FMAC_RX_H__
 
-#include "host_rpu_data_if.h"
+#include "nrf71_wifi_ctrl.h"
 #include "system/fmac_structs.h"
 #define RX_BUF_HEADROOM 4
 
@@ -38,4 +38,10 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 
 void nrf_wifi_fmac_rx_tasklet(void *data);
 
+#ifdef WIFI_NRF71
+#ifdef CMD_RX_BUFF
+unsigned long nrf_wifi_fmac_get_rx_buf_map_addr(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+                                                unsigned int desc_id);
+#endif /* CMD_RX_BUFF */
+#endif /* WIFI_NRF71 */
 #endif /* __FMAC_RX_H__ */

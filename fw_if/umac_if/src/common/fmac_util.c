@@ -12,7 +12,7 @@
 #include "osal_api.h"
 #include "common/fmac_api_common.h"
 #include "common/fmac_util.h"
-#include "host_rpu_umac_if.h"
+#include "nrf71_wifi_ctrl.h"
 
 bool nrf_wifi_util_is_multicast_addr(const unsigned char *addr)
 {

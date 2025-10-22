@@ -14,7 +14,7 @@
 #ifndef __FMAC_TX_H__
 #define __FMAC_TX_H__
 
-#include "host_rpu_data_if.h"
+#include "nrf71_wifi_ctrl.h"
 #include "system/fmac_structs.h"
 
 /**

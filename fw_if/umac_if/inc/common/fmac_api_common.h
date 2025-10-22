@@ -17,11 +17,14 @@
 
 #include "osal_api.h"
 #include "common/hal_api_common.h"
-#include "host_rpu_sys_if.h"
+#ifdef WIFI_NRF71
+#include "nrf71_wifi_ctrl.h"
+#endif
 #include "fmac_cmd_common.h"
 #include "fmac_structs_common.h"
-
+#ifndef WIFI_NRF71
 #include <patch_info.h>
+#endif
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 

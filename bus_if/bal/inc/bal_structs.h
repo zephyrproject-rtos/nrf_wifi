@@ -23,6 +23,11 @@
 struct nrf_wifi_bal_cfg_params {
 	/** Base address of the packet RAM. */
 	unsigned long addr_pktram_base;
+#ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	unsigned long addr_hostram_base_inline_rx;
+#endif
+#endif
 };
 
 /**

@@ -9,6 +9,7 @@
  * system mode in the FMAC IF Layer of the Wi-Fi driver.
  */
 
+#include "nrf71_wifi_rf.h"
 #include "system/fmac_structs.h"
 #include "system/fmac_cmd.h"
 #include "common/fmac_util.h"
@@ -115,7 +116,7 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 	umac_cmd_data->temp_vbat_config_params.vth_very_low = NRF_WIFI_VBAT_VERYLOW;
 
 	umac_cmd_data->op_band = op_band;
-#ifndef CONFIG_NRF71
+#ifndef WIFI_NRF71
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[PCB_LOSS_BYTE_2G_OFST],
 			      &board_params->pcb_loss_2g,
 			      NUM_PCB_LOSS_OFFSET);
@@ -127,7 +128,7 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[BAND_2G_LW_ED_BKF_DSSS_OFST],
 			      &tx_pwr_ctrl_params->band_edge_2g_lo_dss,
 			      NUM_EDGE_BACKOFF);
-#endif /* !CONFIG_NRF71 */
+#endif /* !WIFI_NRF71 */
 	nrf_wifi_osal_mem_cpy(umac_cmd_data->country_code,
 			      country_code,
 			      NRF_WIFI_COUNTRY_CODE_LEN);
