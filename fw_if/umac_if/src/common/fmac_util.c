@@ -18,6 +18,9 @@
 #else
 #include "host_rpu_umac_if.h"
 #endif
+#ifdef NRF70_SYSTEM_MODE
+#include <system/fmac_structs.h>
+#endif /* NRF70_SYSTEM_MODE */
 
 bool nrf_wifi_util_is_multicast_addr(const unsigned char *addr)
 {
@@ -90,6 +93,26 @@ bool nrf_wifi_util_is_arr_zero(unsigned char *arr,
 
 	return true;
 }
+
+#ifdef NRF70_SYSTEM_MODE
+unsigned char *nrf_wifi_util_get_ra(struct nrf_wifi_fmac_vif_ctx *vif,
+				    void *nwb)
+{
+	if ((vif->if_type == NRF_WIFI_IFTYPE_STATION)
+#ifdef NRF70_RAW_DATA_TX
+	    || (vif->if_type == NRF_WIFI_STA_TX_INJECTOR)
+#endif /* NRF70_RAW_DATA_TX */
+#ifdef NRF70_PROMISC_DATA_RX
+	    || (vif->if_type == NRF_WIFI_STA_PROMISC)
+	    || (vif->if_type == NRF_WIFI_STA_PROMISC_TX_INJECTOR)
+#endif
+	    ) {
+		return vif->bssid;
+	}
+
+	return nrf_wifi_osal_nbuf_data_get(nwb);
+}
+#endif /* NRF70_SYSTEM_MODE */
 
 void *wifi_fmac_priv(struct nrf_wifi_fmac_priv *def)
 {
