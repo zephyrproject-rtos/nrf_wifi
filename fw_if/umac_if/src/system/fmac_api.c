@@ -1770,12 +1770,6 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_add_sta(void *dev_ctx,
 #ifdef NRF71_ON_IPC
 	add_sta_cmd->valid_fields |=
 		NRF_WIFI_CMD_NEW_STATION_HT_CAPABILITY_VALID;
-	add_sta_cmd->valid_fields |=
-		NRF_WIFI_CMD_NEW_STATION_VHT_CAPABILITY_VALID;
-	add_sta_cmd->valid_fields |=
-		NRF_WIFI_CMD_NEW_STATION_HE_CAPABILITY_VALID;
-	add_sta_cmd->valid_fields |=
-		NRF_WIFI_CMD_NEW_STATION_6GHZ_CAPABILITY_VALID;
 #else
 	if (!nrf_wifi_util_is_arr_zero(add_sta_info->ht_capability,
 				       sizeof(add_sta_info->ht_capability))) {
