@@ -3407,7 +3407,7 @@ out:
 #endif /* NRF70_STA_MODE */
 
 enum nrf_wifi_status nrf_wifi_sys_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-						 enum rpu_op_mode op_mode,
+						 enum rpu_stats_type stats_type,
 						 struct rpu_sys_op_stats *stats)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
@@ -3428,7 +3428,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *f
 	fmac_dev_ctx->stats_req = true;
 	fmac_dev_ctx->fw_stats = &stats->fw;
 
-	status = umac_cmd_sys_prog_stats_get(fmac_dev_ctx);
+	status = umac_cmd_sys_prog_stats_get(fmac_dev_ctx, stats_type);
 
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		goto out;
