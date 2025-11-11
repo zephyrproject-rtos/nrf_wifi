@@ -1169,7 +1169,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_conf_ltf_gi(struct nrf_wifi_fmac_dev_ctx 
 /**
  * @brief Issue a request to get stats from the RPU.
  * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
- * @param op_mode RPU operation mode.
+ * @param stats_type Type of statistics to retrieve.
  * @param stats Pointer to memory where the stats are to be copied.
  *
  * This function is used to send a command to
@@ -1179,7 +1179,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_conf_ltf_gi(struct nrf_wifi_fmac_dev_ctx 
  * @return Command execution status
  */
 enum nrf_wifi_status nrf_wifi_sys_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-						 enum rpu_op_mode op_mode,
+						 enum rpu_stats_type stats_type,
 						 struct rpu_sys_op_stats *stats);
 #ifdef NRF_WIFI_RX_BUFF_PROG_UMAC
 /**
