@@ -14,6 +14,9 @@
 #include "fmac_structs_common.h"
 
 #include "fmac_structs_common.h"
+#ifdef NRF70_SYSTEM_MODE
+#include "system/fmac_structs.h"
+#endif /* NRF70_SYSTEM_MODE */
 #include "common/pack_def.h"
 
 
@@ -106,5 +109,9 @@ bool nrf_wifi_util_is_arr_zero(unsigned char *arr,
 
 void *wifi_fmac_priv(struct nrf_wifi_fmac_priv *def);
 void *wifi_dev_priv(struct nrf_wifi_fmac_dev_ctx *def);
+
+#ifdef NRF70_SYSTEM_MODE
+unsigned char *nrf_wifi_util_get_ra(struct nrf_wifi_fmac_vif_ctx *vif, void *nwb);
+#endif /* NRF70_SYSTEM_MODE */
 
 #endif /* __FMAC_UTIL_H__ */

@@ -1864,25 +1864,6 @@ static int get_ac(unsigned int tid,
 }
 
 
-unsigned char *nrf_wifi_util_get_ra(struct nrf_wifi_fmac_vif_ctx *vif,
-				    void *nwb)
-{
-	if ((vif->if_type == NRF_WIFI_IFTYPE_STATION)
-#ifdef NRF70_RAW_DATA_TX
-	    || (vif->if_type == NRF_WIFI_STA_TX_INJECTOR)
-#endif /* NRF70_RAW_DATA_TX */
-#ifdef NRF70_PROMISC_DATA_RX
-	    || (vif->if_type == NRF_WIFI_STA_PROMISC)
-	    || (vif->if_type == NRF_WIFI_STA_PROMISC_TX_INJECTOR)
-#endif
-	    ) {
-		return vif->bssid;
-	}
-
-	return nrf_wifi_osal_nbuf_data_get(nwb);
-}
-
-
 #ifdef NRF70_RAW_DATA_TX
 static bool nrf_wifi_raw_pkt_mode_enabled(struct nrf_wifi_fmac_vif_ctx *vif)
 {
