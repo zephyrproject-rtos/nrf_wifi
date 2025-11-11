@@ -326,6 +326,8 @@ struct peers_info {
 	unsigned int pairwise_cipher;
 	/** 802.11 power save token count. */
 	int ps_token_count;
+	/** Port authorized */
+	bool authorized;
 };
 
 /**
