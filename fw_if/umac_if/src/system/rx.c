@@ -431,7 +431,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_event_process(struct nrf_wifi_fmac_dev_ctx
 	}
 #endif /* NRF70_STA_MODE */
 	num_pkts = config->rx_pkt_cnt;
-#ifdef NRF_WIFI71 
+#ifdef WIFI_NRF71
 #ifdef CMD_RX_BUFF
         rx_buf_ipc = nrf_wifi_osal_mem_zalloc(num_pkts * sizeof(struct nrf_wifi_rx_buf));
         rx_buf_info_iter = rx_buf_ipc;
