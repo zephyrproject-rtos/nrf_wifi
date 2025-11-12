@@ -306,7 +306,7 @@ static enum nrf_wifi_status nrf_wifi_sys_fmac_fw_init(struct nrf_wifi_fmac_dev_c
                 status = NRF_WIFI_STATUS_FAIL;
                 goto out;
          } else {
-                nrf_wifi_osal_log_dbg("%s Init rx buffs=%d programmed" \,
+                nrf_wifi_osal_log_dbg("%s Init rx buffs=%d programmed \n",
 				       __func__, sys_fpriv->num_rx_bufs);
                 nrf_wifi_osal_mem_free(rx_buf_ipc);
         }
