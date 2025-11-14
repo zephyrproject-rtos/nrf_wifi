@@ -53,7 +53,11 @@ enum nrf_wifi_status umac_cmd_rt_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx
 
 	if (rf_params_valid) {
 		nrf_wifi_osal_mem_cpy(umac_cmd_data->sys_params.rf_params,
+#ifdef WIFI_NRF71
+                                     rf_params->phy_params,
+#else
 				      rf_params,
+#endif /* WIFI_NRF71 */
 				      NRF_WIFI_RF_PARAMS_SIZE);
 	}
 

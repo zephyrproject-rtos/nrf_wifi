@@ -191,7 +191,7 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fma
 	ret = nrf_wifi_utils_hex_str_to_val(
 			(unsigned char *)&phy_rf_params.phy_params,
 			sizeof(phy_rf_params.phy_params),
-			NRF_WIFI_RT_DEF_RF_PARAMS);
+			NRF_WIFI_DEF_RF_PARAMS);
 	if (ret == -1) {
 		nrf_wifi_osal_log_err("%s: Initialization of RF params with default values failed", __func__);
 		status = NRF_WIFI_STATUS_FAIL;
@@ -1158,7 +1158,13 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ctx
 
 	ret = nrf_wifi_rt_fmac_phy_rf_params_init(phy_rf_params,
 						  package_info,
-						  NRF_WIFI_RT_DEF_RF_PARAMS);
+#ifdef WIFI_NRF71
+						  NRF_WIFI_DEF_RF_PARAMS
+#else
+
+						  NRF_WIFI_RT_DEF_RF_PARAMS
+#endif /* WIFI_NRF71 */
+						  );
 
 	if (ret == -1) {
 		nrf_wifi_osal_log_err("%s: Initialization of RF params with default values failed",
