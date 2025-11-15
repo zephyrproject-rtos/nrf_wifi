@@ -91,6 +91,14 @@ out:
 #ifdef NRF_WIFI_LOW_POWER
 	nrf_wifi_osal_spinlock_irq_rel(hal_dev_ctx->rpu_ps_lock,
 				       &flags);
+
+	/* Schedule sleep timer after releasing the lock to prevent
+	 * it from firing during the critical section.
+	 */
+	if (status == NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_timer_schedule(hal_dev_ctx->rpu_ps_timer,
+					    NRF70_RPU_PS_IDLE_TIMEOUT_MS);
+	}
 #endif /* NRF_WIFI_LOW_POWER */
 
 	return status;
@@ -151,6 +159,14 @@ enum nrf_wifi_status hal_rpu_reg_write(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx,
 out:
 	nrf_wifi_osal_spinlock_irq_rel(hal_dev_ctx->rpu_ps_lock,
 				       &flags);
+
+	/* Schedule sleep timer after releasing the lock to prevent
+	 * it from firing during the critical section.
+	 */
+	if (status == NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_timer_schedule(hal_dev_ctx->rpu_ps_timer,
+					    NRF70_RPU_PS_IDLE_TIMEOUT_MS);
+	}
 #endif /* NRF_WIFI_LOW_POWER */
 
 	return status;
