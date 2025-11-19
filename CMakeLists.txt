@@ -126,8 +126,8 @@ target_include_directories(
 )
 
 if(NOT CONFIG_WIFI_NRF71)
-target_include_directories(
-    ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw
+target_include_directories(nrf-wifi-osal PRIVATE
+  ${NRF_WIFI_DIR}/fw_if/umac_if/inc/fw
 )
 endif()
 
