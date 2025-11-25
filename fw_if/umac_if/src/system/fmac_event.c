@@ -255,7 +255,11 @@ static enum nrf_wifi_status umac_event_sys_proc_events(struct nrf_wifi_fmac_dev_
 		channel_event = (struct nrf_wifi_event_set_channel *)sys_head;
 		if (!channel_event->status) {
 			sys_dev_ctx->vif_ctx[channel_event->if_index]->channel =
+#ifdef WIFI_NRF71
+								channel_event->chan.primary_num;
+#else
 								channel_event->chan_num;
+#endif /*WIFI_NRF71 */
 		}
 		status = NRF_WIFI_STATUS_SUCCESS;
 		break;
