@@ -1,4 +1,4 @@
-# Generated from commit: b0c8b52cde02c246b88f117228fe1de2bc4a3ed8
+# Generated from PR #1937 (commit: c8d895cd10a0b40a90628e4d68a11f0dcc814928)
 # Auto-generated file, do not edit, use update_blobs.py to update
 name: nrf_wifi
 build:
@@ -11,7 +11,7 @@ blobs:
       type: img
       version: '1.2.14.5'
       license-path: ./LICENSE.txt
-      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/b0c8b52cde02c246b88f117228fe1de2bc4a3ed8/nrf_wifi/bin/zephyr/default/nrf70.bin
+      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/c8d895cd10a0b40a90628e4d68a11f0dcc814928/nrf_wifi/bin/zephyr/default/nrf70.bin
       description: nRF70 Wi-Fi firmware for default mode
       doc-url: https://docs.nordicsemi.com/bundle/ps_nrf7000/page/chapters/notice/doc/notice_on_sw.html
 
@@ -20,7 +20,7 @@ blobs:
       type: img
       version: '1.2.14.5'
       license-path: ./LICENSE.txt
-      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/b0c8b52cde02c246b88f117228fe1de2bc4a3ed8/nrf_wifi/bin/zephyr/scan_only/nrf70.bin
+      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/c8d895cd10a0b40a90628e4d68a11f0dcc814928/nrf_wifi/bin/zephyr/scan_only/nrf70.bin
       description: nRF70 Wi-Fi firmware for scan_only mode
       doc-url: https://docs.nordicsemi.com/bundle/ps_nrf7000/page/chapters/notice/doc/notice_on_sw.html
 
@@ -29,16 +29,16 @@ blobs:
       type: img
       version: '1.2.14.5'
       license-path: ./LICENSE.txt
-      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/b0c8b52cde02c246b88f117228fe1de2bc4a3ed8/nrf_wifi/bin/zephyr/radio_test/nrf70.bin
+      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/c8d895cd10a0b40a90628e4d68a11f0dcc814928/nrf_wifi/bin/zephyr/radio_test/nrf70.bin
       description: nRF70 Wi-Fi firmware for radio_test mode
       doc-url: https://docs.nordicsemi.com/bundle/ps_nrf7000/page/chapters/notice/doc/notice_on_sw.html
 
     - path: wifi_fw_bins/system_with_raw/nrf70.bin
-      sha256: eb326ba7d9851490b864385e02bec1a2e5bb55408b4b950011aec397b9b8d88a
+      sha256: 4334f1c38428a07a6e90aa5890a889c83ff4d60afa5ddbe47bbc6930714c0ce9
       type: img
       version: '1.2.14.5'
       license-path: ./LICENSE.txt
-      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/b0c8b52cde02c246b88f117228fe1de2bc4a3ed8/nrf_wifi/bin/zephyr/system_with_raw/nrf70.bin
+      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/c8d895cd10a0b40a90628e4d68a11f0dcc814928/nrf_wifi/bin/zephyr/system_with_raw/nrf70.bin
       description: nRF70 Wi-Fi firmware for system_with_raw mode
       doc-url: https://docs.nordicsemi.com/bundle/ps_nrf7000/page/chapters/notice/doc/notice_on_sw.html
 
@@ -47,6 +47,6 @@ blobs:
       type: img
       version: '1.2.14.5'
       license-path: ./LICENSE.txt
-      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/b0c8b52cde02c246b88f117228fe1de2bc4a3ed8/nrf_wifi/bin/zephyr/offloaded_raw_tx/nrf70.bin
+      url: https://github.com/nrfconnect/sdk-nrfxlib/raw/c8d895cd10a0b40a90628e4d68a11f0dcc814928/nrf_wifi/bin/zephyr/offloaded_raw_tx/nrf70.bin
       description: nRF70 Wi-Fi firmware for offloaded_raw_tx mode
       doc-url: https://docs.nordicsemi.com/bundle/ps_nrf7000/page/chapters/notice/doc/notice_on_sw.html
