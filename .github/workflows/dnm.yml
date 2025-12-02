@@ -6,11 +6,21 @@ on:
 
 jobs:
   do-not-merge:
-    if: ${{ contains(github.event.*.labels.*.name, 'DNM') }}
     name: Prevent Merging
     runs-on: ubuntu-24.04
     steps:
-      - name: Check for label
+      - name: Check for DNM label
+        id: check-label
+        run: |
+          labels_json='${{ toJSON(github.event.pull_request.labels) }}'
+          if echo "$labels_json" | grep -q '"name":"DNM"'; then
+            echo "has_dnm=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_dnm=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fail if DNM label exists
+        if: steps.check-label.outputs.has_dnm == 'true'
         run: |
           echo "Pull request is labeled as 'DNM'"
           echo "This workflow fails so that the pull request cannot be merged"
