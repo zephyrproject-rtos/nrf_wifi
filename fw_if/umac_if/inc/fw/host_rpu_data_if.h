@@ -75,8 +75,9 @@ struct nrf_wifi_umac_head {
 #define NRF_WIFI_TX_FLAGS_DSCP_TOS(x)    (((x) << NRF_WIFI_TX_FLAGS_DSCP_TOS_SHIFT) & NRF_WIFI_TX_FLAGS_DSCP_TOS_MASK)
 
 enum nrf_wifi_tx_flags {
-	NRF_WIFI_TX_FLAG_TWT_EMERGENCY_TX = (1 << 31),
-	NRF_WIFI_TX_FLAG_CHKSUM_AVAILABLE = (1 << 30),
+        NRF_WIFI_TX_FLAG_TWT_EMERGENCY_TX = (1 << 31),
+        NRF_WIFI_TX_FLAG_CHKSUM_AVAILABLE = (1 << 30),
+        NRF_WIFI_TX_FLAG_QOS_CTL_ACK_POLICY_NOACK = (1 << 29)
 };
 
 /**
