@@ -97,7 +97,7 @@ enum nrf_wifi_status umac_cmd_off_raw_tx_init(struct nrf_wifi_fmac_dev_ctx *fmac
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[PCB_LOSS_BYTE_2G_OFST],
 			      &board_params->pcb_loss_2g,
 			      NUM_PCB_LOSS_OFFSET);
-
+#ifndef WIFI_NRF71
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[ANT_GAIN_2G_OFST],
 			      &tx_pwr_ctrl_params->ant_gain_2g,
 			      NUM_ANT_GAIN);
@@ -105,7 +105,7 @@ enum nrf_wifi_status umac_cmd_off_raw_tx_init(struct nrf_wifi_fmac_dev_ctx *fmac
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[BAND_2G_LW_ED_BKF_DSSS_OFST],
 			      &tx_pwr_ctrl_params->band_edge_2g_lo_dss,
 			      NUM_EDGE_BACKOFF);
-
+#endif /* !WIFI_NRF71 */
 	nrf_wifi_osal_mem_cpy(umac_cmd_data->country_code,
 			      country_code,
 			      NRF_WIFI_COUNTRY_CODE_LEN);

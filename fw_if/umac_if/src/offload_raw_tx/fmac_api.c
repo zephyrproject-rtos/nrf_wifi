@@ -208,7 +208,7 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_dev_init(
 	nrf_wifi_osal_mem_set(&otp_info,
 			      0xFF,
 			      sizeof(otp_info));
-
+#ifndef WIFI_NRF71
 	status = nrf_wifi_hal_otp_info_get(fmac_dev_ctx->hal_dev_ctx,
 					   &otp_info.info,
 					   &otp_info.flags);
@@ -217,7 +217,7 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_dev_init(
 				      __func__);
 		goto out;
 	}
-
+#endif /* !WIFI_NRF71 */
 	status = nrf_wifi_off_raw_tx_fmac_rf_params_get(fmac_dev_ctx,
 							&phy_rf_params);
 
@@ -429,6 +429,7 @@ static int nrf_wifi_off_raw_tx_fmac_phy_rf_params_init(struct nrf_wifi_phy_rf_pa
 	nrf_wifi_osal_mem_set(prf,
 			      0x0,
 			      sizeof(prf));
+#ifndef WIFI_NRF71
 	/* Initialize PD adjust values for MCS7. Currently these 4 bytes are not being used */
 	prf->pd_adjust_val.pd_adjt_lb_chan = PD_ADJUST_VAL;
 	prf->pd_adjust_val.pd_adjt_hb_low_chan = PD_ADJUST_VAL;
@@ -486,7 +487,7 @@ static int nrf_wifi_off_raw_tx_fmac_phy_rf_params_init(struct nrf_wifi_phy_rf_pa
 		prf->max_pwr_ceil.max_hb_mid_chan_mcs0_pwr = QFN_MAX_TX_PWR_HB_MID_CHAN_MCS0;
 		prf->max_pwr_ceil.max_hb_high_chan_mcs0_pwr = QFN_MAX_TX_PWR_HB_HIGH_CHAN_MCS0;
 	}
-
+#endif /* WIFI_NRF71 */
 	ret = nrf_wifi_utils_hex_str_to_val((unsigned char *)&prf->phy_params,
 					    sizeof(prf->phy_params),
 					    str);
@@ -557,6 +558,7 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_rf_params_get(struct nrf_wifi_fmac
 
 	tx_pwr_ceil_params = fmac_dev_ctx->tx_pwr_ceil_params;
 
+#ifndef WIFI_NRF71
 	nrf_wifi_osal_mem_set(&otp_info,
 			      0xFF,
 			      sizeof(otp_info));
@@ -586,7 +588,7 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_rf_params_get(struct nrf_wifi_fmac
 				      __func__);
 		goto out;
 	}
-
+#endif /* !WIFI_NRF71 */
 	ret = nrf_wifi_off_raw_tx_fmac_phy_rf_params_init(phy_rf_params,
 							  package_info,
 							  NRF_WIFI_OFF_RAW_TX_DEF_RF_PARAMS);
@@ -605,7 +607,7 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_rf_params_get(struct nrf_wifi_fmac
 	}
 
 	ft_prog_ver = (ft_prog_ver & FT_PROG_VER_MASK) >> 16;
-
+#ifndef WIFI_NRF71
 	if (ft_prog_ver == FT_PROG_VER1) {
 		backoff_2g_dsss = FT_PROG_VER1_2G_DSSS_TXCEIL_BKOFF;
 		backoff_2g_ofdm = FT_PROG_VER1_2G_OFDM_TXCEIL_BKOFF;
@@ -625,6 +627,7 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_rf_params_get(struct nrf_wifi_fmac
 		backoff_5g_midband = FT_PROG_VER3_5G_MID_OFDM_TXCEIL_BKOFF;
 		backoff_5g_highband = FT_PROG_VER3_5G_HIGH_OFDM_TXCEIL_BKOFF;
 	}
+#endif /* WIFI_NRF71 */
 	phy_rf_params->max_pwr_ceil.max_dsss_pwr =
 	MIN(tx_pwr_ceil_params->max_pwr_2g_dsss, phy_rf_params->max_pwr_ceil.max_dsss_pwr)
 	- backoff_2g_dsss;
@@ -654,7 +657,6 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_rf_params_get(struct nrf_wifi_fmac
 	MIN(tx_pwr_ceil_params->max_pwr_5g_high_mcs0,
 	        phy_rf_params->max_pwr_ceil.max_hb_high_chan_mcs0_pwr) - backoff_5g_highband;
 #endif /* NRF70_2_4G_ONLY */
-
 	status = NRF_WIFI_STATUS_SUCCESS;
 out:
 	return status;
