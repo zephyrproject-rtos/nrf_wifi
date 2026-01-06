@@ -438,7 +438,13 @@ struct raw_tx_pkt_header {
 	unsigned char tx_mode;
 	/** Wi-Fi access category mapping for packet @ref nrf_wifi_fmac_ac. */
 	unsigned char queue;
-};
+	/**
+	 * Padding to ensure sizeof(struct raw_tx_pkt_header) is 12 bytes
+	 * (multiple of 4). This maintains 4-byte alignment of frame data
+	 * after header is pulled, which is required for DMA operations.
+	 */
+	unsigned char reserved[3];
+} __attribute__((packed));
 
 /**
  * @brief Structure to hold raw packet transmit statistics.
