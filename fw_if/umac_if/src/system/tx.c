@@ -197,6 +197,49 @@ static int nrf_wifi_get_tid(void *nwb)
 	return priority;
 }
 
+#ifdef NRF_WIFI_QOS_NOACK_POLICY
+struct check_tid_info {
+	int target_tid;
+	bool tid_match_found;
+};
+
+static enum nrf_wifi_status check_tid_callbk_fn(void *callbk_data,
+						void *nbuf)
+{
+	struct check_tid_info *info = NULL;
+	int tid = 0;
+
+	info = (struct check_tid_info *)callbk_data;
+
+	tid = nrf_wifi_get_tid(nbuf);
+
+	if (tid == info->target_tid) {
+		info->tid_match_found = true;
+	}
+
+	return NRF_WIFI_STATUS_SUCCESS;
+}
+
+static bool has_matching_tid(void *txq, int target_tid)
+{
+	struct check_tid_info info;
+	enum nrf_wifi_status status;
+
+	info.target_tid = target_tid;
+	info.tid_match_found = false;
+
+	status = nrf_wifi_utils_list_traverse(txq,
+					      &info,
+					      check_tid_callbk_fn);
+
+	if (status == NRF_WIFI_STATUS_SUCCESS && info.tid_match_found) {
+		return true;
+	}
+
+	return false;
+}
+#endif /* NRF_WIFI_QOS_NOACK_POLICY */
+
 
 int pending_frames_count(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 			 int peer_id)
@@ -931,6 +974,12 @@ static enum nrf_wifi_status tx_cmd_prepare(struct nrf_wifi_fmac_dev_ctx *fmac_de
 	if (nrf_wifi_osal_nbuf_get_chksum_done(nwb)) {
 		config->mac_hdr_info.tx_flags |= NRF_WIFI_TX_FLAG_CHKSUM_AVAILABLE;
 	}
+
+#ifdef NRF_WIFI_QOS_NOACK_POLICY
+	if (has_matching_tid(txq, NRF_WIFI_QOS_NOACK_POLICY_TID)) {
+		config->mac_hdr_info.tx_flags |= NRF_WIFI_TX_FLAG_QOS_CTL_ACK_POLICY_NOACK;
+	}
+#endif /* NRF_WIFI_QOS_NOACK_POLICY */
 
 	config->num_tx_pkts = 0;
 
