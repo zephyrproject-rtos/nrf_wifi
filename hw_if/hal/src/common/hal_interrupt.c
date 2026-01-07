@@ -239,15 +239,14 @@ static enum nrf_wifi_status hal_rpu_event_free(struct nrf_wifi_hal_dev_ctx *hal_
                 goto out;
         }
 	status = hal_rpu_mem_write(hal_dev_ctx,
-                                   &hal_dev_ctx->rpu_info.soft_hpq->event_free_buffs[current_index],
+                                   &hal_dev_ctx->rpu_info.soft_hpq->event_ring_read_ptr,
 				   event_addr,
 				   sizeof(unsigned int));
 
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
-		nrf_wifi_osal_log_err("%s: Writing to event_freebuffs[index=%d] address = %x failed for event_addr= %x\n",
+		nrf_wifi_osal_log_err("%s: Writing to event_ring_read_ptr address = %x failed for event_addr= %x\n",
 				      __func__,
-				      current_index,
-				      &hal_dev_ctx->rpu_info.soft_hpq->event_free_buffs[current_index],
+				      &hal_dev_ctx->rpu_info.soft_hpq->event_ring_read_ptr,
 				      event_addr);
 		goto out;
 	}

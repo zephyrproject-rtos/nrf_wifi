@@ -25,7 +25,7 @@
 #define RPU_MEM_UMAC_BOOT_SIG 0x20080000
 #define RPU_MEM_UMAC_VER 0x20080004
 #define RPU_MEM_UMAC_PEND_Q_BMP 0x20080008
-#define RPU_MEM_TX_CMD_BASE 0x20080024
+#define RPU_MEM_TX_CMD_BASE 0x20000000
 #define RPU_MEM_DATA_RAM_BASE 0x20085000
 #define RPU_DATA_CMD_SIZE_MAX_TX 148
 #define RPU_EVENT_COMMON_SIZE_MAX 128
@@ -177,9 +177,7 @@ static const struct rpu_addr_map RPU_ADDR_MAP_MCU[] = {
 
 #define RPU_REG_BIT_HARDRST_CTRL 8
 
-/*Event pool*/
-#define EVENT_POOL_NUM_ELEMS (7)
-#define MAX_EVENT_POOL_LEN 1000
+
 
 
 #define RAM0_START_ADDR 0x28000300
@@ -239,14 +237,22 @@ struct host_rpu_umac_if_info {
 	struct sap_pend_frames_bitmap sap_bitmap[NRF_WIFI_MAX_SAP_CLIENTS];
 } __NRF_WIFI_PKD;
 
-#ifdef SOFT_HPQM
+#define CMD_POOL_NUM_ELEMS    (4)
+#define CMD_POOL_LEN          4000
+/*Event pool*/
+#define EVENT_POOL_NUM_ELEMS (7)
+#define MAX_EVENT_POOL_LEN 10000
 
-#define HOST_RPU_SOFTHPQM_INFO_START 0x200844b4
+#ifdef SOFT_HPQM
+#define HOST_RPU_SOFTHPQM_INFO_START 0x20000000
 #define HOST_RPU_CMD_BUFFERS 4
-#define HOST_RPU_EVENT_BUFFERS 7
+#define HOST_RPU_EVENT_BUFFERS 50
 #define HOST_RPU_TX_DESC 12
+#define EVENT_POOL_RING_BUFF_LEN 8192
 
 struct soft_hpqm_info {
+	unsigned char tx_cmd_pool[RPU_DATA_CMD_SIZE_MAX_TX * 12];
+    unsigned char cmdPool[CMD_POOL_NUM_ELEMS][CMD_POOL_LEN + 16];
 	volatile unsigned int host_cmd_free_index;
 	volatile unsigned int rpu_cmd_busy_index;
 	volatile unsigned int host_event_busy_index;
@@ -257,10 +263,12 @@ struct soft_hpqm_info {
 	volatile unsigned int rpu_tx_done_busy_index;
 	volatile unsigned int cmd_free_buffs[HOST_RPU_CMD_BUFFERS];
 	volatile unsigned int cmd_busy_buffs[HOST_RPU_CMD_BUFFERS];
-	volatile unsigned int event_free_buffs[HOST_RPU_EVENT_BUFFERS];
 	volatile unsigned int event_busy_buffs[HOST_RPU_EVENT_BUFFERS];
 	volatile unsigned int tx_cmd_buffs[HOST_RPU_TX_DESC];
 	volatile unsigned int tx_done_buffs[HOST_RPU_TX_DESC];
+	volatile unsigned int event_ring_write_ptr;
+	volatile unsigned int event_ring_read_ptr;
+	unsigned char eventPool[EVENT_POOL_RING_BUFF_LEN];
 };
 
 #endif /* SOFT_HPQM */
