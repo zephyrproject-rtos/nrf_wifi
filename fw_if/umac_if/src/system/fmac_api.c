@@ -2098,13 +2098,13 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_add_sta(void *dev_ctx,
 
 	add_sta_cmd->valid_fields |= NRF_WIFI_CMD_NEW_STATION_STA_FLAGS2_VALID;
 
-	if (!nrf_wifi_util_is_arr_zero(add_sta_info->ht_capability,
+	if (!nrf_wifi_util_is_arr_zero((unsigned char *)(&add_sta_info->ht_capability),
 				       sizeof(add_sta_info->ht_capability))) {
 		add_sta_cmd->valid_fields |=
 			NRF_WIFI_CMD_NEW_STATION_HT_CAPABILITY_VALID;
 	}
 
-	if (!nrf_wifi_util_is_arr_zero(add_sta_info->vht_capability,
+	if (!nrf_wifi_util_is_arr_zero((unsigned char *)(&add_sta_info->vht_capability),
 				       sizeof(add_sta_info->vht_capability))) {
 		add_sta_cmd->valid_fields |=
 			NRF_WIFI_CMD_NEW_STATION_VHT_CAPABILITY_VALID;
