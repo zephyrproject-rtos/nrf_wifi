@@ -266,24 +266,34 @@ def main():
         print(f"Error: Header file '{args.header_file}' not found")
         sys.exit(1)
     
-    # Check if hex_blob is a file
-    if os.path.isfile(args.hex_blob):
+    # Check if hex_blob is a file or a hex string
+    hex_arg = args.hex_blob
+
+    # Heuristic: treat argument as a path if it contains a path separator or has an extension
+    looks_like_path = (
+        any(sep in hex_arg for sep in (os.sep, '/', '\\')) or os.path.splitext(hex_arg)[1] != ''
+    )
+
+    if os.path.isfile(hex_arg):
         try:
-            with open(args.hex_blob, 'rb') as f:
+            with open(hex_arg, 'rb') as f:
                 blob_data = f.read()
-            logging.debug(f"Read {len(blob_data)} bytes from file '{args.hex_blob}'")
+            logging.debug(f"Read {len(blob_data)} bytes from file '{hex_arg}'")
         except Exception as e:
-            print(f"Error reading file '{args.hex_blob}': {e}")
+            print(f"Error reading file '{hex_arg}': {e}")
             sys.exit(1)
+    elif looks_like_path and not os.path.exists(hex_arg):
+        print(f"Error: File '{hex_arg}' not found")
+        sys.exit(1)
     else:
         # Assume it's a hex string
         try:
             # Remove potential whitespace and 0x prefix
-            clean_hex = args.hex_blob.replace(' ', '').replace('0x', '').replace('\n', '')
+            clean_hex = hex_arg.replace(' ', '').replace('0x', '').replace('\n', '')
             blob_data = bytes.fromhex(clean_hex)
             logging.debug(f"Parsed {len(blob_data)} bytes from hex string")
         except ValueError:
-            print(f"Error: Argument '{args.hex_blob}' is neither a valid file path nor a valid hex string.")
+            print(f"Error: Argument '{hex_arg}' is not a valid hex string.")
             sys.exit(1)
     
     # Parse using header file
