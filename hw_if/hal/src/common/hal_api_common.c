@@ -59,6 +59,15 @@ enum nrf_wifi_status hal_rpu_ps_wake(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 	if (!hal_dev_ctx->rpu_fw_booted)
 		return NRF_WIFI_STATUS_SUCCESS;
 
+	/* Cancel any pending sleep timer to prevent it from firing during the wake
+	 * operation or subsequent register/memory access.
+	 *
+	 * Note: Timer scheduling is done by the caller after releasing
+	 * the lock to prevent the timer from firing during subsequent
+	 * operations (register/memory reads/writes).
+	 */
+	nrf_wifi_osal_timer_kill(hal_dev_ctx->rpu_ps_timer);
+
 	if (hal_dev_ctx->rpu_ps_state == RPU_PS_STATE_AWAKE) {
 		status = NRF_WIFI_STATUS_SUCCESS;
 
@@ -121,9 +130,6 @@ enum nrf_wifi_status hal_rpu_ps_wake(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 #endif /* NRF_WIFI_RPU_RECOVERY_PS_STATE_DEBUG */
 
 out:
-
-	nrf_wifi_osal_timer_schedule(hal_dev_ctx->rpu_ps_timer,
-		NRF70_RPU_PS_IDLE_TIMEOUT_MS);
 	return status;
 }
 
