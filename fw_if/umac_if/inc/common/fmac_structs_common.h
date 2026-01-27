@@ -121,7 +121,12 @@ struct nrf_wifi_fmac_otp_info {
  * of channels are enabled in different bands or
  * different bands are supported in hardware.
  */
+#ifdef WIFI_NRF71
+/* Firmware provides 6g channels info */
+#define MAX_NUM_REG_CHANELS 66
+#else
 #define MAX_NUM_REG_CHANELS 42
+#endif
 
 /**
  * @brief Structure to hold Regulatory parameter data.
