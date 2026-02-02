@@ -1338,10 +1338,5 @@ int nrf_wifi_osal_mem_cmp(const void *addr1,
  */
 unsigned char nrf_wifi_osal_rand8_get(void);
 
-#ifdef NRF71_ON_IPC
-int nrf_wifi_osal_ipc_send_msg(unsigned int msg_type,
-	void *msg,
-	unsigned int msg_len);
-#endif /* NRF71_ON_IPC */
 
 #endif /* __OSAL_API_H__ */

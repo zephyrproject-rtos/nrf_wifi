@@ -13,11 +13,7 @@
 #include "common/fmac_api_common.h"
 #include "common/fmac_util.h"
 
-#ifdef NRF71_ON_IPC
-#include <nrf71_wifi_ctrl.h>
-#else
 #include "host_rpu_umac_if.h"
-#endif
 #ifdef NRF70_SYSTEM_MODE
 #include <system/fmac_structs.h>
 #endif /* NRF70_SYSTEM_MODE */
