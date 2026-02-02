@@ -14,19 +14,13 @@
 #define __HAL_API_COMMON_H__
 
 #include "osal_api.h"
-#ifdef NRF71_ON_IPC
-#include <nrf71_wifi_ctrl.h>
-#else
 #include "rpu_if.h"
-#endif
 
 #include "bal_api.h"
 #include "hal_structs_common.h"
-#ifndef NRF71_ON_IPC
 #include "hal_mem.h"
 #include "hal_reg.h"
 #include "hal_fw_patch_loader.h"
-#endif /* !NRF71_ON_IPC */
 
 #define NRF_WIFI_ADDR_REG_NAME_LEN		16
 

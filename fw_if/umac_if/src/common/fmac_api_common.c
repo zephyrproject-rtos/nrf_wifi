@@ -9,11 +9,7 @@
  * FMAC IF Layer of the Wi-Fi driver.
  */
 
-#ifdef NRF71_ON_IPC
-#include <nrf71_wifi_ctrl.h>
-#else
 #include "host_rpu_umac_if.h"
-#endif
 #include "common/fmac_api_common.h"
 #include "common/fmac_util.h"
 #include "common/fmac_cmd_common.h"
@@ -35,7 +31,6 @@ void nrf_wifi_fmac_dev_rem(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx)
 	nrf_wifi_osal_mem_free(fmac_dev_ctx);
 }
 
-#ifndef NRF71_ON_IPC
 struct nrf_wifi_proc {
 	const enum RPU_PROC_TYPE type;
 	const char *name;
@@ -366,14 +361,12 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_load(struct nrf_wifi_fmac_dev_ctx *fmac_de
 out:
 	return status;
 }
-#endif /* !NRF71_ON_IPC */
 
 
 enum nrf_wifi_status nrf_wifi_fmac_ver_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 					  unsigned int *fw_ver)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-#ifndef NRF71_ON_IPC
 	status = hal_rpu_mem_read(fmac_dev_ctx->hal_dev_ctx,
 				  fw_ver,
 				  RPU_MEM_UMAC_VER,
@@ -386,14 +379,9 @@ enum nrf_wifi_status nrf_wifi_fmac_ver_get(struct nrf_wifi_fmac_dev_ctx *fmac_de
 	}
 
 out:
-#else
-	*fw_ver = 0x01020304;
-	status = NRF_WIFI_STATUS_SUCCESS;
-#endif /* !NRF71_ON_IPC */
 	return status;
 }
 
-#ifndef NRF71_ON_IPC
 enum nrf_wifi_status nrf_wifi_fmac_otp_mac_addr_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 						    unsigned char vif_idx,
 						    unsigned char *mac_addr)
@@ -458,7 +446,6 @@ enum nrf_wifi_status nrf_wifi_fmac_otp_mac_addr_get(struct nrf_wifi_fmac_dev_ctx
 out:
 	return status;
 }
-#endif /*! NRF71_ON_IPC */
 
 enum nrf_wifi_status nrf_wifi_fmac_get_reg(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 					   struct nrf_wifi_fmac_reg_info *reg_info)

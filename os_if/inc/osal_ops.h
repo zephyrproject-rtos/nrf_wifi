@@ -983,8 +983,5 @@ struct nrf_wifi_osal_ops {
 	 * @return A random 8-bit value.
 	 */
 	unsigned char (*rand8_get)(void);
-#ifdef NRF71_ON_IPC
-	int (*ipc_send_msg)(unsigned int msg_type, void *msg, unsigned int msg_len);
-#endif /* NRF71_ON_IPC */
 };
 #endif /* __OSAL_OPS_H__ */

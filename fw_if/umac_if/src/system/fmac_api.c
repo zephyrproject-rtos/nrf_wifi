@@ -9,12 +9,8 @@
  * FMAC IF Layer of the Wi-Fi driver.
  */
 
-#ifdef NRF71_ON_IPC
-#include <nrf71_wifi_ctrl.h>
-#else
 #include "host_rpu_umac_if.h"
 #include "system/phy_rf_params.h"
-#endif
 #include "system/fmac_api.h"
 #include "system/hal_api.h"
 #include "system/fmac_structs.h"
@@ -434,9 +430,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 					    unsigned char *country_code)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-#ifndef NRF71_ON_IPC
 		struct nrf_wifi_fmac_otp_info otp_info;
-#endif /* !NRF71_ON_IPC */
 	struct nrf_wifi_phy_rf_params phy_rf_params;
 
 	if (!fmac_dev_ctx) {
@@ -451,12 +445,10 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 		goto out;
 	}
 
-#ifndef NRF71_ON_IPC
 	fmac_dev_ctx->tx_pwr_ceil_params = nrf_wifi_osal_mem_alloc(sizeof(*tx_pwr_ceil_params));
 	nrf_wifi_osal_mem_cpy(fmac_dev_ctx->tx_pwr_ceil_params,
 			      tx_pwr_ceil_params,
 			      sizeof(*tx_pwr_ceil_params));
-#endif
 	status = nrf_wifi_hal_dev_init(fmac_dev_ctx->hal_dev_ctx);
 
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
@@ -465,7 +457,6 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 		goto out;
 	}
 
-#ifndef NRF71_ON_IPC
 	nrf_wifi_osal_mem_set(&otp_info,
 			      0xFF,
 			      sizeof(otp_info));
@@ -487,7 +478,6 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 				      __func__);
 		goto out;
 	}
-#endif /* !NRF71_ON_IPC */
 
 	status = nrf_wifi_sys_fmac_fw_init(fmac_dev_ctx,
 				       &phy_rf_params,
@@ -659,9 +649,7 @@ struct nrf_wifi_fmac_priv *nrf_wifi_sys_fmac_init(struct nrf_wifi_data_config_pa
 					TX_BUF_HEADROOM;
 
 	hal_cfg_params.max_cmd_size = MAX_NRF_WIFI_UMAC_CMD_SIZE;
-#ifndef NRF71_ON_IPC
 	hal_cfg_params.max_event_size = MAX_EVENT_POOL_LEN;;
-#endif /* !NRF71_ON_IPC */
 
 
 	fpriv->hpriv = nrf_wifi_hal_init(&hal_cfg_params,
@@ -1767,10 +1755,6 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_add_sta(void *dev_ctx,
 
 	add_sta_cmd->valid_fields |= NRF_WIFI_CMD_NEW_STATION_STA_FLAGS2_VALID;
 
-#ifdef NRF71_ON_IPC
-	add_sta_cmd->valid_fields |=
-		NRF_WIFI_CMD_NEW_STATION_HT_CAPABILITY_VALID;
-#else
 	if (!nrf_wifi_util_is_arr_zero(add_sta_info->ht_capability,
 				       sizeof(add_sta_info->ht_capability))) {
 		add_sta_cmd->valid_fields |=
@@ -1782,7 +1766,6 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_add_sta(void *dev_ctx,
 		add_sta_cmd->valid_fields |=
 			NRF_WIFI_CMD_NEW_STATION_VHT_CAPABILITY_VALID;
 	}
-#endif /* NRF71_ON_IPC */
 
 	if (add_sta_info->opmode_notif) {
 		add_sta_cmd->valid_fields |=
@@ -3457,7 +3440,6 @@ out:
 	return status;
 }
 
-#ifndef NRF71_ON_IPC
 static int nrf_wifi_sys_fmac_phy_rf_params_init(struct nrf_wifi_phy_rf_params *prf,
 						unsigned int package_info,
 						unsigned char *str)
@@ -3722,7 +3704,6 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_rf_params_get(struct nrf_wifi_fmac_dev_ct
 out:
 	return status;
 }
-#endif /* !NRF71_ON_IPC */
 
 #ifdef NRF70_SYSTEM_WITH_RAW_MODES
 enum nrf_wifi_status nrf_wifi_sys_fmac_set_mode(void *dev_ctx,
