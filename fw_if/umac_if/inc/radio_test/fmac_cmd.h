@@ -17,13 +17,27 @@
 #define NRF_WIFI_FMAC_RF_TEST_EVNT_TIMEOUT 50 /* 5s */
 
 enum nrf_wifi_status umac_cmd_rt_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+				  unsigned char *rf_parmas_addr,
+                                  unsigned int vtf_start_addr,
+#else
+				  struct nrf_wifi_phy_rf_params *rf_params,
+
+#endif /* PHY_RF_PARAM_GDRAM */
+#else
 				      struct nrf_wifi_phy_rf_params *rf_params,
+#endif 
 				      bool rf_params_valid,
 #ifdef NRF_WIFI_LOW_POWER
 				      int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
 				      unsigned int phy_calib,
+#ifdef WIFI_NRF71		      
+				      unsigned char op_band,
+#else
 				      enum op_band op_band,
+#endif /* WIFI_NRF71 */
 				      bool beamforming,
 				      struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl_params,
 				      struct nrf_wifi_board_params *board_params,

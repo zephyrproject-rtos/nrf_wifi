@@ -149,9 +149,14 @@ static enum nrf_wifi_status umac_event_rt_rf_test_process(struct nrf_wifi_fmac_d
 		nrf_wifi_osal_mem_cpy(&rf_get_xo_value_params,
 				(const unsigned char *)&rf_test_event->rf_test_info.rfevent[0],
 				sizeof(rf_get_xo_value_params));
-
+#ifdef WIFI_NRF71
+		nrf_wifi_osal_log_info("Best XO value offset is = %d and status = %d", 
+				rf_get_xo_value_params.xo_offset,
+				rf_get_xo_value_params.status);
+#else
 		nrf_wifi_osal_log_info("Best XO value is = %d",
 				       rf_get_xo_value_params.xo_value);
+#endif /* WIFI_NRF71 */
 		break;
 	default:
 		break;

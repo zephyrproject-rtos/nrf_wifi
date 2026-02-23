@@ -43,11 +43,15 @@ nrf_wifi_sys_hal_rpu_pktram_buf_map_init(struct nrf_wifi_hal_dev_ctx *hal_dev_ct
 	}
 
 	hal_dev_ctx->addr_rpu_pktram_base_tx = hal_dev_ctx->addr_rpu_pktram_base;
-
 #ifdef WIFI_NRF71
+#ifdef INLINE_RX
+	hal_dev_ctx->addr_rpu_pktram_base_rx_pool[0] =
+			hal_dev_ctx->hpriv->hostram_addr_base_inline_rx;
+#else
 	hal_dev_ctx->addr_rpu_pktram_base_rx_pool[0] =
 		 (hal_dev_ctx->addr_rpu_pktram_base + RPU_DATA_RAM_SIZE) -
 		 (CONFIG_NRF70_RX_NUM_BUFS * CONFIG_NRF70_RX_MAX_DATA_SIZE);
+#endif /*!INLINE_RX*/
 #else /* WIFI_NRF71 */
 	hal_dev_ctx->addr_rpu_pktram_base_rx_pool[0] =
 		 (hal_dev_ctx->addr_rpu_pktram_base + RPU_PKTRAM_SIZE) -

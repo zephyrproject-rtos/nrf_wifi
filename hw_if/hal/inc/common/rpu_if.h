@@ -13,6 +13,8 @@
 #define __RPU_IF_H__
 #include "pack_def.h"
 #include "nrf71_wifi_common.h"
+#include "nrf71_wifi_debug_stats.h"
+#include "nrf71_wifi_rf.h"
 
 #ifdef DDR_32_BIT_ADDR
 #define MEMORY_HOLE_BASE_ADDR 0xC0000000
@@ -237,41 +239,39 @@ struct host_rpu_umac_if_info {
 	struct sap_pend_frames_bitmap sap_bitmap[NRF_WIFI_MAX_SAP_CLIENTS];
 } __NRF_WIFI_PKD;
 
-#define CMD_POOL_NUM_ELEMS    (4)
+#define CMD_POOL_NUM_ELEMS    (16)
 #define CMD_POOL_LEN          4000
 /*Event pool*/
 #define EVENT_POOL_NUM_ELEMS (7)
 #define MAX_EVENT_POOL_LEN 10000
 
-#ifdef SOFT_HPQM
 #define HOST_RPU_SOFTHPQM_INFO_START 0x20000000
-#define HOST_RPU_CMD_BUFFERS 4
+#define HOST_RPU_CMD_BUFFERS 16
 #define HOST_RPU_EVENT_BUFFERS 50
 #define HOST_RPU_TX_DESC 12
 #define EVENT_POOL_RING_BUFF_LEN 8192
+#define SCAN_DB_LEN 8192
+#define MAX_RF_PARAMS_SIZE 128
 
 struct soft_hpqm_info {
 	unsigned char tx_cmd_pool[RPU_DATA_CMD_SIZE_MAX_TX * 12];
-    unsigned char cmdPool[CMD_POOL_NUM_ELEMS][CMD_POOL_LEN + 16];
+    	unsigned char cmdPool[CMD_POOL_NUM_ELEMS][CMD_POOL_LEN + 16];
 	volatile unsigned int host_cmd_free_index;
 	volatile unsigned int rpu_cmd_busy_index;
 	volatile unsigned int host_event_busy_index;
 	volatile unsigned int rpu_event_free_index;
-	volatile unsigned int host_tx_cmd_busy_index;
-	volatile unsigned int rpu_tx_cmd_busy_index;
-	volatile unsigned int host_tx_done_busy_index;
-	volatile unsigned int rpu_tx_done_busy_index;
 	volatile unsigned int cmd_free_buffs[HOST_RPU_CMD_BUFFERS];
 	volatile unsigned int cmd_busy_buffs[HOST_RPU_CMD_BUFFERS];
 	volatile unsigned int event_busy_buffs[HOST_RPU_EVENT_BUFFERS];
-	volatile unsigned int tx_cmd_buffs[HOST_RPU_TX_DESC];
-	volatile unsigned int tx_done_buffs[HOST_RPU_TX_DESC];
 	volatile unsigned int event_ring_write_ptr;
 	volatile unsigned int event_ring_read_ptr;
 	unsigned char eventPool[EVENT_POOL_RING_BUFF_LEN];
+	unsigned char scan_db[SCAN_DB_LEN];
+	unsigned int phy_rf_params_addr[NUM_WIFI_PARAMS][MAX_RF_PARAMS_SIZE];
+	struct nrf_wifi_vtf_params phy_vtf_params_addr;
 };
 
-#endif /* SOFT_HPQM */
+
 
 
 

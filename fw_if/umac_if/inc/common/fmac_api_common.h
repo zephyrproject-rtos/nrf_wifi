@@ -98,7 +98,7 @@ enum nrf_wifi_status nrf_wifi_fmac_fw_reset(struct nrf_wifi_fmac_dev_ctx *fmac_d
  *
  * @return Command execution status
  */
-enum nrf_wifi_status nrf_wifi_fmac_fw_boot(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
+//enum nrf_wifi_status nrf_wifi_fmac_fw_boot(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
 
 /**
  * @brief Load a chunk of the Firmware to the RPU WLAN device.
@@ -256,6 +256,18 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_get_power_save_info(void *fmac_dev_ctx,
  */
 enum nrf_wifi_status nrf_wifi_fmac_stats_reset(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
 
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+enum nrf_wifi_status nrf_wifi_fmac_config_rf_params(void *dev_ctx,
+                                                    unsigned int *rf_params_addr);
+
+enum nrf_wifi_status nrf_wifi_fmac_config_vtf_params(void *dev_ctx,
+                                                     unsigned int voltage,
+                                                     unsigned int temp,
+                                                     unsigned int x0,
+                                                     unsigned int *vtf_buffer_start_address);
+#endif
+#endif
 /**
  * @}
  */

@@ -14,13 +14,27 @@
 #include "nrf71_wifi_rf.h"
 
 enum nrf_wifi_status umac_cmd_rt_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+				      unsigned char *rf_params_addr,
+				      unsigned int vtf_start_addr,
+#else
 				      struct nrf_wifi_phy_rf_params *rf_params,
+#endif /* !PHY_RF_PARAM_GDRAM */
+#else
+				      struct nrf_wifi_phy_rf_params *rf_params,
+#endif /* !WIFI_NRF71 */
+
 				      bool rf_params_valid,
 #ifdef NRF_WIFI_LOW_POWER
 				      int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
 				      unsigned int phy_calib,
+#ifdef WIFI_NRF71
+				      unsigned char op_band,
+#else
 				      enum op_band op_band,
+#endif /* WIFI_NRF71 */
 				      bool beamforming,
 				      struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl_params,
 				      struct nrf_wifi_board_params *board_params,
@@ -49,18 +63,27 @@ enum nrf_wifi_status umac_cmd_rt_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx
 	umac_cmd_data->sys_head.len = len;
 
 
+#if defined(WIFI_NRF71) && defined(PHY_RF_PARAM_GDRAM)
+        /* Set the phy_params_address and vtf addresses in gdram
+         * in umac_cmd_data once umac provides it.
+         */
+        nrf_wifi_osal_mem_cpy(umac_cmd_data->sys_params.rf_params_addr,
+                              rf_params_addr,
+                              sizeof(unsigned int) * NUM_WIFI_PARAMS);
+        umac_cmd_data->sys_params.vtf_buffer_addr = vtf_start_addr;
+#else
 	umac_cmd_data->sys_params.rf_params_valid = rf_params_valid;
 
-	if (rf_params_valid) {
-		nrf_wifi_osal_mem_cpy(umac_cmd_data->sys_params.rf_params,
+        if (rf_params_valid) {
+                nrf_wifi_osal_mem_cpy(umac_cmd_data->sys_params.rf_params,
 #ifdef WIFI_NRF71
-                                     rf_params->phy_params,
+                                      rf_params->phy_params,
 #else
-				      rf_params,
+                                      rf_params,
 #endif /* WIFI_NRF71 */
-				      NRF_WIFI_RF_PARAMS_SIZE);
-	}
-
+                                      NRF_WIFI_RF_PARAMS_SIZE);
+        }
+#endif /* !defined(WIFI_NRF71) && !defined(PHY_RF_PARAM_GDRAM) */
 
 	umac_cmd_data->sys_params.phy_calib = phy_calib;
 	umac_cmd_data->sys_params.hw_bringup_time = HW_DELAY;
@@ -99,13 +122,29 @@ enum nrf_wifi_status umac_cmd_rt_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx
 
 	umac_cmd_data->op_band = op_band;
 
+
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+        nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.tx_pwr_ctrl_params,
+                              &tx_pwr_ctrl_params->ant_gain_2g,
+                              10 * sizeof(unsigned char));
+#else
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[PCB_LOSS_BYTE_2G_OFST],
 			      &board_params->pcb_loss_2g,
 			      NUM_PCB_LOSS_OFFSET);
+        nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[ANT_GAIN_2G_OFST],
+                              &tx_pwr_ctrl_params->ant_gain_2g,
+                              NUM_ANT_GAIN);
+#endif /* PHY_RF_PARAM_GDRAM */
+#else
+	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[PCB_LOSS_BYTE_2G_OFST],
+			      &board_params->pcb_loss_2g,
+			      NUM_PCB_LOSS_OFFSET);
+        nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[ANT_GAIN_2G_OFST],
+                              &tx_pwr_ctrl_params->ant_gain_2g,
+                              NUM_ANT_GAIN);
+#endif /* WIFI_NRF71 */
 
-	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[ANT_GAIN_2G_OFST],
-			      &tx_pwr_ctrl_params->ant_gain_2g,
-			      NUM_ANT_GAIN);
 #ifndef WIFI_NRF71
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[BAND_2G_LW_ED_BKF_DSSS_OFST],
 			      &tx_pwr_ctrl_params->band_edge_2g_lo_dss,
@@ -140,6 +179,9 @@ enum nrf_wifi_status umac_cmd_rt_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx
 	umac_cmd_data->coex_disable_ptiwin_for_wifi_scan = 0;
 #endif /* NRF_WIFI_COEX_DISABLE_PRIORITY_WINDOW_FOR_SCAN */
 
+#ifdef CONFIG_WIFI_NRF71
+	umac_cmd_data->data_config_params.wmm = CONFIG_NRF_WIFI_FEAT_WMM;
+#endif /* CONFIG_WIFI_NRF71 */
 	status = nrf_wifi_hal_ctrl_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 					    umac_cmd,
 					    (sizeof(*umac_cmd) + len));
@@ -212,7 +254,7 @@ enum nrf_wifi_status umac_cmd_rt_prog_init(struct nrf_wifi_fmac_dev_ctx *fmac_de
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->conf,
 			      init_params,
 			      sizeof(umac_cmd_data->conf));
-
+	
 	status = nrf_wifi_hal_ctrl_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 					    umac_cmd,
 					    (sizeof(*umac_cmd) + len));

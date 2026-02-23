@@ -701,3 +701,157 @@ out:
 
 	return status;
 }
+
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+
+typedef struct {
+    const char *hex_str;
+    unsigned char   *bytes;
+    int      bytes_len;
+    int         status;  /* >=0: bytes_len; <0: errno */
+} hex_param_t;
+
+hex_param_t params[NUM_WIFI_PARAMS] = {
+        {NRF_WIFI_PARAMS1,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS2,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS3,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS4,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS5,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS6,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS7,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS8,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS9,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS10,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS11,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS12,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS13,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS14,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS15,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS16,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS17,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS18,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS19,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS20,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS21,  NULL, 0, 0},
+        {NRF_WIFI_PARAMS22,  NULL, 0, 0}
+};
+
+enum nrf_wifi_status nrf_wifi_fmac_config_rf_params(void *dev_ctx,
+                                                    unsigned int *rf_params_addr)
+{
+        enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+        int index;
+        char *rf_param_str = NULL;
+        unsigned int str_len;
+        int ret;
+        struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+
+        fmac_dev_ctx = dev_ctx;
+
+        struct soft_hpqm_info *hpqm_info =
+                ((struct soft_hpqm_info *)HOST_RPU_SOFTHPQM_INFO_START);
+
+        for (index = 0; index < NUM_WIFI_PARAMS; index++) {
+
+                rf_param_str = params[index].hex_str;
+                if (rf_param_str) {
+                        str_len =
+                                nrf_wifi_osal_strlen(rf_param_str);
+                        params[index].bytes =
+                                (unsigned char *)nrf_wifi_osal_mem_zalloc(str_len);
+
+                        if (!params[index].bytes) {
+                                nrf_wifi_osal_log_err("%s: Unable to allocate %d bytes\n",
+                                                      __func__);
+                                status = NRF_WIFI_STATUS_FAIL;
+                                goto out;
+                        }
+
+                        ret = nrf_wifi_utils_hex_str_to_val(params[index].bytes,
+                                                            str_len,
+                                                            rf_param_str);
+
+                        if (ret == -1) {
+                                nrf_wifi_osal_log_err("%s: hex_str_to_val failed\n",
+                                                      __func__);
+                                status = NRF_WIFI_STATUS_FAIL;
+                                goto out;
+                        }
+
+                        params[index].bytes_len = ret;
+
+                        status = hal_rpu_mem_write(fmac_dev_ctx->hal_dev_ctx,
+                                                   hpqm_info->phy_rf_params_addr[index],
+                                                   params[index].bytes,
+                                                   params[index].bytes_len);
+
+                        if (status != NRF_WIFI_STATUS_SUCCESS) {
+                                nrf_wifi_osal_log_err("%s: hal_rpu_mem_write failed\n",
+                                                      __func__);
+                                goto out;
+                        }
+
+                        nrf_wifi_osal_mem_free(params[index].bytes);
+
+                        *(&rf_params_addr[index]) = &hpqm_info->phy_rf_params_addr[index];
+                }
+        }
+out:
+        return status;
+}
+
+enum nrf_wifi_status nrf_wifi_fmac_config_vtf_params(void *dev_ctx,
+                                           unsigned int voltage,
+                                           unsigned int temp,
+                                           unsigned int x0_freq,
+                                           unsigned int *vtf_buffer_start_address)
+{
+        enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+        struct soft_hpqm_info *hpqm_info =
+                ((struct soft_hpqm_info *)HOST_RPU_SOFTHPQM_INFO_START);
+        struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+
+        fmac_dev_ctx = dev_ctx;
+
+
+        status = hal_rpu_mem_write(fmac_dev_ctx->hal_dev_ctx,
+                                   &hpqm_info->phy_vtf_params_addr.voltage,
+                                   voltage,
+                                   sizeof(voltage));
+        if (status != NRF_WIFI_STATUS_SUCCESS) {
+                nrf_wifi_osal_log_err("%s: hal_rpu_mem_write failed for voltage\n",
+                                      __func__);
+                goto out;
+        }
+
+        status = hal_rpu_mem_write(fmac_dev_ctx->hal_dev_ctx,
+                                   &hpqm_info->phy_vtf_params_addr.temp,
+                                   temp,
+                                   sizeof(temp));
+        if (status != NRF_WIFI_STATUS_SUCCESS) {
+                nrf_wifi_osal_log_err("%s: hal_rpu_mem_write failed for temperature\n",
+                                      __func__);
+                goto out;
+        }
+
+        status = hal_rpu_mem_write(fmac_dev_ctx->hal_dev_ctx,
+                                   &hpqm_info->phy_vtf_params_addr.x0_freq,
+                                   x0_freq,
+                                   sizeof(x0_freq));
+
+        if (status != NRF_WIFI_STATUS_SUCCESS) {
+                nrf_wifi_osal_log_err("%s: hal_rpu_mem_write failed for X0\n",
+                                      __func__);
+                goto out;
+        }
+
+        *vtf_buffer_start_address = &hpqm_info->phy_vtf_params_addr;
+out:
+        return status;
+
+}
+
+#endif /* PHY_RF_PARAM_GDRAM */
+#endif /* WIFI_NRF71 */
+

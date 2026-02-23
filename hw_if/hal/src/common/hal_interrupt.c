@@ -536,6 +536,7 @@ static unsigned int hal_rpu_event_get_all(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 		}
 
 		if (!event_addr) {
+#if 0			
 			for (desc_no = 0; desc_no < HOST_RPU_TX_DESC; desc_no++) {
 				/* There is no control events pending. Now check tx_done event */
 				status = hal_rpu_mem_read(hal_dev_ctx,
@@ -602,6 +603,7 @@ static unsigned int hal_rpu_event_get_all(struct nrf_wifi_hal_dev_ctx *hal_dev_c
 					break;
 				}
 			}
+#endif			
 		} else {
 			/* Set the content to 0 */
 			status = hal_rpu_mem_write(hal_dev_ctx,

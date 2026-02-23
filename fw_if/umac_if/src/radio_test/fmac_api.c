@@ -22,13 +22,26 @@
 
 
 static enum nrf_wifi_status nrf_wifi_rt_fmac_fw_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+						     unsigned char *rf_params_addr,
+						     unsigned int vtf_start_addr,
+#else
 						     struct nrf_wifi_phy_rf_params *rf_params,
+#endif /* PHY_RF_PARAM_GDRAM */
+#else /* WIFI_NRF71 */
+						     struct nrf_wifi_phy_rf_params *rf_params,
+#endif /* !WIFI_NRF71 */
 						     bool rf_params_valid,
 #ifdef NRF_WIFI_LOW_POWER
 						     int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
 						     unsigned int phy_calib,
+#ifdef WIFI_NRF71				     
+						     unsigned char op_band,
+#else						     
 						     enum op_band op_band,
+#endif /* WIFI_NRF71 */
 						     bool beamforming,
 						     struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl,
 						     struct nrf_wifi_board_params *board_params,
@@ -42,9 +55,18 @@ static enum nrf_wifi_status nrf_wifi_rt_fmac_fw_init(struct nrf_wifi_fmac_dev_ct
 				      __func__);
 		goto out;
 	}
-
+	
 	status = umac_cmd_rt_init(fmac_dev_ctx,
-				  rf_params,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+                                   rf_params_addr,
+                                   vtf_start_addr,
+#else
+                                   rf_params,
+#endif /* !PHY_RF_PARAM_GDRAM */
+#else
+                                   rf_params,
+#endif /* !WIFI_NRF71 */
 				  rf_params_valid,
 #ifdef NRF_WIFI_LOW_POWER
 				  sleep_type,
@@ -135,11 +157,21 @@ out:
 
 
 enum nrf_wifi_status nrf_wifi_rt_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+                                            unsigned char *rf_params_addr,
+                                            unsigned int vtf_start_addr,
+#endif  /* PHY_RF_PARAM_GDRAM */
+#endif  /* WIFI_NRF71 */
 #ifdef NRF_WIFI_LOW_POWER
 					       int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
 					       unsigned int phy_calib,
+#ifdef CONFIG_WIFI_NRF71
+					       unsigned char op_band,
+#else
 					       enum op_band op_band,
+#endif /* CONFIG_WIFI_NRF71 */
 					       bool beamforming,
 					       struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl_params,
 					       struct nrf_wifi_tx_pwr_ceil_params *tx_pwr_ceil_params,
@@ -184,6 +216,7 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fma
 
 #ifndef NRF71_ON_IPC
 #ifdef WIFI_NRF71
+#ifndef PHY_RF_PARAM_GDRAM
 	nrf_wifi_osal_mem_set(&phy_rf_params,
 			      0x0,
 			      sizeof(phy_rf_params));
@@ -197,7 +230,7 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fma
 		status = NRF_WIFI_STATUS_FAIL;
 		goto out;
 	}
-
+#endif /* PHY_RF_PARAM_GDRAM */
 #else /* WIFI_NRF71 */
 	nrf_wifi_osal_mem_set(&otp_info,
 			      0xFF,
@@ -223,9 +256,17 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fma
 	}
 #endif  /* !WIFI_NRF71 */
 #endif /* !NRF71_ON_IPC */
-
 	status = nrf_wifi_rt_fmac_fw_init(fmac_dev_ctx,
-				          &phy_rf_params,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+                                       rf_params_addr,
+                                       vtf_start_addr,
+#else
+                                       &phy_rf_params,
+#endif /* PHY_RF_PARAM_GDRAM */
+#else /* WIFI_NRF71 */
+                                       &phy_rf_params,
+#endif /* !WIFI_NRF71 */
 				          true,
 #ifdef NRF_WIFI_LOW_POWER
 					  sleep_type,
@@ -348,11 +389,22 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_radio_test_init(struct nrf_wifi_fmac_dev_c
 	nrf_wifi_osal_mem_set(&init_params,
 			      0,
 			      sizeof(init_params));
-
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+	nrf_wifi_osal_mem_cpy(init_params.rf_params_addr,
+			      params->rf_params_addr,
+			      sizeof(unsigned int) * NUM_WIFI_PARAMS);
+	init_params.vtf_buffer_addr =  params->vtf_buffer_addr;
+#else /* PHY_RF_PARAM_GDRAM */
 	nrf_wifi_osal_mem_cpy(init_params.rf_params,
 			      params->rf_params,
 			      NRF_WIFI_RF_PARAMS_SIZE);
-
+#endif
+#else
+	nrf_wifi_osal_mem_cpy(init_params.rf_params,
+			      params->rf_params,
+			      NRF_WIFI_RF_PARAMS_SIZE);
+#endif /* !WIFI_NRF71 */
 	nrf_wifi_osal_mem_cpy(&init_params.chan,
 			      &params->chan,
 			      sizeof(init_params.chan));
@@ -435,11 +487,17 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_prog_rx(struct nrf_wifi_fmac_dev_ctx *fmac
 			      sizeof(rx_params));
 
 	rx_params.nss = params->nss;
-
+#ifdef WIFI_NRF71
+#ifndef PHY_RF_PARAM_GDRAM
 	nrf_wifi_osal_mem_cpy(rx_params.rf_params,
 			      params->rf_params,
 			      NRF_WIFI_RF_PARAMS_SIZE);
-
+#endif /* PHY_RF_PARAM_GDRAM */
+#else
+	nrf_wifi_osal_mem_cpy(rx_params.rf_params,
+			      params->rf_params,
+			      NRF_WIFI_RF_PARAMS_SIZE);
+#endif /* WIFI_NRF71 */
 	nrf_wifi_osal_mem_cpy(&rx_params.chan,
 			      &params->chan,
 			      sizeof(rx_params.chan));

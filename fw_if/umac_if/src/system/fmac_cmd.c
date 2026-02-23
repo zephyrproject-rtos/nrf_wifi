@@ -16,14 +16,24 @@
 #include "common/hal_api_common.h"
 
 enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+				  	unsigned char *rf_params_addr,
+					unsigned int vtf_start_addr,
+#else /* PHY_RF_PARAM_GDRAM */
+					struct nrf_wifi_phy_rf_params *rf_params,
+				 
+#endif /* !PHY_RF_PARAM_GDRAM */
+#else
 				       struct nrf_wifi_phy_rf_params *rf_params,
+#endif /* !WIFI_NRF71 */
 				       bool rf_params_valid,
 				       struct nrf_wifi_data_config_params *config,
 #ifdef NRF_WIFI_LOW_POWER
 				       int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
 				       unsigned int phy_calib,
-				       enum op_band op_band,
+				       unsigned char op_band,
 				       bool beamforming,
 				       struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl_params,
 				       struct nrf_wifi_board_params *board_params,
@@ -55,8 +65,17 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 	umac_cmd_data->sys_head.len = len;
 
 
+#if defined(WIFI_NRF71) && defined(PHY_RF_PARAM_GDRAM)
+        /* Set the phy_params_address and vtf addresses in gdram
+         * in umac_cmd_data once umac provides it.
+         */
+        nrf_wifi_osal_mem_cpy(umac_cmd_data->sys_params.rf_params_addr,
+                              rf_params_addr,
+                              sizeof(unsigned int) * NUM_WIFI_PARAMS);
+        umac_cmd_data->sys_params.vtf_buffer_addr = vtf_start_addr;
+#else
 	umac_cmd_data->sys_params.rf_params_valid = rf_params_valid;
-
+	
 	if (rf_params_valid) {
 		nrf_wifi_osal_mem_cpy(umac_cmd_data->sys_params.rf_params,
 #ifdef WIFI_NRF71
@@ -66,7 +85,7 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 #endif /* WIFI_NRF71 */
 				      NRF_WIFI_RF_PARAMS_SIZE);
 	}
-
+#endif /* !defined(WIFI_NRF71) && !defined(PHY_RF_PARAM_GDRAM) */
 	umac_cmd_data->sys_params.phy_calib = phy_calib;
 	umac_cmd_data->sys_params.hw_bringup_time = HW_DELAY;
 	umac_cmd_data->sys_params.sw_bringup_time = SW_DELAY;
@@ -121,10 +140,11 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 
 	umac_cmd_data->op_band = op_band;
 
+#ifndef WIFI_NRF71
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[ANT_GAIN_2G_OFST],
 			      &tx_pwr_ctrl_params->ant_gain_2g,
 			      NUM_ANT_GAIN);
-#ifndef WIFI_NRF71
+
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[PCB_LOSS_BYTE_2G_OFST],
 			      &board_params->pcb_loss_2g,
 			      NUM_PCB_LOSS_OFFSET);

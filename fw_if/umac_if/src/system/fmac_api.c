@@ -190,13 +190,22 @@ out:
 
 
 static enum nrf_wifi_status nrf_wifi_sys_fmac_fw_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+						      unsigned char *rf_params_addr,
+						      unsigned int vtf_start_addr,
+#else
 						      struct nrf_wifi_phy_rf_params *rf_params,
+#endif /* !PHY_RF_PARAM_GDRAM */
+#else /* WIFI_NRF71 */
+						      struct nrf_wifi_phy_rf_params *rf_params,
+#endif /* !WIFI_NRF71 */
 						      bool rf_params_valid,
 #ifdef NRF_WIFI_LOW_POWER
 						      int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
 						      unsigned int phy_calib,
-						      enum op_band op_band,
+						      unsigned char op_band,
 						      bool beamforming,
 						      struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl,
 						      struct nrf_wifi_board_params *board_params,
@@ -237,7 +246,16 @@ static enum nrf_wifi_status nrf_wifi_sys_fmac_fw_init(struct nrf_wifi_fmac_dev_c
 	}
 
 	status = umac_cmd_sys_init(fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+				   rf_params_addr,
+				   vtf_start_addr,
+#else
 				   rf_params,
+#endif /* !PHY_RF_PARAM_GDRAM */
+#else 
+				   rf_params,
+#endif /* !WIFI_NRF71 */
 				   rf_params_valid,
 				   &sys_fpriv->data_config,
 #ifdef NRF_WIFI_LOW_POWER
@@ -359,8 +377,9 @@ out:
 
 }
 
+
 struct nrf_wifi_fmac_dev_ctx *nrf_wifi_sys_fmac_dev_add(struct nrf_wifi_fmac_priv *fpriv,
-							void *os_dev_ctx)
+                                                        void *os_dev_ctx)
 {
 	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
 	struct nrf_wifi_sys_fmac_dev_ctx *sys_fmac_dev_ctx = NULL;
@@ -412,11 +431,17 @@ out:
 }
 
 enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-#ifdef NRF_WIFI_LOW_POWER
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+					    unsigned char *rf_params_addr,
+					    unsigned int vtf_start_addr,
+#endif  /* PHY_RF_PARAM_GDRAM */
+#endif	/* WIFI_NRF71 */				    
+#ifdef CONFIG_NRF_WIFI_LOW_POWER
 					    int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
 					    unsigned int phy_calib,
-					    enum op_band op_band,
+					    unsigned char op_band,
 					    bool beamforming,
 					    struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl_params,
 					    struct nrf_wifi_tx_pwr_ceil_params *tx_pwr_ceil_params,
@@ -461,6 +486,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 
 #ifndef NRF71_ON_IPC
 #ifdef WIFI_NRF71
+#ifndef PHY_RF_PARAM_GDRAM
 	nrf_wifi_osal_mem_set(&phy_rf_params,
 			      0x0,
 			      sizeof(phy_rf_params));
@@ -474,6 +500,7 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 		status = NRF_WIFI_STATUS_FAIL;
 		goto out;
 	}
+#endif /* PHY_RF_PARAM_GDRAM */
 #else /* WIFI_NRF71 */
 	nrf_wifi_osal_mem_set(&otp_info,
 			      0xFF,
@@ -498,9 +525,17 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fm
 	}
 #endif  /* !WIFI_NRF71 */
 #endif /* !NRF71_ON_IPC */
-
 	status = nrf_wifi_sys_fmac_fw_init(fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+				       rf_params_addr,
+		                       vtf_start_addr,
+#else
 				       &phy_rf_params,
+#endif /* PHY_RF_PARAM_GDRAM */
+#else /* WIFI_NRF71 */
+				       &phy_rf_params,
+#endif /* !WIFI_NRF71 */ 
 				       true,
 #ifdef NRF_WIFI_LOW_POWER
 				       sleep_type,
@@ -4374,4 +4409,45 @@ out:
         return status;
 }
 #endif /* CMD_RX_BUFF */
+enum nrf_wifi_status nrf_wifi_fmac_get_scan_result(void *dev_ctx,
+                                                   void *scan_result_info,
+                                                   unsigned int scan_db_addr,
+                                                   unsigned int scan_res_len)
+{
+        struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+        enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+
+        fmac_dev_ctx = dev_ctx;
+
+        status = hal_rpu_mem_read(fmac_dev_ctx->hal_dev_ctx,
+                                  scan_result_info,
+                                  scan_db_addr,
+                                  scan_res_len);
+
+        return status;
+}
+
+enum nrf_wifi_status nrf_wifi_fmac_set_scan_result(void *dev_ctx,
+                                                   void *scan_result_info,
+                                                   unsigned int scan_db_addr,
+                                                   unsigned int scan_res_len)
+{
+        /* Read the scan result from scan_db_addr  to a local memory.
+         * Sort it.
+         * Write it back.
+         */
+
+        struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+        enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+
+        fmac_dev_ctx = dev_ctx;
+
+        status = hal_rpu_mem_write(fmac_dev_ctx->hal_dev_ctx,
+                                   scan_db_addr,
+                                   scan_result_info,
+                                   scan_res_len);
+
+        return status;
+}
+
 #endif /* WIFI_NRF71 */

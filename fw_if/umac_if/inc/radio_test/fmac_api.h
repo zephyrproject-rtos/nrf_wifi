@@ -247,11 +247,21 @@ struct nrf_wifi_fmac_dev_ctx *nrf_wifi_rt_fmac_dev_add(struct nrf_wifi_fmac_priv
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
 enum nrf_wifi_status nrf_wifi_rt_fmac_dev_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+                                            unsigned char *rf_params_addr,
+                                            unsigned int vtf_start_addr,
+#endif  /* PHY_RF_PARAM_GDRAM */
+#endif  /* WIFI_NRF71 */
 #if defined(NRF_WIFI_LOW_POWER) || defined(__DOXYGEN__)
 					       int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
 					       unsigned int phy_calib,
+#ifdef WIFI_NRF71
+					       unsigned char op_band,
+#else					       
 					       enum op_band op_band,
+#endif  /* WIFI_NRF71 */
 					       bool beamforming,
 					       struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl,
 					       struct nrf_wifi_tx_pwr_ceil_params *tx_pwr_ceil_params,
