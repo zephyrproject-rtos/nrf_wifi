@@ -640,7 +640,19 @@ enum nrf_wifi_status nrf_wifi_fmac_set_reg(struct nrf_wifi_fmac_dev_ctx *fmac_de
 		goto out;
 	}
 
+#ifndef WIFI_NRF71
 	fmac_dev_ctx->reg_set_status = false;
+#else
+	/* As before sending the command we are setting.
+	 * we need not set it again, at least with latest
+	 * wezen changes. where it was found the event
+	 * was being received even before wait is started.
+	 * As a result we are setting it to false again.
+	 * Thus commenting it out for wezen latest firmware.
+	 */
+	/* fmac_dev_ctx->reg_set_status = false; */
+#endif /* WIFI_NRF71 */
+
 	nrf_wifi_osal_log_dbg("%s: Waiting for regulatory domain change event", __func__);
 	while (!fmac_dev_ctx->reg_set_status && count++ <= max_count) {
 		nrf_wifi_osal_sleep_ms(100);
