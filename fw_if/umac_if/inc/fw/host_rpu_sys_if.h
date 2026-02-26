@@ -1119,6 +1119,12 @@ struct rpu_conf_params {
 	unsigned char ru_index;
 	/** Desired tone frequency to be transmitted */
 	signed char tx_tone_freq;
+	/** Tone type to be transmitted (0-complex, 1-real-only, 2-imag-only) */
+	unsigned char tx_tone_type;
+	/** DC offset for I channel (Q.11 format) */
+	signed short int tx_tone_dc_offset_i;
+	/** DC offset for Q channel (Q.11 format) */
+	signed short int tx_tone_dc_offset_q;
 	/** RX LNA gain */
 	unsigned char lna_gain;
 	/** RX BB gain */

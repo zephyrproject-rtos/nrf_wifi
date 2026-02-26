@@ -598,7 +598,13 @@ out:
 enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_tx_tone(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 						      unsigned char enable,
 						      signed char tone_freq,
-						      signed char tx_power)
+						      signed char tx_power
+#ifdef WIFI_NRF71
+						      , unsigned char tone_type
+						      , signed short int dc_offset_i
+						      , signed short int dc_offset_q
+#endif
+						      )
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_rf_test_tx_params rf_test_tx_params;
@@ -620,6 +626,11 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_tx_tone(struct nrf_wifi_fmac_dev_c
 	rf_test_tx_params.test = NRF_WIFI_RF_TEST_TX_TONE;
 	rf_test_tx_params.tone_freq = tone_freq;
 	rf_test_tx_params.tx_pow = tx_power;
+#ifdef WIFI_NRF71
+	rf_test_tx_params.tone_type = tone_type;
+	rf_test_tx_params.dc_offset_i = dc_offset_i;
+	rf_test_tx_params.dc_offset_q = dc_offset_q;
+#endif
 	rf_test_tx_params.enabled = enable;
 
 	rt_dev_ctx->rf_test_type = NRF_WIFI_RF_TEST_TX_TONE;
