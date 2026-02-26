@@ -200,6 +200,11 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_rf_get_rf_rssi(struct nrf_wifi_fmac_dev_ct
  * @brief Set XO adjustment value.
  * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
  * @param value XO adjustment value.
+#ifdef WIFI_NRF71
+ *        Signed 8-bit, range -100 to 100 (PPM).
+#else
+ *        Unsigned 8-bit, range 0 to 127.
+#endif
  *
  * This function is used to send a command to:
  *	- The RPU firmware to set XO adjustment value in radio test mode.
@@ -208,7 +213,11 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_rf_get_rf_rssi(struct nrf_wifi_fmac_dev_ct
  * @retval NRF_WIFI_STATUS_FAIL On failure to execute command
  */
 enum nrf_wifi_status nrf_wifi_rt_fmac_set_xo_val(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+#ifdef WIFI_NRF71
+						 signed char value);
+#else
 						 unsigned char value);
+#endif
 
 /**
  * @brief Get XO calibrated value.

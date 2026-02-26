@@ -42,6 +42,12 @@ struct nrf_wifi_rt_fmac_dev_ctx {
 	enum nrf_wifi_cmd_status radio_cmd_status;
 	/** Firmware RF test RX capture event status */
 	unsigned char capture_status;
+#ifdef WIFI_NRF71
+	/** XO tune result: offset in PPM (signed). */
+	signed int xo_tune_offset;
+	/** XO tune result: 0=success, 1=tone not detected, 2=gain fail (high), 3=gain fail (low), 4=gain fail (timeout). */
+	unsigned char xo_tune_status;
+#endif
 };
 
 

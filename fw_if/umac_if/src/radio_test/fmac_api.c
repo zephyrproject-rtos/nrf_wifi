@@ -889,7 +889,11 @@ out:
 
 
 enum nrf_wifi_status nrf_wifi_rt_fmac_set_xo_val(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+#ifdef WIFI_NRF71
+						 signed char value)
+#else
 						 unsigned char value)
+#endif
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_rf_test_xo_calib nrf_wifi_rf_test_xo_calib_params;
@@ -997,6 +1001,15 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_compute_xo(struct nrf_wifi_fmac_de
 		status = NRF_WIFI_STATUS_FAIL;
 		goto out;
 	}
+
+#ifdef WIFI_NRF71
+	if (rt_dev_ctx->xo_tune_status != 0) {
+		status = NRF_WIFI_STATUS_FAIL;
+		goto out;
+	}
+	nrf_wifi_osal_log_info("%s: XO tune OK, xo_offset = %d (signed PPM)",
+			       __func__, rt_dev_ctx->xo_tune_offset);
+#endif
 
 out:
 	return status;
