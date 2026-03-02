@@ -21,13 +21,26 @@
 
 static enum nrf_wifi_status nrf_wifi_fmac_off_raw_tx_fw_init(
 		struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
-		struct nrf_wifi_phy_rf_params *rf_params,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+                unsigned char *rf_params_addr,
+                unsigned int vtf_start_addr,
+#else
+                struct nrf_wifi_phy_rf_params *rf_params,
+#endif /* PHY_RF_PARAM_GDRAM */
+#else /* WIFI_NRF71 */
+                struct nrf_wifi_phy_rf_params *rf_params,
+#endif /* !WIFI_NRF71 */
 		bool rf_params_valid,
 #ifdef NRF_WIFI_LOW_POWER
 		int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
 		unsigned int phy_calib,
-		enum op_band op_band,
+#ifdef WIFI_NRF71
+                unsigned char op_band,
+#else
+                enum op_band op_band,
+#endif  /* WIFI_NRF71 */
 		bool beamforming,
 		struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl,
 		struct nrf_wifi_board_params *board_params,
@@ -43,7 +56,16 @@ static enum nrf_wifi_status nrf_wifi_fmac_off_raw_tx_fw_init(
 	}
 
 	status = umac_cmd_off_raw_tx_init(fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+					  rf_params_addr,
+					  vtf_start_addr,
+#else
 					  rf_params,
+#endif /* !PHY_RF_PARAM_GDRAM */
+#else
+					  rf_params,
+#endif /* !WIFI_NRF71 */
 					  rf_params_valid,
 #ifdef NRF_WIFI_LOW_POWER
 					  sleep_type,
@@ -166,11 +188,21 @@ out:
 
 enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_dev_init(
 		struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+		unsigned char *rf_params_addr,
+		unsigned int vtf_start_addr,
+#endif  /* PHY_RF_PARAM_GDRAM */
+#endif  /* WIFI_NRF71 */		
 #ifdef NRF_WIFI_LOW_POWER
 		int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
 		unsigned int phy_calib,
-		enum op_band op_band,
+#ifdef WIFI_NRF71
+		unsigned char op_band,
+#else
+                enum op_band op_band,
+#endif  /* WIFI_NRF71 */
 		bool beamforming,
 		struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl_params,
 		struct nrf_wifi_tx_pwr_ceil_params *tx_pwr_ceil_params,
@@ -178,9 +210,15 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_dev_init(
 		unsigned char *country_code)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+#ifndef NRF71_ON_IPC
+#ifdef WIFI_NRF71
+	struct nrf_wifi_phy_rf_params phy_rf_params = { 0};
+	int ret = -1;
+#else /* WIFI_NRF71 */
 	struct nrf_wifi_fmac_otp_info otp_info;
-	struct nrf_wifi_phy_rf_params phy_rf_params;
-
+	struct nrf_wifi_phy_rf_params phy_rf_params ;
+#endif 
+#endif /* !NRF71_ON_IPC */
 	if (!fmac_dev_ctx) {
 		nrf_wifi_osal_log_err("%s: Invalid device context",
 				      __func__);
@@ -205,6 +243,24 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_dev_init(
 			      tx_pwr_ceil_params,
 			      sizeof(*tx_pwr_ceil_params));
 
+#ifndef NRF71_ON_IPC
+#ifdef WIFI_NRF71
+#ifndef PHY_RF_PARAM_GDRAM
+	nrf_wifi_osal_mem_set(&phy_rf_params,
+			      0x0,
+			      sizeof(phy_rf_params));
+
+	ret = nrf_wifi_utils_hex_str_to_val(
+			(unsigned char *)&phy_rf_params.phy_params,
+			sizeof(phy_rf_params.phy_params),
+			NRF_WIFI_DEF_RF_PARAMS);
+	if (ret == -1) {
+		nrf_wifi_osal_log_err("%s: Initialization of RF params with default values failed", __func__);
+		status = NRF_WIFI_STATUS_FAIL;
+		goto out;
+	}
+#endif /* PHY_RF_PARAM_GDRAM */
+#else /* WIFI_NRF71 */
 	nrf_wifi_osal_mem_set(&otp_info,
 			      0xFF,
 			      sizeof(otp_info));
@@ -226,9 +282,17 @@ enum nrf_wifi_status nrf_wifi_off_raw_tx_fmac_dev_init(
 				     __func__);
 		goto out;
 	}
-
+#endif  /* !WIFI_NRF71 */
+#endif /* !NRF71_ON_IPC */
 	status = nrf_wifi_fmac_off_raw_tx_fw_init(fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+						  rf_params_addr,
+						  vtf_start_addr,
+#else
 						  &phy_rf_params,
+#endif /* PHY_RF_PARAM_GDRAM */
+#endif /* !WIFI_NRF71 */
 						  true,
 #ifdef NRF_WIFI_LOW_POWER
 						  sleep_type,

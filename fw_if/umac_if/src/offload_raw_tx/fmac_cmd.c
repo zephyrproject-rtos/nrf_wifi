@@ -13,13 +13,26 @@
 #include "common/hal_api_common.h"
 
 enum nrf_wifi_status umac_cmd_off_raw_tx_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+					      unsigned char *rf_params_addr,
+					      unsigned int vtf_start_addr,
+#else
 					      struct nrf_wifi_phy_rf_params *rf_params,
+#endif /* !PHY_RF_PARAM_GDRAM */
+#else
+					      struct nrf_wifi_phy_rf_params *rf_params,
+#endif /* !WIFI_NRF71 */		
 					      bool rf_params_valid,
 #ifdef NRF_WIFI_LOW_POWER
 					      int sleep_type,
 #endif /* NRF_WIFI_LOW_POWER */
 					      unsigned int phy_calib,
+#ifdef WIFI_NRF71
+					      unsigned char op_band,
+#else
 					      enum op_band op_band,
+#endif  /* WIFI_NRF71 */
 					      bool beamforming,
 					      struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl_params,
 					      struct nrf_wifi_board_params *board_params,
@@ -46,17 +59,29 @@ enum nrf_wifi_status umac_cmd_off_raw_tx_init(struct nrf_wifi_fmac_dev_ctx *fmac
 
 	umac_cmd_data->sys_head.cmd_event = NRF_WIFI_CMD_INIT;
 	umac_cmd_data->sys_head.len = len;
-
+#if defined(WIFI_NRF71) && defined(PHY_RF_PARAM_GDRAM)
+        /* Set the phy_params_address and vtf addresses in gdram
+         * in umac_cmd_data once umac provides it.
+         */
+        nrf_wifi_osal_mem_cpy(umac_cmd_data->sys_params.rf_params_addr,
+                              rf_params_addr,
+                              sizeof(unsigned int) * NUM_WIFI_PARAMS);
+        umac_cmd_data->sys_params.vtf_buffer_addr = vtf_start_addr;
+#else
 
 	umac_cmd_data->sys_params.rf_params_valid = rf_params_valid;
 
 	if (rf_params_valid) {
 		nrf_wifi_osal_mem_cpy(umac_cmd_data->sys_params.rf_params,
+#ifdef WIFI_NRF71
+				      rf_params->phy_params,
+#else
 				      rf_params,
+#endif /* WIFI_NRF71 */
 				      NRF_WIFI_RF_PARAMS_SIZE);
 	}
 
-
+#endif /* !defined(WIFI_NRF71) && !defined(PHY_RF_PARAM_GDRAM) */
 	umac_cmd_data->sys_params.phy_calib = phy_calib;
 	umac_cmd_data->sys_params.hw_bringup_time = HW_DELAY;
 	umac_cmd_data->sys_params.sw_bringup_time = SW_DELAY;
@@ -93,11 +118,20 @@ enum nrf_wifi_status umac_cmd_off_raw_tx_init(struct nrf_wifi_fmac_dev_ctx *fmac
 #endif /* NRF_WIFI_FEAT_KEEPALIVE */
 
 	umac_cmd_data->op_band = op_band;
-
+#ifdef WIFI_NRF71
+#ifdef PHY_RF_PARAM_GDRAM
+        nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.tx_pwr_ctrl_params,
+                              &tx_pwr_ctrl_params->ant_gain_2g,
+                              10 * sizeof(unsigned char));
+#else /* PHY_RF_PARAM_GDRAM */
+	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[ANT_GAIN_2G_OFST],
+			      &tx_pwr_ctrl_params->ant_gain_2g,
+			      NUM_ANT_GAIN);
+#endif /* WIFI_NRF71 */
+#else
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[PCB_LOSS_BYTE_2G_OFST],
 			      &board_params->pcb_loss_2g,
 			      NUM_PCB_LOSS_OFFSET);
-#ifndef WIFI_NRF71
 	nrf_wifi_osal_mem_cpy(&umac_cmd_data->sys_params.rf_params[ANT_GAIN_2G_OFST],
 			      &tx_pwr_ctrl_params->ant_gain_2g,
 			      NUM_ANT_GAIN);
@@ -147,7 +181,11 @@ enum nrf_wifi_status umac_cmd_off_raw_tx_prog_stats_get(struct nrf_wifi_fmac_dev
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct host_rpu_msg *umac_cmd = NULL;
+#ifdef WIFI_NRF71
+	struct nrf_wifi_umac_cmd_debug_stats *umac_cmd_data = NULL;
+#else
 	struct nrf_wifi_cmd_get_stats *umac_cmd_data = NULL;
+#endif
 	int len = 0;
 
 	len = sizeof(*umac_cmd_data);
@@ -162,12 +200,21 @@ enum nrf_wifi_status umac_cmd_off_raw_tx_prog_stats_get(struct nrf_wifi_fmac_dev
 		goto out;
 	}
 
+#ifdef WIFI_NRF71
+	umac_cmd_data = (struct nrf_wifi_cmd_debug_stats *)(umac_cmd->msg);
+
+	umac_cmd_data->sys_head.cmd_event = NRF_WIFI_CMD_DEBUG_STATS;
+	umac_cmd_data->sys_head.len = len;
+	umac_cmd_data->stats_type = RPU_STATS_TYPE_LMAC;
+	umac_cmd_data->periodic_stats_enable = 0;
+	umac_cmd_data->stats_ctrl = OFFLOAD_RAW_TX_STATS;
+#else
 	umac_cmd_data = (struct nrf_wifi_cmd_get_stats *)(umac_cmd->msg);
 
 	umac_cmd_data->sys_head.cmd_event = NRF_WIFI_CMD_GET_STATS;
 	umac_cmd_data->sys_head.len = len;
 	umac_cmd_data->stats_type = RPU_STATS_TYPE_OFFLOADED_RAW_TX;
-
+#endif
 	status = nrf_wifi_hal_ctrl_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 					    umac_cmd,
 					    (sizeof(*umac_cmd) + len));

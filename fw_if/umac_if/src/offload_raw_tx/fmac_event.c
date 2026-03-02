@@ -19,8 +19,11 @@ static enum nrf_wifi_status umac_event_off_raw_tx_stats_process(
 	void *event)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+#ifdef WIFI_NRF71
+	struct nrf_wifi_umac_event_debug_stats * stats = NULL;
+#else
 	struct nrf_wifi_off_raw_tx_umac_event_stats *stats = NULL;
-
+#endif /* WIFI_NRF71 */
 	if (!event) {
 		nrf_wifi_osal_log_err("%s: Invalid parameters",
 				      __func__);
@@ -33,11 +36,20 @@ static enum nrf_wifi_status umac_event_off_raw_tx_stats_process(
 		goto out;
 	}
 
+#ifdef WIFI_NRF71
+	stats = ((struct nrf_wifi_umac_event_debug_stats *)event);
+#else
 	stats = ((struct nrf_wifi_off_raw_tx_umac_event_stats *)event);
-
+#endif /* WIFI_NRF71 */
 	nrf_wifi_osal_mem_cpy(fmac_dev_ctx->fw_stats,
+#ifdef WIFI_NRF71
+			      &stats->stats.lmac_stats.offload_raw_tx_stats,
+			      sizeof(stats->stats.lmac_stats.offload_raw_tx_stats)
+#else
 			      &stats->fw,
-			      sizeof(stats->fw));
+			      sizeof(stats->fw)
+#endif /* WIFI_NRF71 */
+			      );
 
 	fmac_dev_ctx->stats_req = false;
 
@@ -78,12 +90,19 @@ static enum nrf_wifi_status umac_event_off_raw_tx_proc_events(struct nrf_wifi_fm
 		fmac_dev_ctx->fw_deinit_done = 1;
 		status = NRF_WIFI_STATUS_SUCCESS;
 		break;
+#ifdef WIFI_NRF71
+	case NRF_WIFI_EVENT_DEBUG_STATS:
+		status = umac_event_off_raw_tx_stats_process(fmac_dev_ctx,
+							     sys_head);
+		break;
+#else
 	case NRF_WIFI_EVENT_OFFLOADED_RAWTX_STATUS:
 		umac_status = ((struct nrf_wifi_umac_event_err_status *)sys_head);
 		dev_ctx_off_raw_tx->off_raw_tx_cmd_status = umac_status->status;
 		dev_ctx_off_raw_tx->off_raw_tx_cmd_done = false;
 		status = NRF_WIFI_STATUS_SUCCESS;
 		break;
+#endif /* WIFI_NRF71 */
 	default:
 		nrf_wifi_osal_log_err("%s: Unknown event recd: %d",
 				      __func__,
