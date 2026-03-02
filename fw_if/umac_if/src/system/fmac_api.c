@@ -4337,7 +4337,7 @@ out:
 
 #ifdef WIFI_NRF71
 #ifdef CMD_RX_BUFF
-#define MAX_BUFS_PER_CMD 32
+#define MAX_BUFS_PER_CMD 64
 enum nrf_wifi_status nrf_wifi_fmac_prog_rx_buf_info(void *dev_ctx,
                                                 struct nrf_wifi_rx_buf *rx_buf,
                                                 unsigned int rx_buf_nums)
@@ -4358,7 +4358,9 @@ enum nrf_wifi_status nrf_wifi_fmac_prog_rx_buf_info(void *dev_ctx,
                 rx_buff_prog_cnt = rx_buf_nums;
                 counter = 1;
         }
-        rx_buf_iter = rx_buf;
+
+	rx_buf_iter = rx_buf;
+
 	for (i = 0; i < counter; i++) {
                 rx_buf_cmd = nrf_wifi_osal_mem_zalloc(sizeof(*rx_buf_cmd) +
 				rx_buff_prog_cnt * sizeof(struct nrf_wifi_rx_buf));
@@ -4370,7 +4372,7 @@ enum nrf_wifi_status nrf_wifi_fmac_prog_rx_buf_info(void *dev_ctx,
 
                 rx_buf_cmd->umac_hdr.cmd_evnt = NRF_WIFI_UMAC_CMD_CONFIG_RX_BUF;
                 nrf_wifi_osal_mem_cpy(&rx_buf_cmd->info,
-                                      rx_buf,
+				      (rx_buf_iter),
                                       rx_buff_prog_cnt * sizeof(struct nrf_wifi_rx_buf));
 
                 rx_buf_cmd->rx_buf_num = rx_buff_prog_cnt;
@@ -4381,8 +4383,10 @@ enum nrf_wifi_status nrf_wifi_fmac_prog_rx_buf_info(void *dev_ctx,
                 if (rx_buf_cmd) {
                         nrf_wifi_osal_mem_free(rx_buf_cmd);
                 }
+		rx_buf_iter += rx_buff_prog_cnt;
         }
 	if (remained_buf_cnt > 0) {
+		remained_buf = rx_buf_iter;
                 rx_buf_cmd = nrf_wifi_osal_mem_zalloc(sizeof(*rx_buf_cmd) +
 				remained_buf_cnt * sizeof(struct nrf_wifi_rx_buf));
                 if (!rx_buf_cmd) {
@@ -4393,7 +4397,7 @@ enum nrf_wifi_status nrf_wifi_fmac_prog_rx_buf_info(void *dev_ctx,
 
                 rx_buf_cmd->umac_hdr.cmd_evnt = NRF_WIFI_UMAC_CMD_CONFIG_RX_BUF;
                 nrf_wifi_osal_mem_cpy(&rx_buf_cmd->info,
-                                      rx_buf + (MAX_BUFS_PER_CMD),
+				      (remained_buf),
                                       remained_buf_cnt * sizeof(struct nrf_wifi_rx_buf));
 
                 rx_buf_cmd->rx_buf_num = remained_buf_cnt;
