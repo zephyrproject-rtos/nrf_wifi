@@ -232,6 +232,54 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_set_xo_val(struct nrf_wifi_fmac_dev_ctx *f
  */
 enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_compute_xo(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx);
 
+#ifdef WIFI_NRF71
+/**
+ * @brief Run RF calibration on the device.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param calib_params Calibration request (calib_bitmap, sys_operating_mode, index; rf_calib_results not used).
+ *
+ * Requests the FW to run selected calibrations (PHY channel switch in calibration mode).
+ * FW uses current RF configuration (band, channel). Completion signaled via NRF_WIFI_RF_TEST_EVENT_PERFORM_CALIBRATION.
+ *
+ * @retval NRF_WIFI_STATUS_SUCCESS On success
+ * @retval NRF_WIFI_STATUS_FAIL On failure or timeout
+ */
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_perform_calib(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+							   struct nrf_wifi_rf_calib *calib_params);
+
+/**
+ * @brief Apply calibration compensation from host-provided results.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param calib_params Contains test=NRF_WIFI_RF_APPLY_COMPENSATION and index (result slot).
+ * @param result_buf Buffer with calibration results (at least CAL_MEM_SIZE bytes), in RPU-accessible
+ *        (shared) memory. Its address is sent in calib_params; FW reads from it (same model as
+ *        rf_params_addr / vtf_buffer_addr).
+ *
+ * FW copies result data from this address into RF_WORKING_CHAN_COMP_PARAMS[index] and runs rf_comp().
+ * Completion signaled via NRF_WIFI_RF_TEST_EVENT_APPLY_COMPENSATION.
+ *
+ * @retval NRF_WIFI_STATUS_SUCCESS On success
+ * @retval NRF_WIFI_STATUS_FAIL On failure or timeout
+ */
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_apply_compensation(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+							       struct nrf_wifi_rf_calib *calib_params,
+							       const void *result_buf);
+
+/**
+ * @brief Read calibration/compensation results from FW into host buffer.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param params test=NRF_WIFI_RF_READ_COMP_RESULTS, mode (OPERATING_CHANNEL_RESULTS/SCAN_CHANNEL_RESULTS),
+ *        index (0 or 1), rf_calib_results = buffer in RPU-accessible memory (size >= CAL_MEM_SIZE).
+ *        FW writes results to this address (same model as rf_params/VTF).
+ *
+ * Completion signaled via NRF_WIFI_RF_TEST_EVENT_READ_COMP_RESULTS.
+ *
+ * @retval NRF_WIFI_STATUS_SUCCESS On success
+ * @retval NRF_WIFI_STATUS_FAIL On failure or timeout
+ */
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_read_comp_results(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+							       struct nrf_wifi_rf_read_calib_results *params);
+#endif
 
 /**
  * @brief Adds a RPU instance.

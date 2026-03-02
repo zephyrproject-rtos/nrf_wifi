@@ -176,6 +176,17 @@ static enum nrf_wifi_status umac_event_rt_rf_test_process(struct nrf_wifi_fmac_d
 				       rf_get_xo_value_params.xo_value);
 #endif /* WIFI_NRF71 */
 		break;
+#ifdef WIFI_NRF71
+	case NRF_WIFI_RF_TEST_EVENT_PERFORM_CALIBRATION:
+		nrf_wifi_osal_log_info("RF calibration (perform_calib) completed");
+		break;
+	case NRF_WIFI_RF_TEST_EVENT_APPLY_COMPENSATION:
+		nrf_wifi_osal_log_info("RF apply compensation completed");
+		break;
+	case NRF_WIFI_RF_TEST_EVENT_READ_COMP_RESULTS:
+		nrf_wifi_osal_log_info("RF read comp results completed");
+		break;
+#endif
 	default:
 		break;
 	}

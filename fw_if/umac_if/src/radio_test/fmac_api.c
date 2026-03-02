@@ -1015,6 +1015,189 @@ out:
 	return status;
 }
 
+#ifdef WIFI_NRF71
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_perform_calib(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+							    struct nrf_wifi_rf_calib *calib_params)
+{
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
+	unsigned int count = 0;
+
+	if (fmac_dev_ctx->op_mode != NRF_WIFI_OP_MODE_RT) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode",
+				      __func__);
+		goto out;
+	}
+
+	if (!calib_params) {
+		nrf_wifi_osal_log_err("%s: calib_params is NULL",
+				      __func__);
+		goto out;
+	}
+
+	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+
+	calib_params->test = NRF_WIFI_RF_PERFORM_CALIBRATION;
+	/* rf_calib_results not used by perform_calib; used later by apply_compensation */
+
+	rt_dev_ctx->rf_test_type = NRF_WIFI_RF_PERFORM_CALIBRATION;
+	rt_dev_ctx->rf_test_cap_data = NULL;
+	rt_dev_ctx->rf_test_cap_sz = 0;
+
+	status = umac_cmd_rt_prog_rf_test(fmac_dev_ctx,
+					  calib_params,
+					  sizeof(struct nrf_wifi_rf_calib));
+
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: umac_cmd_rt_prog_rf_test perform_calib failed",
+				      __func__);
+		goto out;
+	}
+
+	do {
+		nrf_wifi_osal_sleep_ms(100);
+		count++;
+	} while ((rt_dev_ctx->rf_test_type != NRF_WIFI_RF_TEST_MAX) &&
+		 (count < NRF_WIFI_FMAC_RF_TEST_EVNT_TIMEOUT));
+
+	if (count == NRF_WIFI_FMAC_RF_TEST_EVNT_TIMEOUT) {
+		nrf_wifi_osal_log_err("%s: Timed out",
+				      __func__);
+		rt_dev_ctx->rf_test_type = NRF_WIFI_RF_TEST_MAX;
+		rt_dev_ctx->rf_test_cap_data = NULL;
+		status = NRF_WIFI_STATUS_FAIL;
+		goto out;
+	}
+
+	nrf_wifi_osal_log_info("%s: RF calibration completed",
+			       __func__);
+
+out:
+	return status;
+}
+
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_apply_compensation(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+								struct nrf_wifi_rf_calib *calib_params,
+								const void *result_buf)
+{
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
+	unsigned int count = 0;
+
+	if (fmac_dev_ctx->op_mode != NRF_WIFI_OP_MODE_RT) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode",
+				      __func__);
+		goto out;
+	}
+
+	if (!calib_params || !result_buf) {
+		nrf_wifi_osal_log_err("%s: calib_params or result_buf is NULL",
+				      __func__);
+		goto out;
+	}
+
+	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+
+	/* Send only the struct; FW reads calibration data from rf_calib_results address (same as rf_params/VTF). */
+	calib_params->test = NRF_WIFI_RF_APPLY_COMPENSATION;
+	calib_params->rf_calib_results = (unsigned char *)result_buf;
+
+	rt_dev_ctx->rf_test_type = NRF_WIFI_RF_APPLY_COMPENSATION;
+	rt_dev_ctx->rf_test_cap_data = NULL;
+	rt_dev_ctx->rf_test_cap_sz = 0;
+
+	status = umac_cmd_rt_prog_rf_test(fmac_dev_ctx,
+					  calib_params,
+					  sizeof(struct nrf_wifi_rf_calib));
+
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: umac_cmd_rt_prog_rf_test apply_compensation failed",
+				      __func__);
+		goto out;
+	}
+
+	do {
+		nrf_wifi_osal_sleep_ms(100);
+		count++;
+	} while ((rt_dev_ctx->rf_test_type != NRF_WIFI_RF_TEST_MAX) &&
+		 (count < NRF_WIFI_FMAC_RF_TEST_EVNT_TIMEOUT));
+
+	if (count == NRF_WIFI_FMAC_RF_TEST_EVNT_TIMEOUT) {
+		nrf_wifi_osal_log_err("%s: Timed out",
+				      __func__);
+		rt_dev_ctx->rf_test_type = NRF_WIFI_RF_TEST_MAX;
+		rt_dev_ctx->rf_test_cap_data = NULL;
+		status = NRF_WIFI_STATUS_FAIL;
+		goto out;
+	}
+
+	nrf_wifi_osal_log_info("%s: RF apply compensation completed",
+			       __func__);
+
+out:
+	return status;
+}
+
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_read_comp_results(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+								struct nrf_wifi_rf_read_calib_results *params)
+{
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	struct nrf_wifi_rt_fmac_dev_ctx *rt_dev_ctx = NULL;
+	unsigned int count = 0;
+
+	if (fmac_dev_ctx->op_mode != NRF_WIFI_OP_MODE_RT) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode",
+				      __func__);
+		goto out;
+	}
+
+	if (!params || !params->rf_calib_results) {
+		nrf_wifi_osal_log_err("%s: params or rf_calib_results buffer is NULL",
+				      __func__);
+		goto out;
+	}
+
+	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
+
+	params->test = NRF_WIFI_RF_READ_COMP_RESULTS;
+
+	rt_dev_ctx->rf_test_type = NRF_WIFI_RF_READ_COMP_RESULTS;
+	rt_dev_ctx->rf_test_cap_data = NULL;
+	rt_dev_ctx->rf_test_cap_sz = 0;
+
+	status = umac_cmd_rt_prog_rf_test(fmac_dev_ctx,
+					  params,
+					  sizeof(struct nrf_wifi_rf_read_calib_results));
+
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: umac_cmd_rt_prog_rf_test read_comp_results failed",
+				      __func__);
+		goto out;
+	}
+
+	do {
+		nrf_wifi_osal_sleep_ms(100);
+		count++;
+	} while ((rt_dev_ctx->rf_test_type != NRF_WIFI_RF_TEST_MAX) &&
+		 (count < NRF_WIFI_FMAC_RF_TEST_EVNT_TIMEOUT));
+
+	if (count == NRF_WIFI_FMAC_RF_TEST_EVNT_TIMEOUT) {
+		nrf_wifi_osal_log_err("%s: Timed out",
+				      __func__);
+		rt_dev_ctx->rf_test_type = NRF_WIFI_RF_TEST_MAX;
+		rt_dev_ctx->rf_test_cap_data = NULL;
+		status = NRF_WIFI_STATUS_FAIL;
+		goto out;
+	}
+
+	nrf_wifi_osal_log_info("%s: RF read comp results completed",
+			       __func__);
+
+out:
+	return status;
+}
+#endif /* WIFI_NRF71 */
+
 enum nrf_wifi_status nrf_wifi_rt_fmac_stats_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 						enum rpu_op_mode op_mode,
 						struct rpu_rt_op_stats *stats)
