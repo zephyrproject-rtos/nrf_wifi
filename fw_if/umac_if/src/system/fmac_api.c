@@ -1286,17 +1286,20 @@ static bool program_peer_key(struct nrf_wifi_fmac_dev_ctx *dev_ctx,
 			case NRF_WIFI_FMAC_CIPHER_SUITE_SMS4:
 				micKeyLen = PEER_MIC_KEY_LEN_16;
 				revMemCopy(peerKeyDB->ucstWapiMicKey,
-					   peer_key->key.nrf_wifi_key,
+					   &peer_key->key.nrf_wifi_key[16],
 					   PEER_MIC_KEY_LEN_16);
 				micptr = peerKeyDB->ucstWapiMicKey;
 			break;
 			case NRF_WIFI_FMAC_CIPHER_SUITE_TKIP:
+				/* We get the key in the following form:
+				 * KEY (16 bytes) - TX MIC (8 bytes) - RX MIC (8 bytes)
+				 */
 				micKeyLen = PEER_MIC_KEY_LEN_8;
 				revMemCopy(peerKeyDB->ucst.TxMicKey,
-					   peer_key->key.nrf_wifi_key,
+					   &peer_key->key.nrf_wifi_key[16],
 					   PEER_MIC_KEY_LEN_8);
 				revMemCopy(peerKeyDB->ucst.RxMicKey,
-					   peer_key->key.nrf_wifi_key,
+					   &peer_key->key.nrf_wifi_key[24],
 					   PEER_MIC_KEY_LEN_8);
 				micptr = peerKeyDB->ucst.TxMicKey;
 			break;
@@ -1337,14 +1340,17 @@ static bool program_peer_key(struct nrf_wifi_fmac_dev_ctx *dev_ctx,
 			case NRF_WIFI_FMAC_CIPHER_SUITE_SMS4:
 				micKeyLen = PEER_MIC_KEY_LEN_16;
 				revMemCopy(peerKeyDB->bcstWapiMicKey,
-					   peer_key->key.nrf_wifi_key,
+					   &peer_key->key.nrf_wifi_key[24],
 					   PEER_ENC_KEY_LEN_16);
 				micptr = peerKeyDB->bcstWapiMicKey;
 			break;
 			case NRF_WIFI_FMAC_CIPHER_SUITE_TKIP:
+				/* We get the key in the following form:
+				 * KEY (16 bytes) - TX MIC (8 bytes) - RX MIC (8 bytes)
+				 */
 				micKeyLen = PEER_MIC_KEY_LEN_8;
 				revMemCopy(peerKeyDB->bcst.RxMicKey,
-					   peer_key->key.nrf_wifi_key,
+					   &peer_key->key.nrf_wifi_key[24],
 					   PEER_MIC_KEY_LEN_8);
 				micptr = peerKeyDB->bcst.RxMicKey;
 			break;
@@ -1388,6 +1394,62 @@ static bool program_peer_key(struct nrf_wifi_fmac_dev_ctx *dev_ctx,
 	}
 	return validDB;
 }
+
+int program_if_key(struct nrf_wifi_fmac_dev_ctx *dev_ctx,
+		   struct nrf_wifi_umac_key_info *key,
+		   unsigned char if_idx)
+{
+        unsigned long address_offset;
+	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
+	struct nrf_wifi_fmac_vif_ctx *vif_ctx = NULL;
+	unsigned char enc_key[MAX_ENC_KEY_LEN];
+        unsigned char mic_key[MAX_MIC_KEY_LEN];
+        unsigned char mic_key_len = 0, enc_key_len = 0,index = 0;
+
+	sys_dev_ctx = wifi_dev_priv(dev_ctx);
+	vif_ctx = sys_dev_ctx->vif_ctx[if_idx];
+
+	switch (key->cipher_suite) {
+	case NRF_WIFI_FMAC_CIPHER_SUITE_CCMP:
+		revMemCopy(enc_key, key->key.nrf_wifi_key, 16);
+		enc_key_len = 16;
+	break;
+	case NRF_WIFI_FMAC_CIPHER_SUITE_CCMP_256:
+	case NRF_WIFI_FMAC_CIPHER_SUITE_GCMP_256:
+		revMemCopy(enc_key, key->key.nrf_wifi_key, 32);
+		enc_key_len = 32;
+	break;
+	case NRF_WIFI_FMAC_CIPHER_SUITE_SMS4:
+		revMemCopy(mic_key, &key->key.nrf_wifi_key[16], 16);
+		mic_key_len += 16;
+	break;
+	case NRF_WIFI_FMAC_CIPHER_SUITE_TKIP:
+		revMemCopy(enc_key, key->key.nrf_wifi_key, 16);
+		enc_key_len = 16;
+		/* We get the key in the following form:
+		 * KEY (16 bytes) - TX MIC (8 bytes) - RX MIC (8 bytes)
+		 */
+		revMemCopy(mic_key, &key->key.nrf_wifi_key[16], 8);
+		mic_key_len += 8;
+	break;
+	default:
+		break;
+	}
+
+	if (enc_key_len > 0) {
+		address_offset = (VIF_KEY_DB_OFFSET +
+			   (if_idx * (VIF_MIC_KEY_LEN_PER_VIF + VIF_KEY_LEN_PER_VIF)) +
+			   VIF_MIC_KEY_LEN_PER_VIF + key->key_idx * (VIF_KEY_LEN_PER_KEYID));
+		secure_crypto_reg_write(dev_ctx, enc_key, enc_key_len, 4, address_offset);
+	}
+
+	if (mic_key_len > 0) {
+		address_offset = (VIF_KEY_DB_OFFSET +
+			(if_idx * (VIF_MIC_KEY_LEN_PER_VIF + VIF_KEY_LEN_PER_VIF)) +
+			key->key_idx * (VIF_MIC_KEY_LEN_PER_KEYID));
+		secure_crypto_reg_write(dev_ctx, mic_key, mic_key_len, 4, address_offset);
+	}
+}
 #endif /* WIFI_NRF71 */
 
 enum nrf_wifi_status nrf_wifi_sys_fmac_add_key(void *dev_ctx,
@@ -1403,6 +1465,8 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_add_key(void *dev_ctx,
 	int peer_id = -1;
 #ifdef WIFI_NRF71
 	bool validDB = 0;
+	/** Key data @ref nrf_wifi_key */
+	struct nrf_wifi_key *key;
 #endif /* WIFI_NRF71 */
 	fmac_dev_ctx = dev_ctx;
 
@@ -1429,6 +1493,32 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_add_key(void *dev_ctx,
 	nrf_wifi_osal_mem_cpy(&key_cmd->key_info,
 			      key_info,
 			      sizeof(key_cmd->key_info));
+
+	key = &key_cmd->key_info.key;
+	/* 0xFAC06 is RSN_CIPHER_SUITE_AES_128_CMAC.	*/
+	if (!((key_cmd->key_info.cipher_suite == 0xFAC06) &&
+	    (key_cmd->key_info.key_type == NRF_WIFI_KEYTYPE_GROUP))) {
+		/* Do not provide the key to UMAC. Set it to 0 for key only*/
+		if (key->nrf_wifi_key_len)
+			nrf_wifi_osal_mem_set(key->nrf_wifi_key, 0,
+					      key->nrf_wifi_key_len);
+	}
+
+	/* TKIP MIC calculation is done at UMAC not in HW.
+	 * So we need to provide the key with length
+	 */
+	if ((key_cmd->key_info.cipher_suite == NRF_WIFI_FMAC_CIPHER_SUITE_TKIP) &&
+	    ((key_cmd->key_info.key_type == NRF_WIFI_KEYTYPE_PAIRWISE) ||
+	     (key_cmd->key_info.key_type == NRF_WIFI_KEYTYPE_GROUP))) {
+		/* copy only unicast tx/rx key and broadcast mickey*/
+		/* We get the key in the following form:
+		 * KEY (16 bytes) - TX MIC (8 bytes) - RX MIC (8 bytes)
+		 */
+		nrf_wifi_osal_mem_cpy(&key->nrf_wifi_key[16],
+				      &key_info->key.nrf_wifi_key[16],
+				      PEER_MIC_KEY_LEN_16);
+		key->nrf_wifi_key_len = 32;
+	}
 
 	if (mac_addr) {
 		nrf_wifi_osal_mem_cpy(key_cmd->mac_addr,
@@ -1471,14 +1561,30 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_add_key(void *dev_ctx,
 	key_cmd->key_info.valid_fields |= NRF_WIFI_KEY_TYPE_VALID;
 
 #ifdef WIFI_NRF71
-	validDB = program_peer_key(fmac_dev_ctx,
-			key_info, if_idx, mac_addr, &key_cmd->peerDBIndex);
-
-	if (!validDB) {
-		nrf_wifi_osal_log_err("%s: Not able to store program key %d",
-				      __func__,
-				      key_info->key_type);
-		goto out;
+	if ((key_info->key_type == NRF_WIFI_KEYTYPE_GROUP) &&
+	    ((vif_ctx->if_type == NRF_WIFI_IFTYPE_AP) ||
+	     (vif_ctx->if_type == NRF_WIFI_IFTYPE_P2P_GO))) {
+		program_if_key(fmac_dev_ctx, key_info, if_idx);
+	} else {
+		/* For STA Mode the vif_ctx->bssid is stord during asssoc
+		 * but for p2p client don't have  that storage.
+		 * save it here when pairwise key type is added.
+		 */
+		if ((vif_ctx->if_type == NRF_WIFI_IFTYPE_P2P_CLIENT) &&
+		    (key_info->key_type == NRF_WIFI_KEYTYPE_PAIRWISE)) {
+			if (mac_addr) {
+				nrf_wifi_osal_mem_cpy(vif_ctx->bssid,
+						      mac_addr,
+						      NRF_WIFI_ETH_ADDR_LEN);
+			}
+		}
+		validDB = program_peer_key(fmac_dev_ctx, key_info, if_idx, mac_addr, &key_cmd->peerDBIndex);
+	        if (!validDB) {
+			nrf_wifi_osal_log_err("%s: Not able to store program key %d\n",
+					      __func__,
+					      key_info->key_type);
+			goto out;
+		}
 	}
 #endif /* WIFI_NRF71 */
 
