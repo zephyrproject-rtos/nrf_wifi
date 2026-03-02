@@ -1149,7 +1149,11 @@ void nrf_wifi_hal_dev_rem(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 enum nrf_wifi_status nrf_wifi_hal_dev_init(struct nrf_wifi_hal_dev_ctx *hal_dev_ctx)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-
+#ifdef SOFT_HPQM
+	unsigned int i;
+	struct soft_hpqm_info *soft_hpq_init = NULL;
+	unsigned int val = 0;
+#endif
 #ifdef NRF_WIFI_LOW_POWER
 	hal_dev_ctx->rpu_fw_booted = true;
 #endif /* NRF_WIFI_LOW_POWER */
@@ -1165,7 +1169,119 @@ enum nrf_wifi_status nrf_wifi_hal_dev_init(struct nrf_wifi_hal_dev_ctx *hal_dev_
 #ifndef NRF71_ON_IPC
 #ifdef SOFT_HPQM
 	hal_dev_ctx->rpu_info.soft_hpq = (struct soft_hpqm_info *)HOST_RPU_SOFTHPQM_INFO_START;
+	soft_hpq_init = (struct soft_hpqm_info *)HOST_RPU_SOFTHPQM_INFO_START;
 
+	status = hal_rpu_mem_write(hal_dev_ctx,
+				   &soft_hpq_init->rpu_cmd_busy_index,
+				   val,
+				   sizeof(unsigned int));
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: hal_rpu_mem_write failed for rpu_cmd_busy_index\n",
+				      __func__);
+		goto out;
+	}
+
+	status = hal_rpu_mem_write(hal_dev_ctx,
+				   &soft_hpq_init->rpu_event_free_index,
+				   val,
+				   sizeof(unsigned int));
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: hal_rpu_mem_write failed for rpu_event_free_index\n",
+				      __func__);
+		goto out;
+	}
+
+	status = hal_rpu_mem_write(hal_dev_ctx,
+				   &soft_hpq_init->host_cmd_free_index,
+				   val,
+				   sizeof(unsigned int));
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: hal_rpu_mem_write failed for host_cmd_free_index\n",
+				      __func__);
+		goto out;
+	}
+
+	status = hal_rpu_mem_write(hal_dev_ctx,
+				   &soft_hpq_init->host_event_busy_index,
+				   val,
+				   sizeof(unsigned int));
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: hal_rpu_mem_write failed for host_event_busy_index\n",
+				      __func__);
+		goto out;
+	}
+
+
+	for( i = 0; i < HOST_RPU_CMD_BUFFERS; i++) {
+		status = hal_rpu_mem_write(hal_dev_ctx,
+                                           &soft_hpq_init->cmdPool[i][0],
+                                           i,
+                                           sizeof(unsigned int));
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_err("%s: Writing to cmdPool[%d] failed msg_addr = %x\n",
+					       __func__,
+					       i,
+					       &soft_hpq_init->cmdPool[i][0]);
+			goto out;
+		}
+
+		status = hal_rpu_mem_write(hal_dev_ctx,
+					   &soft_hpq_init->cmd_free_buffs[i],
+					   (unsigned int)(&soft_hpq_init->cmdPool[i][0] + sizeof(unsigned int)),
+					   sizeof(unsigned int));
+
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_err("%s: Writing to cmd_free_buffs[i=%d] address = %x failed msg_addr = %x\n",
+					      __func__,
+					      i,
+					      &soft_hpq_init->cmd_free_buffs[i],
+					      ((unsigned int)(&soft_hpq_init->cmdPool[i][0] + sizeof(unsigned int))));
+			goto out;
+		}
+
+		status = hal_rpu_mem_write(hal_dev_ctx, &soft_hpq_init->cmd_busy_buffs[i], val, sizeof(unsigned int));
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_err("%s: Writing to cmd_busy_buff[%d] failed msg_addr = %x\n",
+					       __func__,
+					       i,
+					       &soft_hpq_init->cmd_busy_buffs[i]);
+			goto out;
+		}
+	}
+
+	for (i = 0; i < HOST_RPU_EVENT_BUFFERS; i++) {
+		status = hal_rpu_mem_write(hal_dev_ctx,
+					   &soft_hpq_init->event_busy_buffs[i],
+					   val,
+					   sizeof(unsigned int));
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			nrf_wifi_osal_log_err("%s: Writing to cmd_busy_buffs[%d]failed msg_addr = %x\n",
+					       __func__,
+					       i,
+					       &soft_hpq_init->cmd_busy_buffs[i]);
+			goto out;
+		}
+	}
+
+	status = hal_rpu_mem_write(hal_dev_ctx,
+				   &soft_hpq_init->event_ring_write_ptr,
+				   (unsigned int)soft_hpq_init->eventPool,
+				   sizeof(unsigned int));
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: Writing to event_ring_write_ptr failed msg_addr = %x\n",
+				       __func__,
+				        &soft_hpq_init->event_ring_write_ptr);
+	}
+
+	status = hal_rpu_mem_write(hal_dev_ctx,
+				   &soft_hpq_init->event_ring_read_ptr,
+				   val,
+				   sizeof(unsigned int));
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: Writing to event_ring_read_ptr failed msg_addr = %x\n",
+				       __func__,
+				        &soft_hpq_init->event_ring_read_ptr);
+	}
 #else
 	/* Read the HPQM info for all the queues provided by the RPU
 	 * (like command, event, RX buf queues etc)
