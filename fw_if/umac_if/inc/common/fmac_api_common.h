@@ -267,6 +267,19 @@ enum nrf_wifi_status nrf_wifi_fmac_config_vtf_params(void *dev_ctx,
                                                      unsigned int x0,
                                                      unsigned int *vtf_buffer_start_address);
 #endif
+#ifdef NRF71_SCAN_DB_GDRAM
+enum nrf_wifi_status nrf_wifi_fmac_get_scan_result(void *dev_ctx,
+                                                   void *scan_result_info,
+                                                   unsigned int scan_db_addr,
+                                                   unsigned int scan_res_len);
+
+enum nrf_wifi_status nrf_wifi_fmac_set_scan_result(void *dev_ctx,
+                                                   void *scan_result_info,
+                                                   unsigned int scan_db_addr,
+                                                   unsigned int scan_res_len);
+#endif /* NRF71_SCAN_DB_GDRAM */
+
+
 #endif
 /**
  * @}
