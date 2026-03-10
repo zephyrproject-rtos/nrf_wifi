@@ -1416,9 +1416,10 @@ static enum nrf_wifi_status tx_done_process(struct nrf_wifi_fmac_dev_ctx *fmac_d
 		 * packet is a raw packet or not
 		 */
 		nwb = nrf_wifi_utils_list_peek(txq);
-		data = nrf_wifi_osal_nbuf_data_get(nwb);
+//		data = nrf_wifi_osal_nbuf_data_get(nwb);
 
-		if (*(unsigned int *)data != NRF_WIFI_MAGIC_NUM_RAWTX) {
+//		if (*(unsigned int *)data != NRF_WIFI_MAGIC_NUM_RAWTX) {
+		if (!nrf_wifi_osal_nbuf_is_raw_tx(nwb)) {
 #endif /* NRF70_RAW_DATA_TX */
 			if (sys_dev_ctx->twt_sleep_status ==
 			    NRF_WIFI_FMAC_TWT_STATE_AWAKE) {
