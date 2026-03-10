@@ -1432,6 +1432,16 @@ int program_if_key(struct nrf_wifi_fmac_dev_ctx *dev_ctx,
 		revMemCopy(mic_key, &key->key.nrf_wifi_key[16], 8);
 		mic_key_len += 8;
 	break;
+	case NRF_WIFI_FMAC_CIPHER_SUITE_WEP40:
+		nrf_wifi_osal_mem_cpy(enc_key, key->key.nrf_wifi_key, 5);
+		/*As only 5 bytes need to be written, make it round of register length(4)*/
+		enc_key_len = 8;
+	break;
+	case NRF_WIFI_FMAC_CIPHER_SUITE_WEP104:
+		nrf_wifi_osal_mem_cpy(enc_key, key->key.nrf_wifi_key, 13);
+		/*As only 13 bytes need to be written, make it round of register length(4) */
+		enc_key_len = 16;
+		break;
 	default:
 		break;
 	}
@@ -1561,9 +1571,14 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_add_key(void *dev_ctx,
 	key_cmd->key_info.valid_fields |= NRF_WIFI_KEY_TYPE_VALID;
 
 #ifdef WIFI_NRF71
-	if ((key_info->key_type == NRF_WIFI_KEYTYPE_GROUP) &&
-	    ((vif_ctx->if_type == NRF_WIFI_IFTYPE_AP) ||
-	     (vif_ctx->if_type == NRF_WIFI_IFTYPE_P2P_GO))) {
+	/* For wep in STA mode use if key programming.
+	 * Also For AP/ P2P Go mode program the if key for group key
+	 */
+        if ((key_cmd->key_info.cipher_suite == NRF_WIFI_FMAC_CIPHER_SUITE_WEP40) ||
+            (key_cmd->key_info.cipher_suite == NRF_WIFI_FMAC_CIPHER_SUITE_WEP104) ||
+            ((key_info->key_type == NRF_WIFI_KEYTYPE_GROUP) &&
+             ((vif_ctx->if_type == NRF_WIFI_IFTYPE_AP) ||
+              (vif_ctx->if_type == NRF_WIFI_IFTYPE_P2P_GO)))) {
 		program_if_key(fmac_dev_ctx, key_info, if_idx);
 	} else {
 		/* For STA Mode the vif_ctx->bssid is stord during asssoc
