@@ -4301,6 +4301,13 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_set_channel(void *dev_ctx,
 	umac_cmd_data->sys_head.len = len;
 	umac_cmd_data->if_index = if_idx;
 	umac_cmd_data->chan.primary_num = channel;
+	/* Firmware needs op_band, set it here for 2G and 5G.
+	 * Profer change to be done in  application
+	 */
+	if (channel < 13)
+		umac_cmd_data->chan.op_band = NRF_WIFI_OP_BAND_2GHZ;
+	else
+		umac_cmd_data->chan.op_band = NRF_WIFI_OP_BAND_5GHZ;
 
 	status = nrf_wifi_hal_ctrl_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 					    umac_cmd,
