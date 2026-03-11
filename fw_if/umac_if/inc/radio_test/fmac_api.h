@@ -279,6 +279,17 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_apply_compensation(struct nrf_wifi
  */
 enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_read_comp_results(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 							       struct nrf_wifi_rf_read_calib_results *params);
+
+/**
+ * @brief Start RF RH oneshot test in radio test mode.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param params Parameters necessary for the RF RH oneshot test.
+ * This function is used to send a command to:
+ *	- The RPU firmware to start the RF RH oneshot test in radio test mode.
+ *    The RF RH oneshot test calculate RSSI histogram for the specified duration and returns the results to the host. 
+ */ 
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_rh_oneshot(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+	struct nrf_wifi_rh_test_params *params);
 #endif
 
 /**

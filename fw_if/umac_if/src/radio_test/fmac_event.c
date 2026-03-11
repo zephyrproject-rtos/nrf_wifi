@@ -63,6 +63,7 @@ static enum nrf_wifi_status umac_event_rt_rf_test_process(struct nrf_wifi_fmac_d
 	struct nrf_wifi_rt_fmac_dev_ctx *def_dev_ctx;
 	struct nrf_wifi_rf_test_capture_params rf_test_capture_params;
 	struct nrf_wifi_bat_volt_params bat_volt_params;
+	struct nrf_wifi_rh_test_params rh_test_params;
 	unsigned int bat_volt;
 
 	def_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
@@ -186,6 +187,35 @@ static enum nrf_wifi_status umac_event_rt_rf_test_process(struct nrf_wifi_fmac_d
 	case NRF_WIFI_RF_TEST_EVENT_READ_COMP_RESULTS:
 		nrf_wifi_osal_log_info("RF read comp results completed");
 		break;
+	case NRF_WIFI_RH_ONESHOT:
+	{
+		unsigned char rh_results_length;
+		nrf_wifi_osal_mem_cpy(&rh_test_params,
+				      (const unsigned char *)&rf_test_event->rf_test_info.rfevent[0],
+				      sizeof(rh_test_params));
+		rh_results_length = rf_test_event->rf_test_info.rfevent[sizeof(rh_test_params)] ;
+		unsigned char rh_results[rh_results_length];
+		nrf_wifi_osal_mem_cpy(rh_results,
+				      (const unsigned char *)&rf_test_event->rf_test_info.rfevent[0] + sizeof(rh_test_params) + 1,
+				      rh_results_length);
+		switch (rh_test_params.stat_type) {
+		case 0: /* all */
+			for (int i = 3; i < rh_results_length; i++) {
+				nrf_wifi_osal_log_info("At %ddBm occupation is %d%%", (4 * (i - 3)) - 100, rh_results[i]);
+			}
+			break;
+		case 1: /* max */
+			nrf_wifi_osal_log_info("RSSi of %ddBm occupies maximum duration (%d%%)", (signed char)rh_results[1], rh_results[2]);
+			break;
+		case 2: /* range */
+			nrf_wifi_osal_log_info("RSSI range %ddBm to %ddBm occupies %d%% of the duration", rh_test_params.range_start, rh_test_params.range_end, rh_results[2]);
+			break;
+		default:
+			nrf_wifi_osal_log_err("Unknown statistic type: %d", rh_test_params.stat_type);
+			break;
+		}
+		break;
+	}
 #endif
 	default:
 		break;
