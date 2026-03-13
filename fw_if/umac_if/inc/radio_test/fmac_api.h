@@ -290,6 +290,26 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_read_comp_results(struct nrf_wifi_
  */ 
 enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_rh_oneshot(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	struct nrf_wifi_rh_test_params *params);
+
+/**
+ * @brief Enable or disable VT calibration (NRF_WIFI_RF_TEST_ENABLE_VT_CALIB).
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param enable 1 to enable, 0 to disable.
+ * @retval NRF_WIFI_STATUS_SUCCESS On success
+ * @retval NRF_WIFI_STATUS_FAIL On failure
+ */
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_enable_vt_calibration(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+								    unsigned char enable);
+
+/**
+ * @brief Enable or disable VT compensation (NRF_WIFI_RF_TEST_ENABLE_VT_COMP).
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param enable 1 to enable, 0 to disable.
+ * @retval NRF_WIFI_STATUS_SUCCESS On success
+ * @retval NRF_WIFI_STATUS_FAIL On failure
+ */
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_enable_vt_compensation(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+								      unsigned char enable);
 #endif
 
 /**

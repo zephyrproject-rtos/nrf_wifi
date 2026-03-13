@@ -1361,6 +1361,60 @@ out:
 	return status;
 }
 
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_enable_vt_calibration(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+								   unsigned char enable)
+{
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	struct nrf_wifi_rf_test_enable_vt_calibration params;
+
+	if (fmac_dev_ctx->op_mode != NRF_WIFI_OP_MODE_RT) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode", __func__);
+		goto out;
+	}
+
+	nrf_wifi_osal_mem_set(&params, 0, sizeof(params));
+	params.test_id = NRF_WIFI_RF_TEST_ENABLE_VT_CALIB;
+	params.enable_calibration = enable ? 1 : 0;
+
+	status = umac_cmd_rt_prog_rf_test(fmac_dev_ctx,
+					  &params,
+					  sizeof(params));
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: enable_vt_calibration failed", __func__);
+		goto out;
+	}
+	status = NRF_WIFI_STATUS_SUCCESS;
+out:
+	return status;
+}
+
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_enable_vt_compensation(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+								      unsigned char enable)
+{
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	struct nrf_wifi_rf_test_enable_vt_compensation params;
+
+	if (fmac_dev_ctx->op_mode != NRF_WIFI_OP_MODE_RT) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode", __func__);
+		goto out;
+	}
+
+	nrf_wifi_osal_mem_set(&params, 0, sizeof(params));
+	params.test_id = NRF_WIFI_RF_TEST_ENABLE_VT_COMP;
+	params.enable_compensation = enable ? 1 : 0;
+
+	status = umac_cmd_rt_prog_rf_test(fmac_dev_ctx,
+					  &params,
+					  sizeof(params));
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		nrf_wifi_osal_log_err("%s: enable_vt_compensation failed", __func__);
+		goto out;
+	}
+	status = NRF_WIFI_STATUS_SUCCESS;
+out:
+	return status;
+}
+
 enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_phy_debug_stats(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 							      struct nrf_wifi_rf_get_rx_debug_stats *stats)
 {
