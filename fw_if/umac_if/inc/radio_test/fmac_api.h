@@ -310,6 +310,46 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_enable_vt_calibration(struct nrf_w
  */
 enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_enable_vt_compensation(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 								      unsigned char enable);
+
+/**
+ * @brief Write RPU registers (NRF_WIFI_RF_TEST_SET_REGS). Max 8 regs.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param config_regs test, num_regs (1..8), reg_addr[], reg_val[].
+ * @retval NRF_WIFI_STATUS_SUCCESS On success
+ * @retval NRF_WIFI_STATUS_FAIL On failure or timeout
+ */
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_set_regs(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						      struct nrf_wifi_rf_config_regs *config_regs);
+
+/**
+ * @brief Read RPU registers (NRF_WIFI_RF_TEST_READ_REGS). Max 8 regs.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param config_regs On input: test, num_regs (1..8), reg_addr[]. On output: reg_val[] filled.
+ * @retval NRF_WIFI_STATUS_SUCCESS On success
+ * @retval NRF_WIFI_STATUS_FAIL On failure or timeout
+ */
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_read_regs(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						       struct nrf_wifi_rf_config_regs *config_regs);
+
+/**
+ * @brief Write RPU memory (NRF_WIFI_RF_TEST_SET_MEM). Max 8 locations.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param config_mem test, num_memory_loc (1..8), mem_addr[], mem_val[].
+ * @retval NRF_WIFI_STATUS_SUCCESS On success
+ * @retval NRF_WIFI_STATUS_FAIL On failure or timeout
+ */
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_set_mem(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						     struct nrf_wifi_rf_config_mem *config_mem);
+
+/**
+ * @brief Read RPU memory (NRF_WIFI_RF_TEST_READ_MEM). Max 8 locations.
+ * @param fmac_dev_ctx Pointer to the UMAC IF context for a RPU WLAN device.
+ * @param config_mem On input: test, num_memory_loc (1..8), mem_addr[]. On output: mem_val[] filled.
+ * @retval NRF_WIFI_STATUS_SUCCESS On success
+ * @retval NRF_WIFI_STATUS_FAIL On failure or timeout
+ */
+enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_read_mem(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
+						      struct nrf_wifi_rf_config_mem *config_mem);
 #endif
 
 /**
