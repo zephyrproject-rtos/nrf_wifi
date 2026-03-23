@@ -960,6 +960,10 @@ struct nrf_wifi_cmd_sys_init {
 	unsigned int dbs_war_ctrl;
 	/* Enables(1) or Disables(0) Dynamic ED*/
 	unsigned int dynamic_ed;
+	/* BT slot allocation time in wifi scan (Min: 0 Max: 255) */
+	unsigned int bt_slot_time_in_ms;
+	/* Set 1 to disable PTA in Wi-Fi */
+	unsigned int bt_coex_disable;
 } __NRF_WIFI_PKD;
 
 /**

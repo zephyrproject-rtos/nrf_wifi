@@ -457,6 +457,10 @@ enum nrf_wifi_security_type {
         NRF_WIFI_WPA3_HNP,
 	/** WPA3-H2E */
         NRF_WIFI_WPA3_H2E,
+	/** WPA3-AUTO : HNP-H2E */
+	NRF_WIFI_WPA3_AUTO,
+	/** WPA3-FT-SAE */
+	NRF_WIFI_WPA3_FT_SAE,
 	/** 8021X SUITE-B SHA256 */
         NRF_WIFI_EAP_SUITEB_SHA256,
 	/** 8021X SUITE-B SHA384 */
