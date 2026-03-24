@@ -176,6 +176,14 @@ enum nrf_wifi_status umac_cmd_sys_init(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 		umac_cmd_data->dynamic_ed = 1;
 	#endif /* NRF_WIFI_DYNAMIC_ED */
 
+#ifdef NRF70_SR_COEX
+	umac_cmd_data->bt_coex_disable = 0;
+	umac_cmd_data->bt_slot_time_in_ms = NRF70_BT_SLOT_TIME;
+#else
+	umac_cmd_data->bt_coex_disable = 1;
+	umac_cmd_data->bt_slot_time_in_ms = 0;
+#endif
+
 	status = nrf_wifi_hal_ctrl_cmd_send(fmac_dev_ctx->hal_dev_ctx,
 					    umac_cmd,
 					    (sizeof(*umac_cmd) + len));
