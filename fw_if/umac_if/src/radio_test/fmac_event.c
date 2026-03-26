@@ -15,8 +15,7 @@
 #include "radio_test/fmac_structs.h"
 #include "common/hal_mem.h"
 #include "common/fmac_util.h"
-
-#define RPU_MEM_RF_TEST_CAP_BASE 0xB0006000
+#include "common/rpu_if.h"
 
 static enum nrf_wifi_status umac_event_rt_stats_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 							void *event)

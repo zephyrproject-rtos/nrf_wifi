@@ -548,6 +548,17 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_rx_cap(struct nrf_wifi_fmac_dev_ct
 
 	rt_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
+#ifdef WIFI_NRF71
+	if (num_samples > NRF_WIFI_RF_TEST_RX_CAPTURE_MAX_SAMPLES) {
+		nrf_wifi_osal_log_err("%s: cap_len %u exceeds max %u",
+				      __func__,
+				      num_samples,
+				      (unsigned int)NRF_WIFI_RF_TEST_RX_CAPTURE_MAX_SAMPLES);
+		status = NRF_WIFI_STATUS_FAIL;
+		goto out;
+	}
+#endif
+
 	nrf_wifi_osal_mem_set(&rf_test_cap_params,
 			      0,
 			      sizeof(rf_test_cap_params));
@@ -557,10 +568,19 @@ enum nrf_wifi_status nrf_wifi_rt_fmac_rf_test_rx_cap(struct nrf_wifi_fmac_dev_ct
 	rf_test_cap_params.cap_time = capture_timeout;
 	rf_test_cap_params.lna_gain = lna_gain;
 	rf_test_cap_params.bb_gain = bb_gain;
+#ifdef WIFI_NRF71
+
+	rf_test_cap_params.capture_addr = (unsigned int *)(unsigned long)RPU_MEM_RF_TEST_CAP_BASE;
+#endif
 
 	rt_dev_ctx->rf_test_type = rf_test_type;
 	rt_dev_ctx->rf_test_cap_data = cap_data;
+#ifdef WIFI_NRF71
+
+	rt_dev_ctx->rf_test_cap_sz = (num_samples * 4);
+#else
 	rt_dev_ctx->rf_test_cap_sz = (num_samples * 3);
+#endif
 	rt_dev_ctx->capture_status = 0;
 
 	status = umac_cmd_rt_prog_rf_test(fmac_dev_ctx,
