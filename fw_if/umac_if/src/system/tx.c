@@ -272,9 +272,17 @@ static enum nrf_wifi_status update_pend_q_bmp(struct nrf_wifi_fmac_dev_ctx *fmac
 	unsigned char *bmp = NULL;
 	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
 
+	if (!fmac_dev_ctx) {
+		goto out;
+	}
+
+	if (peer_id < 0) {
+		goto out;
+	}
+
 	sys_dev_ctx = wifi_dev_priv(fmac_dev_ctx);
 
-	if (!fmac_dev_ctx) {
+	if (!sys_dev_ctx) {
 		goto out;
 	}
 
