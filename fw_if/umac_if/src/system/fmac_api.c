@@ -2128,12 +2128,15 @@ unsigned char nrf_wifi_sys_fmac_add_vif(void *dev_ctx,
 	switch (vif_info->iftype) {
 	case NRF_WIFI_IFTYPE_STATION:
 	case NRF_WIFI_IFTYPE_P2P_CLIENT:
+	case NRF_WIFI_STA_TX_INJECTOR:
+	case NRF_WIFI_STA_PROMISC:
+	case NRF_WIFI_STA_PROMISC_TX_INJECTOR:
 	case NRF_WIFI_IFTYPE_AP:
 	case NRF_WIFI_IFTYPE_P2P_GO:
 		break;
 	default:
-		nrf_wifi_osal_log_err("%s: VIF type not supported",
-				      __func__);
+		nrf_wifi_osal_log_err("%s: VIF type %d not supported",
+				      __func__, vif_info->iftype);
 		goto err;
 	}
 
@@ -2258,6 +2261,9 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_del_vif(void *dev_ctx,
 	switch (sys_dev_ctx->vif_ctx[if_idx]->if_type) {
 	case NRF_WIFI_IFTYPE_STATION:
 	case NRF_WIFI_IFTYPE_P2P_CLIENT:
+	case NRF_WIFI_STA_TX_INJECTOR:
+	case NRF_WIFI_STA_PROMISC:
+	case NRF_WIFI_STA_PROMISC_TX_INJECTOR:
 	case NRF_WIFI_IFTYPE_AP:
 	case NRF_WIFI_IFTYPE_P2P_GO:
 		break;
@@ -2339,6 +2345,9 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_chg_vif(void *dev_ctx,
 	switch (vif_info->iftype) {
 	case NRF_WIFI_IFTYPE_STATION:
 	case NRF_WIFI_IFTYPE_P2P_CLIENT:
+	case NRF_WIFI_STA_TX_INJECTOR:
+	case NRF_WIFI_STA_PROMISC:
+	case NRF_WIFI_STA_PROMISC_TX_INJECTOR:
 	case NRF_WIFI_IFTYPE_AP:
 	case NRF_WIFI_IFTYPE_P2P_GO:
 		break;

@@ -25,6 +25,9 @@ int nrf_wifi_fmac_vif_check_if_limit(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	switch (if_type) {
 	case NRF_WIFI_IFTYPE_STATION:
 	case NRF_WIFI_IFTYPE_P2P_CLIENT:
+	case NRF_WIFI_STA_TX_INJECTOR:
+	case NRF_WIFI_STA_PROMISC:
+	case NRF_WIFI_STA_PROMISC_TX_INJECTOR:
 		if (sys_dev_ctx->num_sta > MAX_NUM_STAS) {
 			nrf_wifi_osal_log_err("%s: Maximum STA Interface type exceeded",
 					      __func__);
@@ -40,8 +43,8 @@ int nrf_wifi_fmac_vif_check_if_limit(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 		}
 		break;
 	default:
-		nrf_wifi_osal_log_err("%s: Interface type not supported",
-				      __func__);
+		nrf_wifi_osal_log_err("%s: Interface type %d not supported",
+				      __func__, if_type);
 		return -1;
 	}
 
@@ -59,6 +62,9 @@ void nrf_wifi_fmac_vif_incr_if_type(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	switch (if_type) {
 	case NRF_WIFI_IFTYPE_STATION:
 	case NRF_WIFI_IFTYPE_P2P_CLIENT:
+	case NRF_WIFI_STA_TX_INJECTOR:
+	case NRF_WIFI_STA_PROMISC:
+	case NRF_WIFI_STA_PROMISC_TX_INJECTOR:
 		sys_dev_ctx->num_sta++;
 		break;
 	case NRF_WIFI_IFTYPE_AP:
@@ -66,8 +72,8 @@ void nrf_wifi_fmac_vif_incr_if_type(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 		sys_dev_ctx->num_ap++;
 		break;
 	default:
-		nrf_wifi_osal_log_err("%s:Unsupported VIF type",
-				      __func__);
+		nrf_wifi_osal_log_err("%s: Unsupported VIF type %d",
+				      __func__, if_type);
 	}
 }
 
@@ -82,6 +88,9 @@ void nrf_wifi_fmac_vif_decr_if_type(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	switch (if_type) {
 	case NRF_WIFI_IFTYPE_STATION:
 	case NRF_WIFI_IFTYPE_P2P_CLIENT:
+	case NRF_WIFI_STA_TX_INJECTOR:
+	case NRF_WIFI_STA_PROMISC:
+	case NRF_WIFI_STA_PROMISC_TX_INJECTOR:
 		sys_dev_ctx->num_sta--;
 		break;
 	case NRF_WIFI_IFTYPE_AP:
@@ -89,8 +98,8 @@ void nrf_wifi_fmac_vif_decr_if_type(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 		sys_dev_ctx->num_ap--;
 		break;
 	default:
-		nrf_wifi_osal_log_err("%s:Unsupported VIF type",
-				      __func__);
+		nrf_wifi_osal_log_err("%s: Unsupported VIF type %d",
+				      __func__, if_type);
 	}
 }
 
