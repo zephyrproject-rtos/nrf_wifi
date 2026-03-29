@@ -2281,25 +2281,39 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_del_vif(void *dev_ctx,
 		goto out;
 	}
 
-#ifdef NRF70_SYSTEM_WITH_RAW_MODES
-	/* Reset firmware mode to default before deleting the VIF. For the
-	 * default interface (if_idx 0) no del-interface command is sent, so
-	 * without an explicit reset the firmware retains the compound mode
-	 * (TX injection / promiscuous) across an interface down/up cycle.
+	/* Firmware creates VIF 0 internally and does not accept
+	 * NEW_INTERFACE / DEL_INTERFACE for it, so any mode change
+	 * (AP, P2P, raw overlay) persists across a down/up cycle
+	 * unless we explicitly reset it here. Non-default VIFs are
+	 * fully destroyed by the DEL_INTERFACE command sent below.
+	 *
+	 * Two different firmware commands are needed because interface
+	 * type (AP/P2P) and raw-mode overlay (TX-inject/promiscuous)
+	 * live in separate firmware config paths: SET_INTERFACE vs
+	 * RAW_CONFIG_MODE respectively.
 	 */
-	if (vif_ctx->if_type != NRF_WIFI_IFTYPE_STATION &&
-	    vif_ctx->if_type != NRF_WIFI_IFTYPE_P2P_CLIENT &&
-	    vif_ctx->if_type != NRF_WIFI_IFTYPE_AP &&
-	    vif_ctx->if_type != NRF_WIFI_IFTYPE_P2P_GO) {
-		nrf_wifi_sys_fmac_set_mode(fmac_dev_ctx,
-					   if_idx,
-					   NRF_WIFI_STA_MODE);
-	}
-#endif /* NRF70_SYSTEM_WITH_RAW_MODES */
+	if (if_idx == 0 && vif_ctx->if_type != NRF_WIFI_IFTYPE_STATION) {
+		if (vif_ctx->if_type == NRF_WIFI_IFTYPE_AP ||
+		    vif_ctx->if_type == NRF_WIFI_IFTYPE_P2P_GO ||
+		    vif_ctx->if_type == NRF_WIFI_IFTYPE_P2P_CLIENT) {
+			struct nrf_wifi_umac_chg_vif_attr_info sta_info;
 
-	/* We should not send a command to the RPU for the default interface,
-	 * since the FW is adding that interface by default. We just need to
-	 * send commands for non-default interfaces
+			nrf_wifi_osal_mem_set(&sta_info, 0,
+					     sizeof(sta_info));
+			sta_info.iftype = NRF_WIFI_IFTYPE_STATION;
+			nrf_wifi_sys_fmac_chg_vif(fmac_dev_ctx, if_idx,
+						  &sta_info);
+		}
+#ifdef NRF70_SYSTEM_WITH_RAW_MODES
+		else {
+			nrf_wifi_sys_fmac_set_mode(fmac_dev_ctx, if_idx,
+						   NRF_WIFI_STA_MODE);
+		}
+#endif /* NRF70_SYSTEM_WITH_RAW_MODES */
+	}
+
+	/* Firmware manages VIF 0 internally, only send DEL_INTERFACE
+	 * for non-default VIFs.
 	 */
 	if (if_idx != 0) {
 		del_vif_cmd = nrf_wifi_osal_mem_zalloc(sizeof(*del_vif_cmd));
