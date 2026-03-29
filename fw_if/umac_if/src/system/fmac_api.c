@@ -2281,6 +2281,22 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_del_vif(void *dev_ctx,
 		goto out;
 	}
 
+#ifdef NRF70_SYSTEM_WITH_RAW_MODES
+	/* Reset firmware mode to default before deleting the VIF. For the
+	 * default interface (if_idx 0) no del-interface command is sent, so
+	 * without an explicit reset the firmware retains the compound mode
+	 * (TX injection / promiscuous) across an interface down/up cycle.
+	 */
+	if (vif_ctx->if_type != NRF_WIFI_IFTYPE_STATION &&
+	    vif_ctx->if_type != NRF_WIFI_IFTYPE_P2P_CLIENT &&
+	    vif_ctx->if_type != NRF_WIFI_IFTYPE_AP &&
+	    vif_ctx->if_type != NRF_WIFI_IFTYPE_P2P_GO) {
+		nrf_wifi_sys_fmac_set_mode(fmac_dev_ctx,
+					   if_idx,
+					   NRF_WIFI_STA_MODE);
+	}
+#endif /* NRF70_SYSTEM_WITH_RAW_MODES */
+
 	/* We should not send a command to the RPU for the default interface,
 	 * since the FW is adding that interface by default. We just need to
 	 * send commands for non-default interfaces
@@ -2320,6 +2336,7 @@ out:
 
 	if (vif_ctx) {
 		nrf_wifi_osal_mem_free(vif_ctx);
+		sys_dev_ctx->vif_ctx[if_idx] = NULL;
 	}
 
 	return status;
