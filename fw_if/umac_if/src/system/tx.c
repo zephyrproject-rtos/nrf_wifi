@@ -1886,7 +1886,8 @@ static int get_ac(unsigned int tid,
 #ifdef NRF70_RAW_DATA_TX
 static bool nrf_wifi_raw_pkt_mode_enabled(struct nrf_wifi_fmac_vif_ctx *vif)
 {
-	if ((vif->if_type == NRF_WIFI_STA_TX_INJECTOR) ||
+	if ((vif->if_type == NRF_WIFI_TX_INJECTOR) ||
+	    (vif->if_type == NRF_WIFI_STA_TX_INJECTOR) ||
 	    (vif->if_type == NRF_WIFI_MONITOR_TX_INJECTOR) ||
 	    (vif->if_type == NRF_WIFI_STA_PROMISC_TX_INJECTOR)) {
 		return true;
