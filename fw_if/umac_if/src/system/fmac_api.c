@@ -2262,8 +2262,8 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_del_vif(void *dev_ctx,
 	case NRF_WIFI_IFTYPE_P2P_GO:
 		break;
 	default:
-		nrf_wifi_osal_log_err("%s: VIF type not supported",
-				      __func__);
+		nrf_wifi_osal_log_err("%s: VIF type %d not supported",
+				      __func__, sys_dev_ctx->vif_ctx[if_idx]->if_type);
 		goto out;
 	}
 
@@ -2343,7 +2343,8 @@ enum nrf_wifi_status nrf_wifi_sys_fmac_chg_vif(void *dev_ctx,
 	case NRF_WIFI_IFTYPE_P2P_GO:
 		break;
 	default:
-		nrf_wifi_osal_log_err("%s: VIF type not supported", __func__);
+		nrf_wifi_osal_log_err("%s: VIF type %d not supported",
+				      __func__, vif_info->iftype);
 		goto out;
 	}
 
