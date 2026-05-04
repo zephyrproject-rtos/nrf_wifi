@@ -964,6 +964,14 @@ struct nrf_wifi_cmd_sys_init {
 	unsigned int bt_slot_time_in_ms;
 	/* Set 1 to disable PTA in Wi-Fi */
 	unsigned int bt_coex_disable;
+	/** The RPU uses this value to determine the behaviour once the
+	 *  @ref display_scan_bss_limit is reached.
+	 *  0 (default): keep scanning; weaker RSSI entries will be replaced so the list
+	 *               stays ranked by signal strength.
+	 *  1: Terminates the scan once the limit is met, trigger a scan done to the
+	 *     upper layer and scan abort to the lower layer.
+	 */
+	unsigned char display_scan_abort_on_bss_limit;
 } __NRF_WIFI_PKD;
 
 /**
