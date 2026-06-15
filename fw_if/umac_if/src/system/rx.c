@@ -266,6 +266,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 		if (!phy_addr) {
 			nrf_wifi_osal_log_err("%s: nrf_wifi_sys_hal_buf_map_rx failed",
 						  __func__);
+			nrf_wifi_osal_nbuf_free((void *)nwb);
 			status = NRF_WIFI_STATUS_FAIL;
 			goto out;
 		}
@@ -286,7 +287,7 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 		 * It needs to be relooked to map for nrf71 and other products
 		 * properly.
 		 */
-		rx_buf_info->nwb =  (unsigned int)nwb;
+		rx_buf_info->nwb = (unsigned int)nwb;
 		rx_buf_info->mapped = true;
 #else
 		status = nrf_wifi_sys_hal_data_cmd_send(fmac_dev_ctx->hal_dev_ctx,
@@ -295,7 +296,20 @@ enum nrf_wifi_status nrf_wifi_fmac_rx_cmd_send(struct nrf_wifi_fmac_dev_ctx *fma
 							sizeof(rx_addr),
 							desc_id,
 							pool_info.pool_id);
-#endif /*NRF_WIFI_RX_BUFF_PROG_UMAC */
+
+		if (status != NRF_WIFI_STATUS_SUCCESS) {
+			(void)nrf_wifi_sys_hal_buf_unmap_rx(fmac_dev_ctx->hal_dev_ctx,
+							    0,
+							    pool_info.pool_id,
+							    pool_info.buf_id);
+			nrf_wifi_osal_nbuf_free((void *)nwb);
+			rx_buf_info->nwb = 0;
+			rx_buf_info->mapped = false;
+			nrf_wifi_osal_log_err("%s: nrf_wifi_sys_hal_data_cmd_send failed for desc %u",
+						  __func__,
+						  desc_id);
+		}
+#endif /* NRF_WIFI_RX_BUFF_PROG_UMAC */
 	} else if (cmd_type == NRF_WIFI_FMAC_RX_CMD_TYPE_DEINIT) {
 		/* TODO: Need to initialize a command and send it to LMAC
 		 * when LMAC is capable of handling deinit command
