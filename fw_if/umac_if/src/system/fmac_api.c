@@ -3986,6 +3986,51 @@ out:
 	return status;
 }
 #endif /* NRF_WIFI_LOW_POWER */
+
+enum nrf_wifi_status nrf_wifi_fmac_req_extended_sleep(void *dev_ctx,
+						      unsigned char if_idx,
+						      unsigned int duration_sec)
+{
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	struct nrf_wifi_umac_cmd_config_quiet_period *set_quiet_period_cmd = NULL;
+	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+
+	fmac_dev_ctx = dev_ctx;
+
+	if (!fmac_dev_ctx) {
+		nrf_wifi_osal_log_err("%s: Invalid parameters",
+				      __func__);
+		goto out;
+	}
+
+	if (fmac_dev_ctx->op_mode != NRF_WIFI_OP_MODE_SYS) {
+		nrf_wifi_osal_log_err("%s: Invalid op mode",
+				      __func__);
+		goto out;
+	}
+
+	set_quiet_period_cmd = nrf_wifi_osal_mem_zalloc(sizeof(*set_quiet_period_cmd));
+
+	if (!set_quiet_period_cmd) {
+		nrf_wifi_osal_log_err("%s: Unable to allocate memory",
+				      __func__);
+		goto out;
+	}
+
+	set_quiet_period_cmd->umac_hdr.cmd_evnt = NRF_WIFI_UMAC_CMD_CONFIG_QUIET_PERIOD;
+	set_quiet_period_cmd->umac_hdr.ids.wdev_id = if_idx;
+	set_quiet_period_cmd->umac_hdr.ids.valid_fields |=
+		NRF_WIFI_INDEX_IDS_WDEV_ID_VALID;
+	set_quiet_period_cmd->quiet_period_in_sec = duration_sec;
+
+	status = umac_cmd_cfg(fmac_dev_ctx,
+			      set_quiet_period_cmd,
+			      sizeof(*set_quiet_period_cmd));
+out:
+	nrf_wifi_osal_mem_free(set_quiet_period_cmd);
+
+	return status;
+}
 #endif /* NRF70_UTIL */
 
 
