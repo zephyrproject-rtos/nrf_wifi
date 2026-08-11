@@ -1300,6 +1300,8 @@ enum UMAC_QUEUE_NUM {
 	UMAC_AC_MAX_CNT
 };
 
+#define AGGR_DISABLE 0
+#define AGGR_ENABLE 1
 /**
  * @brief This structure defines the raw tx parameters used in packet injector mode.
  *
@@ -1309,9 +1311,7 @@ struct nrf_wifi_raw_tx_pkt {
 	unsigned char queue_num;
 	/** Descriptor identifier or token identifier. */
 	unsigned char desc_num;
-	/** Packet lengths of frames. */
-	unsigned short pkt_length;
-	/** Number of times a packet should be transmitted at each possible rate. */
+	/* Number of times a packet should be transmitted at each possible rate */
 	unsigned char rate_retries;
 	/** refer see &enum rpu_tput_mode. */
 	unsigned char rate_flags;
@@ -1319,8 +1319,14 @@ struct nrf_wifi_raw_tx_pkt {
 	 *		  11N VHT HE  : MCS index 0 to 7.
 	 **/
 	unsigned char rate;
-	/** Starting Physical address of each frame in Ext-RAM after dma_mapping. */
-	unsigned int  frame_ddr_pointer;
+	/* @aggregation: AGGR_DISABLE(0)/AGGR_ENABLE(1) */
+	unsigned char aggregation;
+        /* @num_frames: Number of frames in this command */
+	unsigned char num_frames;
+	/* Packet lengths of frames */
+	unsigned short pkt_length[MAX_TX_AGG_SIZE];
+	/* Starting Physical address of each frame in Ext-RAM after dma_mapping */
+	unsigned int  frame_ddr_pointer[MAX_TX_AGG_SIZE];
 } __NRF_WIFI_PKD;
 
 /**
@@ -1733,7 +1739,9 @@ enum nrf_wifi_cmd_status {
 	/** Invalid channel error */
 	NRF_WIFI_UMAC_INVALID_CHNL,
 	/** Invalid power error wrt configured regulatory domain */
-	NRF_WIFI_UMAC_INVALID_TXPWR
+	NRF_WIFI_UMAC_INVALID_TXPWR,
+	/** Invalid rate error wrt configured regulatory domain */
+	NRF_WIFI_UMAC_INVALID_RATE
 };
 
 /**
