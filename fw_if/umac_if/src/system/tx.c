@@ -567,6 +567,29 @@ static int tx_curr_peer_opp_get(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	return peer_id;
 }
 
+#ifdef NRF70_RAW_DATA_TX
+static unsigned char raw_tx_aggr_limit(void *first_nwb,
+				      unsigned char max_txq_len)
+{
+	struct raw_tx_pkt_header *raw_tx_hdr = NULL;
+
+	if (!first_nwb || !nrf_wifi_osal_nbuf_is_raw_tx(first_nwb)) {
+		return 1;
+	}
+
+	raw_tx_hdr = nrf_wifi_osal_nbuf_get_raw_tx_hdr(first_nwb);
+	if (!raw_tx_hdr || raw_tx_hdr->aggregation != AGGR_ENABLE) {
+		return 1;
+	}
+
+	if (raw_tx_hdr->num_frames == 0 || raw_tx_hdr->num_frames > max_txq_len) {
+		return max_txq_len;
+	}
+
+	return raw_tx_hdr->num_frames;
+}
+#endif /* NRF70_RAW_DATA_TX */
+
 static size_t _tx_pending_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 			unsigned int desc,
 			unsigned int ac)
@@ -581,6 +604,10 @@ static size_t _tx_pending_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 
 	int max_txq_len, avail_ampdu_len_per_token;
 	int ampdu_len = 0;
+#ifdef NRF70_RAW_DATA_TX
+	unsigned char raw_tx_aggr_max = 1;
+	bool is_raw_tx_pkt = false;
+#endif /* NRF70_RAW_DATA_TX */
 	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
 	struct nrf_wifi_sys_fmac_priv *sys_fpriv = NULL;
 
@@ -621,6 +648,12 @@ static size_t _tx_pending_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 	 */
 	if (nrf_wifi_utils_q_len(pend_pkt_q)) {
 		first_nwb = nrf_wifi_utils_q_peek(pend_pkt_q);
+#ifdef NRF70_RAW_DATA_TX
+		if (first_nwb && nrf_wifi_osal_nbuf_is_raw_tx(first_nwb)) {
+			is_raw_tx_pkt = true;
+			raw_tx_aggr_max = raw_tx_aggr_limit(first_nwb, max_txq_len);
+		}
+#endif /* NRF70_RAW_DATA_TX */
 	}
 
 	while (nrf_wifi_utils_q_len(pend_pkt_q)) {
@@ -633,6 +666,14 @@ static size_t _tx_pending_process(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 			break;
 		}
 
+#ifdef NRF70_RAW_DATA_TX
+		if (is_raw_tx_pkt) {
+			if (!can_xmit(fmac_dev_ctx, nwb) ||
+			    (nrf_wifi_utils_q_len(txq) >= raw_tx_aggr_max)) {
+				break;
+			}
+		} else
+#endif /* NRF70_RAW_DATA_TX */
 		if (!can_xmit(fmac_dev_ctx, nwb) ||
 			(!tx_aggr_check(fmac_dev_ctx, first_nwb, ac, peer_id)) ||
 			(nrf_wifi_utils_q_len(txq) >= max_txq_len)) {
@@ -727,10 +768,17 @@ enum nrf_wifi_status rawtx_cmd_prep_callbk_fn(void *callbk_data,
 		goto out;
 	}
 
+	if (frame_indx >= MAX_TX_AGG_SIZE) {
+		nrf_wifi_osal_log_err("%s: Raw TX aggregation limit exceeded",
+				      __func__);
+		status = NRF_WIFI_STATUS_FAIL;
+		goto out;
+	}
+
 	tx_buf_info->nwb = nwb;
 	tx_buf_info->mapped = true;
-	config->raw_tx_info.frame_ddr_pointer = (unsigned long long)phy_addr;
-	config->raw_tx_info.pkt_length = buf_len;
+	config->raw_tx_info.frame_ddr_pointer[frame_indx] = phy_addr;
+	config->raw_tx_info.pkt_length[frame_indx] = buf_len;
 	info->num_tx_pkts++;
 
 	status = NRF_WIFI_STATUS_SUCCESS;
@@ -850,6 +898,8 @@ enum nrf_wifi_status rawtx_cmd_prepare(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 	config->sys_head.len = sizeof(*config);
 	config->if_index = vif_id;
 	config->raw_tx_info.desc_num = desc;
+	config->raw_tx_info.aggregation = AGGR_DISABLE;
+	config->raw_tx_info.num_frames = 1;
 
 	/* Check first packet in queue for per-packet raw TX config */
 	void *first_nwb = nrf_wifi_utils_list_peek(txq);
@@ -861,6 +911,7 @@ enum nrf_wifi_status rawtx_cmd_prepare(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 			config->raw_tx_info.queue_num = raw_tx_hdr->queue;
 			config->raw_tx_info.rate = raw_tx_hdr->data_rate;
 			config->raw_tx_info.rate_flags = raw_tx_hdr->tx_mode;
+			config->raw_tx_info.aggregation = raw_tx_hdr->aggregation;
 		}
 	}
 
@@ -876,6 +927,8 @@ enum nrf_wifi_status rawtx_cmd_prepare(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ct
 				      __func__);
 		goto err;
 	}
+
+	config->raw_tx_info.num_frames = info.num_tx_pkts;
 
 	return NRF_WIFI_STATUS_SUCCESS;
 err:
