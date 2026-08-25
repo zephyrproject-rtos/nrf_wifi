@@ -434,12 +434,16 @@ struct raw_tx_pkt_header {
 	unsigned char tx_mode;
 	/** Wi-Fi access category mapping for packet @ref nrf_wifi_fmac_ac. */
 	unsigned char queue;
+	/** Aggregation control: AGGR_DISABLE(0)/AGGR_ENABLE(1). */
+	unsigned char aggregation;
+	/** Number of frames to aggregate when aggregation is enabled. */
+	unsigned char num_frames;
 	/**
 	 * Padding to ensure sizeof(struct raw_tx_pkt_header) is 12 bytes
 	 * (multiple of 4). This maintains 4-byte alignment of frame data
 	 * after header is pulled, which is required for DMA operations.
 	 */
-	unsigned char reserved[3];
+	unsigned char reserved;
 } __attribute__((packed));
 
 /**
