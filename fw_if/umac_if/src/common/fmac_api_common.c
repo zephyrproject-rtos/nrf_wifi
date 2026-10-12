@@ -552,7 +552,9 @@ enum nrf_wifi_status nrf_wifi_fmac_set_reg(struct nrf_wifi_fmac_dev_ctx *fmac_de
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_cmd_req_set_reg *set_reg_cmd = NULL;
-	unsigned int count = 0, max_count = NRF_WIFI_FMAC_REG_SET_TIMEOUT_MS / 20;
+	unsigned int count = 0;
+	unsigned int max_count = NRF_WIFI_FMAC_REG_SET_TIMEOUT_MS /
+				 NRF_WIFI_FMAC_REG_SET_POLL_INTERVAL_MS;
 	enum nrf_wifi_reg_initiator exp_initiator = NRF_WIFI_REGDOM_SET_BY_USER;
 	enum nrf_wifi_reg_type exp_reg_type = NRF_WIFI_REGDOM_TYPE_COUNTRY;
 	char exp_alpha2[NRF_WIFI_COUNTRY_CODE_LEN] = {0};
@@ -629,15 +631,15 @@ enum nrf_wifi_status nrf_wifi_fmac_set_reg(struct nrf_wifi_fmac_dev_ctx *fmac_de
 		goto out;
 	}
 
-	fmac_dev_ctx->reg_set_status = false;
 	nrf_wifi_osal_log_dbg("%s: Waiting for regulatory domain change event", __func__);
-	while (!fmac_dev_ctx->reg_set_status && count++ <= max_count) {
-		nrf_wifi_osal_sleep_ms(100);
+	while (!fmac_dev_ctx->reg_set_status && count++ < max_count) {
+		nrf_wifi_osal_sleep_ms(NRF_WIFI_FMAC_REG_SET_POLL_INTERVAL_MS);
 	}
 
 	if (!fmac_dev_ctx->reg_set_status) {
 		nrf_wifi_osal_log_err("%s: Failed to set regulatory information",
 				      __func__);
+		fmac_dev_ctx->waiting_for_reg_event = false;
 		status = NRF_WIFI_STATUS_FAIL;
 		goto out;
 	}
