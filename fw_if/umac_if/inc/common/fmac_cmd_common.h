@@ -17,6 +17,7 @@
 #define NRF_WIFI_FMAC_STATS_RECV_TIMEOUT 50 /* ms */
 #define NRF_WIFI_FMAC_PS_CONF_EVNT_RECV_TIMEOUT 50 /* ms */
 #define NRF_WIFI_FMAC_REG_SET_TIMEOUT_MS 2000 /* 2s */
+#define NRF_WIFI_FMAC_REG_SET_POLL_INTERVAL_MS 20 /* ms */
 
 struct host_rpu_msg *umac_cmd_alloc(struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx,
 				    int type,
