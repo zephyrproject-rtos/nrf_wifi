@@ -29,6 +29,4 @@ int nrf_wifi_utils_hex_str_to_val(unsigned char *hex_arr,
 
 bool nrf_wifi_utils_is_mac_addr_valid(const char *mac_addr);
 
-int nrf_wifi_utils_chan_to_freq(enum nrf_wifi_band band,
-				unsigned short chan);
 #endif /* __UTIL_H__ */
