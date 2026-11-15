@@ -12,7 +12,7 @@
  */
 
 #ifndef __FMAC_EVENT_SYS_H__
-#define __FMAC_EVENT_SYS__H__
+#define __FMAC_EVENT_SYS_H__
 
 enum nrf_wifi_status nrf_wifi_sys_fmac_event_callback(void *mac_dev_ctx,
 						      void *rpu_event_data,
